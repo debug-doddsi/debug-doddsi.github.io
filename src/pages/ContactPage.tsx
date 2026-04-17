@@ -1,5 +1,5 @@
 import { Send, Mail, Linkedin, Link } from "lucide-react";
-import { PageShell, SkeletonBlock } from "../components/ui/PageShell";
+import { PageShell } from "../components/ui/PageShell";
 
 export function ContactPage() {
   return (
