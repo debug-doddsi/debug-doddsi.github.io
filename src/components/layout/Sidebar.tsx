@@ -71,7 +71,7 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
       {/* Footer note */}
       <div className="px-6 pb-6">
         <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest">
-          typed by hand, with love in Leith
+          typed by hand, <br /> with love in Leith
         </p>
       </div>
     </aside>

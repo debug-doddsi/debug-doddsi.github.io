@@ -48,6 +48,14 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
         className="pointer-events-none fixed top-0 left-0 w-72 h-72 rounded-full opacity-[0.04] blur-3xl"
         style={{ background: "var(--accent)" }}
       />
+
+      {/* Mobile backdrop to allow closing of sidebar by clicking on main page*/}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-[5] bg-black/40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }
