@@ -48,9 +48,9 @@ const FILTERS: { label: string; value: Category }[] = [
 export function Interests() {
   const [active, setActive] = useState<Category>('all')
 
-  const filtered = INTERESTS.filter(i =>
-    active === 'all' ? true : i.category === active
-  )
+  const filtered = INTERESTS.filter((i) =>
+    active === "all" ? true : i.category === active,
+  ).sort((a, b) => a.label.localeCompare(b.label));
 
   return (
     <div className="space-y-5">
