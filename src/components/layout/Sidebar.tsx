@@ -67,7 +67,8 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
       {/* Footer note */}
       <div className="px-6 pb-6">
         <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest">
-          made with care
+          made by hand,
+          with love in Leith
         </p>
       </div>
     </aside>
