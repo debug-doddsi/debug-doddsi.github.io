@@ -9,6 +9,7 @@
   --accent-rgb: 201, 132, 154;
   --bg-base: #0a0a0a;
   --bg-sidebar: #0a0a0a;
+  --border: oklch(0.922 0 0);
 }
 
 /* ─── Fun mode — full girly pink 🎀 ───────────────────────── */
