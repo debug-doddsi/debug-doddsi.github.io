@@ -9,9 +9,8 @@ export function SkeletonBlock({
 }: SkeletonBlockProps) {
   return (
     <div
-      className={`${height} rounded-lg border border-neutral-800 border-dashed bg-neutral-900/40 flex items-center justify-center`}
-    >
-      <span className="font-mono text-neutral-700 text-xs uppercase tracking-widest">
+className={`${height} rounded-lg border border-accent bg-accent-soft flex items-center justify-center`}    >
+      <span className="font-mono text-neutral-500 text-xs uppercase tracking-widest">
         {label}
       </span>
     </div>
