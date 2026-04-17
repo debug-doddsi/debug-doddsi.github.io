@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Base tokens (professionally pink) */
+/* ─── Base tokens (professional)*/
 :root {
-  --accent: #f89dcc;
-  --accent-soft: #c9849a20;
-  --accent-rgb: 201, 132, 154;
-  --bg-base: #0a0a0a;
-  --bg-sidebar: #0a0a0a;
+--accent: #a690c4;
+--accent-soft: #a690c418;
+--accent-rgb: 166, 144, 196;
+  --bg-base: #f5f0eb;
+  --bg-sidebar: #ede8e3;
   --border: oklch(0.922 0 0);
 }
 
@@ -64,6 +64,22 @@ html.pink .border-neutral-800 { border-color: #ffc2e0 !important; }
 html.pink .hover\:bg-neutral-800:hover { background-color: #ffd6ec !important; }
 html.pink .bg-neutral-900\/40 { background-color: #ffe8f4 !important; }
 html.pink .border-neutral-700 { border-color: #ffc2e0 !important; }
+
+html:not(.pink) body { color: #1a1410; }
+html:not(.pink) .bg-neutral-950 { background-color: #f5f0eb !important; }
+html:not(.pink) .bg-neutral-900 { background-color: #ede8e3 !important; }
+html:not(.pink) aside { background-color: #ede8e3 !important; border-color: #d4cdc6 !important; }
+html:not(.pink) header { background-color: #ede8e3 !important; border-color: #d4cdc6 !important; }
+html:not(.pink) .text-neutral-100 { color: #1a1410 !important; }
+html:not(.pink) .text-neutral-300 { color: #a690c4 !important; }
+html:not(.pink) .text-neutral-400 { color: #6b5f58 !important; }
+html:not(.pink) .text-neutral-500 { color: #a690c4 !important; }
+html:not(.pink) .text-neutral-700 { color: #a690c4 !important; }
+html:not(.pink) .border-neutral-700 { border-color: #d4cdc6 !important; }
+html:not(.pink) .border-neutral-800 { border-color: #d4cdc6 !important; }
+html:not(.pink) .hover\:bg-neutral-800:hover { background-color: #e0d9d2 !important; }
+html:not(.pink) .bg-neutral-900\/40 { background-color: #ede8e3 !important; }
+
 /* ─── Accent utility (CSS var aware) ─────────────────────── */
 .text-accent {
   color: var(--accent);
