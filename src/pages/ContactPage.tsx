@@ -1,4 +1,4 @@
-import { Send } from "lucide-react";
+import { Send, Mail } from "lucide-react";
 import { PageShell, SkeletonBlock } from "../components/ui/PageShell";
 
 export function ContactPage() {
@@ -9,7 +9,15 @@ export function ContactPage() {
       icon={<Send size={28} />}
     >
       <div className="space-y-4">
-        <SkeletonBlock label="TODO: Email / social links" height="h-24" />
+        <div className="flex items-center gap-3">
+          <Mail size={16} className="text-accent shrink-0" />
+          
+            <a href="mailto:hello.ionakate@gmail.com"
+            className="text-accent hover:underline font-body text-sm"
+          >
+            hello.ionakate@gmail.com
+          </a>
+        </div>
         <SkeletonBlock label="TODO: Contact form (optional)" height="h-48" />
       </div>
     </PageShell>
