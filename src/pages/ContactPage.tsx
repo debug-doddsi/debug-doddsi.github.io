@@ -1,6 +1,5 @@
-import { Send, Mail } from "lucide-react";
+import { Send, Mail, Linkedin, Link } from "lucide-react";
 import { PageShell, SkeletonBlock } from "../components/ui/PageShell";
-import { Linkedin } from "lucide-react";
 
 export function ContactPage() {
   return (
@@ -29,11 +28,22 @@ export function ContactPage() {
               href="https://www.linkedin.com/in/ionawatson/"
               className="text-accent hover:underline font-body text-sm"
             >
-            LinkedIn
+              LinkedIn
+            </a>
+          </div>
+
+          {/* GitHub */}
+          <div className="flex items-center gap-3">
+            <Link size={16} className="text-accent shrink-0" />
+
+            <a
+              href="https://github.com/debug-doddsi"
+              className="text-accent hover:underline font-body text-sm"
+            >
+              Github
             </a>
           </div>
         </div>
-        <SkeletonBlock label="TODO: Contact form (optional)" height="h-48" />
       </div>
     </PageShell>
   );
