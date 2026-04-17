@@ -3,6 +3,8 @@ import { PinkToggle } from "../ui/PinkToggle";
 interface TopbarProps {
   isPink: boolean;
   onPinkToggle: () => void;
+  isSidebarOpen: boolean;
+  onSidebarToggle: (value: boolean) => void;
 }
 
 export function Topbar({ isPink, onPinkToggle }: TopbarProps) {

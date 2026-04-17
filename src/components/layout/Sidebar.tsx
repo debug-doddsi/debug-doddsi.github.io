@@ -24,11 +24,14 @@ const NAV_ITEMS: NavItem[] = [
 interface SidebarProps {
   active: TabId;
   onNavigate: (id: TabId) => void;
+  isSidebarOpen: boolean;
+  onSidebarToggle: (value: boolean) => void;
 }
 
-export function Sidebar({ active, onNavigate }: SidebarProps) {
+export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
   return (
-    <aside className="top-0 left-0 z-10 fixed flex flex-col bg-neutral-950 border-neutral-800 border-r w-52 h-full">
+    <aside
+      className={`top-0 left-0 z-10 fixed flex flex-col bg-neutral-950 border-neutral-800 border-r w-52 h-full transition-transform duration-300 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
       {/* Wordmark */}
       <div className="px-6 pt-8 pb-10">
         <span className="font-display text-neutral-100 text-xl tracking-tight">
@@ -67,8 +70,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
       {/* Footer note */}
       <div className="px-6 pb-6">
         <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest">
-          made by hand,
-          with love in Leith
+          typed by hand, with love in Leith
         </p>
       </div>
     </aside>
