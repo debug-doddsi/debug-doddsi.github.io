@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base tokens (professional — mauve-lilac, formerly "fun") */
+:root {
+  --accent: #c9849a;
+  --accent-soft: #c9849a20;
+  --accent-rgb: 201, 132, 154;
+  --bg-base: #0a0a0a;
+  --bg-sidebar: #0a0a0a;
+}
+
+/* ─── Fun mode — full girly pink 🎀 ───────────────────────── */
+html.pink {
+  --accent: #f472b6;
+  --accent-soft: #f472b630;
+  --accent-rgb: 244, 114, 182;
+  --bg-base: #1a0d14;
+  --bg-sidebar: #150a10;
+  --text-muted: #d4a0b8;
+}
+
+/* ─── Smooth theme transition ─────────────────────────────── */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* ─── Typography base ─────────────────────────────────────── */
+body {
+  font-family: "DM Sans", sans-serif;
+  background-color: var(--bg-base, #0a0a0a);
+  @apply text-neutral-100 antialiased;
+}
+
+html.pink .bg-neutral-950 {
+  background-color: var(--bg-base, #1a0d14) !important;
+}
+html.pink .bg-neutral-900 {
+  background-color: #221018 !important;
+}
+html.pink aside {
+  background-color: var(--bg-sidebar, #150a10) !important;
+}
+html.pink header {
+  background-color: var(--bg-sidebar, #150a10) !important;
+}
+html.pink .text-neutral-500 {
+  color: #d4a0b8 !important;
+}
+html.pink .text-neutral-400 {
+  color: #c490a8 !important;
+}
+html.pink .border-neutral-800 {
+  border-color: #3d1a28 !important;
+}
+html.pink .hover\:bg-neutral-800:hover {
+  background-color: #2a1020 !important;
+}
+
+/* ─── Accent utility (CSS var aware) ─────────────────────── */
+.text-accent {
+  color: var(--accent);
+}
+.bg-accent {
+  background-color: var(--accent);
+}
+.border-accent {
+  border-color: var(--accent);
+}
+.ring-accent {
+  --tw-ring-color: var(--accent);
+}
+.bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+.shadow-accent {
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.25);
+}
+.glow-accent {
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
+}
+
+/* ─── Nav active state ────────────────────────────────────── */
+.nav-item-active {
+  color: var(--accent);
+  background-color: var(--accent-soft);
+}
