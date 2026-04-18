@@ -199,3 +199,16 @@ html:not(.pink) .bg-neutral-900\/40 {
 .star-pulse {
   animation: starPulse 3s ease-in-out infinite;
 }
+
+.animate-ticker {
+  animation: ticker 75s linear infinite;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
