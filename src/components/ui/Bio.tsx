@@ -26,7 +26,6 @@ const TECH: TechItem[] = [
   { label: "Full-Stack Development", category: "frontend" },
 
   // Embedded
-  { label: "Embedded C", category: "embedded" },
   { label: "C++", category: "embedded" },
   { label: "Embedded Software", category: "embedded" },
   { label: "Safety Critical Software", category: "embedded" },
