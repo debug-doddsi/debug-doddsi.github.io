@@ -1,4 +1,11 @@
-import { Smile, FolderKanban, Gamepad2, Pencil, Send } from "lucide-react";
+import {
+  Smile,
+  FolderKanban,
+  Gamepad2,
+  Pencil,
+  Send,
+  Heart,
+} from "lucide-react";
 
 export type TabId = "about" | "work" | "playground" | "writing" | "contact";
 
@@ -42,7 +49,6 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
           .uk
         </p>
       </div>
-
       {/* Nav */}
       <nav className="flex-1 min-h-0 space-y-0.5 px-3 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
@@ -69,10 +75,16 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
       </nav>
 
       {/* Footer note */}
-      <div className="px-6 pb-6">
+      <div className="px-11 pb-6 flex items-center justify-between">
         <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest">
-          typed by hand, <br /> with love in Leith
+          made with love <br />
+          in Leith
         </p>
+        <Heart
+          size={10}
+          className="text-accent shrink-0"
+          fill="var(--accent)"
+        />
       </div>
     </aside>
   );
