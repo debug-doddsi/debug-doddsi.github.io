@@ -7,6 +7,7 @@ import { WorkPage } from "./pages/WorkPage";
 import { PlaygroundPage } from "./pages/PlaygroundPage";
 import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
+import { HomePage } from "./pages/HomePage";
 
 function renderTab(tab: TabId) {
   switch (tab) {
@@ -27,6 +28,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>("about");
   const { isPink, toggle } = usePinkMode();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
+
+  if (!hasEntered) {
+    return <HomePage onEnter={() => setHasEntered(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950">
