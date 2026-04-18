@@ -1,17 +1,17 @@
-import { Sparkles } from "lucide-react";
-
-interface PinkToggleProps {
-  isPink: boolean;
-  onToggle: () => void;
-}
-
 export function PinkToggle({ isPink, onToggle }: PinkToggleProps) {
   return (
     <button
       onClick={onToggle}
       aria-label="Toggle pink mode"
+      title={
+        isPink
+          ? "Click for a Professional colour palette"
+          : "Click for Iona's preferred colour palette"
+      }
       className="flex items-center gap-2 group"
     >
+      <span className="text-xs">💼</span>
+
       {/* Track */}
       <div
         className={`
@@ -30,11 +30,7 @@ export function PinkToggle({ isPink, onToggle }: PinkToggleProps) {
         />
       </div>
 
-      {/* Icon */}
-      <Sparkles
-        size={13}
-        className={`transition-all duration-300 ${isPink ? "text-accent opacity-100" : "text-neutral-600 opacity-60 group-hover:opacity-100 group-hover:text-accent"}`}
-      />
+      <span className="text-xs">🎀</span>
     </button>
   );
 }
