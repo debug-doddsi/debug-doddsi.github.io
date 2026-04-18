@@ -31,7 +31,7 @@ interface SidebarProps {
 export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
   return (
     <aside
-      className={`top-0 left-0 z-10 fixed flex flex-col bg-neutral-950 border-neutral-800 border-r w-52 h-full transition-transform duration-300 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+      className={`top-0 left-0 z-10 fixed flex flex-col bg-neutral-950 border-neutral-800 border-r w-52 h-screen overflow-hidden transition-transform duration-300 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
     >
       {/* Wordmark */}
       <div className="px-6 pt-16 pb-10">
@@ -44,7 +44,7 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3">
+      <nav className="flex-1 min-h-0 space-y-0.5 px-3 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive = item.id === active;
           return (
