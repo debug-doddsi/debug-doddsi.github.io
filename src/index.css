@@ -86,7 +86,7 @@ html.pink .border-neutral-800 {
   border-color: #ffc2e0 !important;
 }
 html.pink .hover\:bg-neutral-800:hover {
-  background-color: #ffd6ec !important;
+  background-color: #ffe0ef !important;
 }
 html.pink .bg-neutral-900\/40 {
   background-color: #ffe8f4 !important;
@@ -134,7 +134,7 @@ html:not(.pink) .border-neutral-800 {
   border-color: #d4cdc6 !important;
 }
 html:not(.pink) .hover\:bg-neutral-800:hover {
-  background-color: #e0d9d2 !important;
+  background-color: #ede8f5 !important;
 }
 html:not(.pink) .bg-neutral-900\/40 {
   background-color: #ede8e3 !important;
@@ -167,6 +167,10 @@ html:not(.pink) .bg-neutral-900\/40 {
 .nav-item-active {
   color: var(--accent);
   background-color: var(--accent-soft);
+}
+html:not(.pink) .nav-item-active {
+  color: #6b4fa0 !important;
+  background-color: #ddd5ee !important;
 }
 
 @keyframes fadeIn {
