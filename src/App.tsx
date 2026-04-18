@@ -7,7 +7,6 @@ import { WorkPage } from "./pages/WorkPage";
 import { PlaygroundPage } from "./pages/PlaygroundPage";
 import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
-import { Routes, Route } from "react-router-dom";
 
 function renderTab(tab: TabId) {
   switch (tab) {
