@@ -183,3 +183,19 @@ html:not(.pink) .bg-neutral-900\/40 {
 .fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+@keyframes starPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(var(--accent-rgb), 0.4));
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.8));
+    opacity: 0.85;
+  }
+}
+
+.star-pulse {
+  animation: starPulse 3s ease-in-out infinite;
+}

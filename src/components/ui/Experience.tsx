@@ -56,6 +56,7 @@ export function Experience() {
                 viewBox="0 0 15 15"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                className="star-pulse"
               >
                 <path
                   d="M7.5 0 L8.8 5.7 L14.5 7.5 L8.8 9.3 L7.5 15 L6.2 9.3 L0.5 7.5 L6.2 5.7 Z"
