@@ -1,6 +1,7 @@
 import { SkeletonBlock } from "./PageShell";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Experience } from "./Experience";
 
 type Category = "all" | "frontend" | "embedded";
 
@@ -130,10 +131,7 @@ export function Bio() {
         <h3 className="font-display text-lg text-neutral-100 mb-3">
           Experience
         </h3>
-        <SkeletonBlock label="TODO: Previous role 1" height="h-20" />
-        <div className="mt-3">
-          <SkeletonBlock label="TODO: Previous role 2" height="h-20" />
-        </div>
+        <Experience />
       </div>
 
       {/* Tech Stack */}
