@@ -26,9 +26,14 @@ export function Bio() {
         </h3>
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <p className="font-body text-sm text-neutral-100 font-medium">
+            <a
+              href="https://www.strath.ac.uk/courses/undergraduate/biomedicalengineeringmeng/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-body text-sm text-neutral-100 font-medium hover:text-accent hover:underline transition-colors"
+            >
               MEng Biomedical Engineering
-            </p>
+            </a>
             <img
               src="/strath.png"
               alt="University of Strathclyde"
