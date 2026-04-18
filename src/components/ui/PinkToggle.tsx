@@ -1,3 +1,8 @@
+interface PinkToggleProps {
+  isPink: boolean;
+  onToggle: () => void;
+}
+
 export function PinkToggle({ isPink, onToggle }: PinkToggleProps) {
   return (
     <button
