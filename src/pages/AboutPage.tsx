@@ -7,7 +7,7 @@ export function AboutPage() {
   return (
     <PageShell
       title="Hello, I'm Iona."
-      subtitle="I'm a Software Engineer from Scotland. Welcome to my Portfolio!"
+      subtitle="I'm a Software Engineer from Scotland. Welcome to my website!"
       icon={<Smile size={28} />}
     >
       <div className="space-y-8">
