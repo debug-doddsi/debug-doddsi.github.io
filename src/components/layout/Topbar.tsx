@@ -23,10 +23,10 @@ export function Topbar({
       >
         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
-      {/* Fun toggle */}
+      {/* Pink toggle */}
       <div className="flex items-center gap-3">
         <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest select-none">
-          {isPink ? "Fun Mode" : "Professional Mode"}
+          {isPink ? "Pink Mode" : "Professional Mode"}
         </span>
         <PinkToggle isPink={isPink} onToggle={onPinkToggle} />
       </div>
