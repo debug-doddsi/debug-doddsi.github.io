@@ -69,7 +69,7 @@ export function HomePage({ onEnter }: HomePageProps) {
       {/* Footer */}
       <footer className="px-8 pb-6 text-center">
         <p className="font-mono text-[9px] text-neutral-700 uppercase tracking-widest">
-          typed by hand, with love in Leith
+          made with love in Leith
         </p>
       </footer>
     </div>
