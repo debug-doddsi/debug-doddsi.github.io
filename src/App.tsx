@@ -35,7 +35,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="fade-in min-h-screen bg-neutral-950">
       <Sidebar
         active={activeTab}
         onNavigate={setActiveTab}

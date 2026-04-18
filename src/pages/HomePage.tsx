@@ -9,7 +9,7 @@ export function HomePage({ onEnter }: HomePageProps) {
   const { isPink, toggle } = usePinkMode();
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="fade-in min-h-screen bg-neutral-950 flex flex-col">
       {/* Pink toggle in top right */}
       <header className="fixed top-0 right-0 px-8 h-12 flex items-center gap-3">
         <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-widest select-none">
