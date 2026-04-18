@@ -50,6 +50,7 @@ body {
   @apply text-neutral-100 antialiased;
 }
 
+/* Pink Colour Palette */
 html.pink body {
   color: #2d0a1f;
 }
@@ -95,6 +96,7 @@ html.pink .border-neutral-700 {
   border-color: #ffc2e0 !important;
 }
 
+/* Professional Colour Palette */
 html:not(.pink) body {
   color: #1a1410;
 }
