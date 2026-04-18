@@ -64,6 +64,7 @@ const INTERESTS: Interest[] = [
   { label: "Super Mario Galaxy", emoji: "⭐", category: "personal" },
   { label: "Taylor Swift", emoji: "🤍", category: "personal" },
   { label: "The Last of Us", emoji: "🍄", category: "personal" },
+  { label: "Tattoos", emoji: "✒️", category: "personal" },
   { label: "Travel", emoji: "✈️", category: "personal" },
 ];
 

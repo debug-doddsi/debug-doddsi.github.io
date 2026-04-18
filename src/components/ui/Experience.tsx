@@ -48,8 +48,21 @@ export function Experience() {
       <div className="space-y-8">
         {JOBS.map((job, index) => (
           <div key={index} className="relative pl-8">
-            {/* Timeline dot */}
-            <div className="absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 border-accent bg-neutral-950" />
+            {/* Timeline star */}
+            <div className="absolute -left-[3px] top-0.5">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 15 15"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.5 0 L8.8 5.7 L14.5 7.5 L8.8 9.3 L7.5 15 L6.2 9.3 L0.5 7.5 L6.2 5.7 Z"
+                  fill="var(--accent)"
+                />
+              </svg>
+            </div>
 
             {/* Card */}
             <div className="space-y-1.5">
