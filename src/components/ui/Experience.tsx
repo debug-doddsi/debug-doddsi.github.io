@@ -72,7 +72,6 @@ export function Experience() {
                   <p className="font-body text-sm text-neutral-100 font-medium">
                     {job.title}
                   </p>
-                  <p className="font-mono text-xs text-accent">{job.company}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
