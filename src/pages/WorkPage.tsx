@@ -5,7 +5,7 @@ export function WorkPage() {
   return (
     <PageShell
       title="Work"
-      subtitle="TODO: Projects & case studies. Each card can link out to a repo, a live site, or a write-up."
+      subtitle="TODO: Add projects, theses and whatnot."
       icon={<FolderKanban size={28} />}
     >
       <div className="gap-4 grid grid-cols-1 sm:grid-cols-2">

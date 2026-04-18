@@ -65,9 +65,6 @@ export function Interests() {
 
   return (
     <div className="space-y-5">
-      <p className="mt-2 font-mono text-neutral-500 text-xs leading-relaxed">
-        Just some of the stuff I like ...
-      </p>
       {/* Filter pills */}
       <div className="flex gap-2">
         {FILTERS.map((f) => (

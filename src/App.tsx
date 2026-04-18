@@ -1,27 +1,33 @@
-import { useState } from 'react'
-import { Sidebar, type TabId } from './components/layout/Sidebar'
-import { Topbar } from './components/layout/Topbar'
-import { usePinkMode } from './hooks/usePinkMode'
-import { AboutPage } from './pages/AboutPage'
-import { WorkPage } from './pages/WorkPage'
-import { PlaygroundPage } from './pages/PlaygroundPage'
-import { WritingPage } from './pages/WritingPage'
-import { ContactPage } from './pages/ContactPage'
+import { useState } from "react";
+import { Sidebar, type TabId } from "./components/layout/Sidebar";
+import { Topbar } from "./components/layout/Topbar";
+import { usePinkMode } from "./hooks/usePinkMode";
+import { AboutPage } from "./pages/AboutPage";
+import { WorkPage } from "./pages/WorkPage";
+import { PlaygroundPage } from "./pages/PlaygroundPage";
+import { WritingPage } from "./pages/WritingPage";
+import { ContactPage } from "./pages/ContactPage";
+import { Routes, Route } from "react-router-dom";
 
 function renderTab(tab: TabId) {
   switch (tab) {
-    case 'about':      return <AboutPage />
-    case 'work':       return <WorkPage />
-    case 'playground': return <PlaygroundPage />
-    case 'writing':    return <WritingPage />
-    case 'contact':    return <ContactPage />
+    case "about":
+      return <AboutPage />;
+    case "work":
+      return <WorkPage />;
+    case "playground":
+      return <PlaygroundPage />;
+    case "writing":
+      return <WritingPage />;
+    case "contact":
+      return <ContactPage />;
   }
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('about')
-  const { isPink, toggle } = usePinkMode()
-const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>("about");
+  const { isPink, toggle } = usePinkMode();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-neutral-950">

@@ -50,8 +50,8 @@ export function Bio() {
         <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
           A five-year integrated masters degree covering biomechanics,
           biomedical materials, electronics, anatomy & physiology, and medical
-          device design — bridging engineering and healthcare. Specialised in
-          electronics, software and instrumentation electives — covering
+          device design, bridging engineering and healthcare. Specialised in
+          electronics, software and instrumentation electives, covering
           microcontrollers, digital signal processing, image processing, control
           systems and biomedical electronics. This is where my love of tech
           began.
