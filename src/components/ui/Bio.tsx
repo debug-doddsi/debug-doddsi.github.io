@@ -23,7 +23,6 @@ const TECH: TechItem[] = [
   { label: "Git", category: "frontend" },
   { label: "Storybook", category: "frontend" },
   { label: "Node.js", category: "frontend" },
-  { label: "GUI Development", category: "frontend" },
   { label: "Full-Stack Development", category: "frontend" },
 
   // Embedded
@@ -64,6 +63,22 @@ export function Bio() {
 
   return (
     <div className="space-y-8">
+      <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
+        After graduating with an MEng in Biomedical Engineering, I joined a
+        large company as a Systems Engineer. I enjoyed the high-level
+        perspective of the engineering work I was undertaking, but I missed
+        coding. Driven by a desire to return to hands-on development, I sought
+        out every software opportunity available and successfully transitioned
+        into the Software team. Through the graduate scheme, I built a strong
+        technical foundation, grew in confidence, and embraced every challenge
+        that came my way.
+        <br />
+        <br />I am an enthusiastic person with passion and curiosity at the core
+        of everything I do. I am personable, creative and determined to produce
+        high-quality and exciting work. I also love to engage in STEM events to
+        show the next generation how exciting science can be.
+      </p>
+
       {/* Education */}
       <div>
         <h3 className="font-display text-lg text-neutral-100 mb-3">
