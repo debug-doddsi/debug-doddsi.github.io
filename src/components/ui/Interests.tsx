@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
-type Category = 'all' | 'professional' | 'personal'
+type Category = "all" | "professional" | "personal";
 
 interface Interest {
-  label: string
-  emoji: string
-  category: 'professional' | 'personal'
+  label: string;
+  emoji: string;
+  category: "professional" | "personal";
 }
 
 const INTERESTS: Interest[] = [
@@ -51,13 +51,13 @@ const INTERESTS: Interest[] = [
 ];
 
 const FILTERS: { label: string; value: Category }[] = [
-  { label: 'All',          value: 'all' },
-  { label: 'Professional', value: 'professional' },
-  { label: 'Personal',     value: 'personal' },
-]
+  { label: "All", value: "all" },
+  { label: "Professional", value: "professional" },
+  { label: "Personal", value: "personal" },
+];
 
 export function Interests() {
-  const [active, setActive] = useState<Category>('all')
+  const [active, setActive] = useState<Category>("all");
 
   const filtered = INTERESTS.filter((i) =>
     active === "all" ? true : i.category === active,
@@ -65,18 +65,23 @@ export function Interests() {
 
   return (
     <div className="space-y-5">
+      <p className="mt-2 font-mono text-neutral-500 text-xs leading-relaxed">
+        Just some of the stuff I like ...
+      </p>
       {/* Filter pills */}
       <div className="flex gap-2">
-        {FILTERS.map(f => (
+        {FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setActive(f.value)}
             className={`
               px-3 py-1 rounded-full text-xs font-mono tracking-widest uppercase
               transition-all duration-200 border
-              ${active === f.value
-                ? 'bg-accent text-neutral-950 border-accent'
-                : 'border-accent text-accent hover:bg-accent-soft'}
+              ${
+                active === f.value
+                  ? "bg-accent text-neutral-950 border-accent"
+                  : "border-accent text-accent hover:bg-accent-soft"
+              }
             `}
           >
             {f.label}
@@ -86,7 +91,7 @@ export function Interests() {
 
       {/* Interest badges */}
       <div className="flex flex-wrap gap-2">
-        {filtered.map(interest => (
+        {filtered.map((interest) => (
           <Badge
             key={interest.label}
             variant="outline"
@@ -98,5 +103,5 @@ export function Interests() {
         ))}
       </div>
     </div>
-  )
+  );
 }

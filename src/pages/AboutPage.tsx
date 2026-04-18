@@ -10,8 +10,6 @@ export function AboutPage() {
       subtitle="I'm a Software Engineer from Scotland. Welcome to my Portfolio!"
       icon={<Smile size={28} />}
     >
-      {/* insert a cute pixel gif here */}
-
       <div className="space-y-8">
         <div>
           <h2 className="font-display text-xl text-neutral-100 mb-4">
