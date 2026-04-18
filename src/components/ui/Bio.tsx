@@ -73,10 +73,15 @@ export function Bio() {
         technical foundation, grew in confidence, and embraced every challenge
         that came my way.
         <br />
-        <br />I am an enthusiastic person with passion and curiosity at the core
-        of everything I do. I am personable, creative and determined to produce
+        <br />
+        I am an enthusiastic person with passion and curiosity at the core of
+        everything I do. I am personable, creative and determined to produce
         high-quality and exciting work. I also love to engage in STEM events to
         show the next generation how exciting science can be.
+        <br />
+        <br />
+        When I'm not at my desk, I'm usually mid-campaign, mid-chapter or
+        mid-loaf.
       </p>
 
       {/* Education */}
