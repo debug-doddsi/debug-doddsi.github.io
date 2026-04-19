@@ -1,6 +1,12 @@
 import { Gamepad2 } from "lucide-react";
 import { PageShell, SkeletonBlock } from "../components/ui/PageShell";
 import { Notebook } from "../components/ui/Notebook";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/ui/accordion";
 
 const NOTEBOOK_DEMO_CHAPTERS = [
   {
@@ -29,6 +35,18 @@ const NOTEBOOK_DEMO_CHAPTERS = [
   },
 ];
 
+// Add new components here — kept in alphabetical order
+const COMPONENTS = [
+  {
+    id: "notebook",
+    name: "Notebook",
+    description: "a notebook with tabbed chapters",
+    demo: (
+      <Notebook chapters={NOTEBOOK_DEMO_CHAPTERS} footerLabel="playground" />
+    ),
+  },
+];
+
 export function PlaygroundPage() {
   return (
     <PageShell
@@ -41,34 +59,42 @@ export function PlaygroundPage() {
         <Gamepad2 size={15} className="mt-0.5 text-accent shrink-0" />
         <p className="font-body text-neutral-300 text-xs leading-relaxed">
           This section is intentionally messy. It's a space for experiments,
-          half-finished ideas, and things I'm learning.
+          half-finished ideas, things I'm learning and stuff I've made. It's a
+          bit of a brain dump. Enjoy.
         </p>
       </div>
 
       <div className="space-y-10">
-        <div className="space-y-4">
-          <SkeletonBlock label="TODO: Current experiment" height="h-36" />
-          <SkeletonBlock label="TODO: Something I'm learning" height="h-24" />
-        </div>
-
         {/* Components I like */}
         <div>
           <h2 className="font-display text-xl text-neutral-100 mb-1">
-            Components
+            Components I Like!
           </h2>
-          <p className="font-body text-xs text-neutral-400 mb-6">
+          <p className="font-body text-xs text-neutral-400 mb-5">
             Things I've made and liked too much to throw away.
           </p>
 
-          <div className="space-y-2">
-            <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
-              ✦ The Notebook
-            </p>
-            <Notebook
-              chapters={NOTEBOOK_DEMO_CHAPTERS}
-              footerLabel="playground"
-            />
-          </div>
+          <Accordion type="multiple" className="space-y-1">
+            {COMPONENTS.map((c) => (
+              <AccordionItem
+                key={c.id}
+                value={c.id}
+                className="border border-neutral-800 rounded-lg px-4 overflow-hidden"
+              >
+                <AccordionTrigger className="py-3 hover:no-underline group">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-display text-lg text-neutral-100 group-hover:text-accent transition-colors duration-200">
+                      {c.name}
+                    </span>
+                    <span className="font-body text-xs text-neutral-500 italic">
+                      {c.description}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-5">{c.demo}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </PageShell>
