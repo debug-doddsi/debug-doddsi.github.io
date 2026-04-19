@@ -39,7 +39,7 @@ const NOTEBOOK_DEMO_CHAPTERS = [
 const COMPONENTS = [
   {
     id: "notebook",
-    name: "Notebook",
+    name: "The Notebook",
     description: "a notebook with tabbed chapters",
     demo: (
       <Notebook chapters={NOTEBOOK_DEMO_CHAPTERS} footerLabel="playground" />
@@ -84,7 +84,7 @@ export function PlaygroundPage() {
                 <AccordionTrigger className="py-3 hover:no-underline group">
                   <div className="flex items-baseline gap-3">
                     <span className="font-display text-lg text-neutral-100 group-hover:text-accent transition-colors duration-200">
-                      {c.name}
+                      <span className="text-accent mr-1.5">✦</span>{c.name}
                     </span>
                     <span className="font-body text-xs text-neutral-500 italic">
                       {c.description}

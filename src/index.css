@@ -316,7 +316,7 @@ html.pink .notebook-rule {
 /* Stacked page-edge texture — right spine of notebook */
 .book-edge {
   background: repeating-linear-gradient(
-    to bottom,
+    to right,
     #f0ebe2 0px,
     #f0ebe2 2px,
     #d9d3c8 2px,
@@ -325,7 +325,7 @@ html.pink .notebook-rule {
 }
 html.pink .book-edge {
   background: repeating-linear-gradient(
-    to bottom,
+    to right,
     #fde8f4 0px,
     #fde8f4 2px,
     #f0c8e0 2px,
