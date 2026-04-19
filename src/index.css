@@ -257,3 +257,87 @@ html:not(.pink) .nav-item-active {
 .page-enter {
   animation: pageEnter 0.22s ease forwards;
 }
+
+/* ─── Notebook / Interests ────────────────────────────────── */
+.notebook-paper {
+  background-color: #fefcf7;
+}
+html.pink .notebook-paper {
+  background-color: #fff8fc;
+}
+
+.notebook-tab-inactive {
+  background-color: #ede9e2;
+}
+html.pink .notebook-tab-inactive {
+  background-color: #fce8f4;
+}
+
+.notebook-text {
+  color: #3d3530;
+}
+html.pink .notebook-text {
+  color: #5a1535;
+}
+
+.notebook-muted {
+  color: #8a817b;
+}
+html.pink .notebook-muted {
+  color: #b06090;
+}
+
+.notebook-header {
+  color: #2a2420;
+}
+html.pink .notebook-header {
+  color: #3d0a20;
+}
+
+.notebook-rule {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 31px,
+    rgba(170, 160, 145, 0.3) 31px,
+    rgba(170, 160, 145, 0.3) 32px
+  );
+}
+html.pink .notebook-rule {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 31px,
+    rgba(255, 120, 180, 0.15) 31px,
+    rgba(255, 120, 180, 0.15) 32px
+  );
+}
+
+/* Stacked page-edge texture — right spine of notebook */
+.book-edge {
+  background: repeating-linear-gradient(
+    to bottom,
+    #f0ebe2 0px,
+    #f0ebe2 2px,
+    #d9d3c8 2px,
+    #d9d3c8 3px
+  );
+}
+html.pink .book-edge {
+  background: repeating-linear-gradient(
+    to bottom,
+    #fde8f4 0px,
+    #fde8f4 2px,
+    #f0c8e0 2px,
+    #f0c8e0 3px
+  );
+}
+
+@keyframes notebookItemIn {
+  from { opacity: 0; transform: translateX(-5px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.notebook-item {
+  animation: notebookItemIn 0.25s ease both;
+}
