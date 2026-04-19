@@ -1,5 +1,5 @@
 import { Gamepad2 } from "lucide-react";
-import { PageShell, SkeletonBlock } from "../components/ui/PageShell";
+import { PageShell } from "../components/ui/PageShell";
 import { Notebook } from "../components/ui/Notebook";
 import {
   Accordion,
@@ -84,7 +84,8 @@ export function PlaygroundPage() {
                 <AccordionTrigger className="py-3 hover:no-underline group">
                   <div className="flex items-baseline gap-3">
                     <span className="font-display text-lg text-neutral-100 group-hover:text-accent transition-colors duration-200">
-                      <span className="text-accent mr-1.5">✦</span>{c.name}
+                      <span className="text-accent mr-1.5">✦</span>
+                      {c.name}
                     </span>
                     <span className="font-body text-xs text-neutral-500 italic">
                       {c.description}
