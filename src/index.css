@@ -228,3 +228,32 @@ html:not(.pink) .nav-item-active {
   animation: cursorBlink 1s step-end infinite;
   color: var(--accent);
 }
+
+/* ─── Custom cursor (fine pointer only) ──────────────────── */
+@media (pointer: fine) {
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
+}
+
+/* ─── Page transitions ────────────────────────────────────── */
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-exit {
+  animation: pageExit 0.18s ease forwards;
+  pointer-events: none;
+}
+
+.page-enter {
+  animation: pageEnter 0.22s ease forwards;
+}
