@@ -1,8 +1,39 @@
+import { useState, useEffect } from "react";
+
+const FULL_TEXT = "ionakate.uk";
+const TYPING_SPEED = 85;
+const START_DELAY = 350;
+
 interface HomePageProps {
   onEnter: () => void;
 }
 
 export function HomePage({ onEnter }: HomePageProps) {
+  const [typedText, setTypedText] = useState("");
+  const [isDone, setIsDone] = useState(false);
+
+  useEffect(() => {
+    let startTimeout: ReturnType<typeof setTimeout>;
+    let interval: ReturnType<typeof setInterval>;
+
+    startTimeout = setTimeout(() => {
+      let i = 0;
+      interval = setInterval(() => {
+        i++;
+        setTypedText(FULL_TEXT.slice(0, i));
+        if (i === FULL_TEXT.length) {
+          clearInterval(interval);
+          setIsDone(true);
+        }
+      }, TYPING_SPEED);
+    }, START_DELAY);
+
+    return () => {
+      clearTimeout(startTimeout);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <div className="fade-in min-h-screen bg-neutral-950 flex flex-col">
       {/* Main content */}
@@ -18,23 +49,29 @@ export function HomePage({ onEnter }: HomePageProps) {
         </p>
 
         <h1 className="font-display text-6xl md:text-8xl text-neutral-100 tracking-tight mb-6">
-          ionakate.uk
+          {typedText}
+          <span className="typewriter-cursor ml-[2px]">|</span>
         </h1>
 
-        <p className="font-body text-sm text-neutral-400 mb-12 max-w-sm leading-relaxed">
-          Scientifically trained.
-          <br />
-          Creatively driven.
-          <br />
-          Dangerously fond of pink.
-        </p>
-
-        <button
-          onClick={onEnter}
-          className="px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
+        <div
+          className="transition-opacity duration-700"
+          style={{ opacity: isDone ? 1 : 0 }}
         >
-          Come in!
-        </button>
+          <p className="font-body text-sm text-neutral-400 mb-12 max-w-sm leading-relaxed">
+            Scientifically trained.
+            <br />
+            Creatively driven.
+            <br />
+            Dangerously fond of pink.
+          </p>
+
+          <button
+            onClick={onEnter}
+            className="px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
+          >
+            Come in!
+          </button>
+        </div>
       </main>
 
       {/* Footer */}
