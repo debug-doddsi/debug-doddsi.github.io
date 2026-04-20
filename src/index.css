@@ -341,3 +341,424 @@ html.pink .book-edge {
 .notebook-item {
   animation: notebookItemIn 0.25s ease both;
 }
+
+/* ─── Scrapbook Projects ──────────────────────────────────── */
+
+.handwritten {
+  font-family: "Caveat", cursive;
+}
+
+/* Wrapper */
+.scrapbook-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Book spread */
+.scrapbook-book {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: 780px;
+  min-height: 380px;
+  border-radius: 6px 10px 10px 6px;
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    -5px 0 14px rgba(0, 0, 0, 0.07),
+    5px 0 14px rgba(0, 0, 0, 0.07);
+}
+
+/* Pages */
+.scrapbook-page {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #fefcf7;
+}
+html.pink .scrapbook-page {
+  background-color: #fff8fc;
+}
+
+/* Left page — stacked pages on outer left edge via layered box-shadow */
+.scrapbook-page-left {
+  border: 1px solid #d4cdc6;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  box-shadow:
+    -1px 0 0 #e8e3d8,
+    -2px 0 0 #ddd8cf,
+    -3px 0 0 #ebe6de,
+    -4px 0 0 #d4cec5,
+    -5px 0 0 #f0ebe3;
+}
+html.pink .scrapbook-page-left {
+  border-color: #f0d0e4;
+  box-shadow:
+    -1px 0 0 #fce8f4,
+    -2px 0 0 #f5d5ea,
+    -3px 0 0 #fce8f4,
+    -4px 0 0 #f0c8e0,
+    -5px 0 0 #fce8f4;
+}
+
+/* Right page — stacked pages on outer right edge */
+.scrapbook-page-right {
+  border: 1px solid #d4cdc6;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  box-shadow:
+    1px 0 0 #e8e3d8,
+    2px 0 0 #ddd8cf,
+    3px 0 0 #ebe6de,
+    4px 0 0 #d4cec5,
+    5px 0 0 #f0ebe3;
+}
+html.pink .scrapbook-page-right {
+  border-color: #f0d0e4;
+  box-shadow:
+    1px 0 0 #fce8f4,
+    2px 0 0 #f5d5ea,
+    3px 0 0 #fce8f4,
+    4px 0 0 #f0c8e0,
+    5px 0 0 #fce8f4;
+}
+
+/* Spiral binding strip */
+.scrapbook-binding {
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 10px 0;
+  background: linear-gradient(
+    to right,
+    #dedbd4 0%,
+    #f0ece5 35%,
+    #f0ece5 65%,
+    #dedbd4 100%
+  );
+  border-top: 1px solid #ccc7c0;
+  border-bottom: 1px solid #ccc7c0;
+  z-index: 5;
+}
+html.pink .scrapbook-binding {
+  background: linear-gradient(
+    to right,
+    #f5d5ea 0%,
+    #fce8f4 35%,
+    #fce8f4 65%,
+    #f5d5ea 100%
+  );
+  border-color: #f0c8e0;
+}
+
+/* Individual coil ring */
+.scrapbook-coil {
+  width: 22px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid #888;
+  background: linear-gradient(
+    155deg,
+    #e8e8e8 0%,
+    #b8b8b8 28%,
+    #d8d8d8 46%,
+    #909090 68%,
+    #c4c4c4 84%,
+    #747474 100%
+  );
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    0 2px 5px rgba(0, 0, 0, 0.28);
+}
+html.pink .scrapbook-coil {
+  border-color: #c880b8;
+  background: linear-gradient(
+    155deg,
+    #f8d0e8 0%,
+    #d090c0 28%,
+    #f0c0dc 46%,
+    #b870a8 68%,
+    #e0b0d0 84%,
+    #906080 100%
+  );
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    0 2px 5px rgba(180, 80, 140, 0.25);
+}
+
+/* ── Page-flip animations ── */
+@keyframes scrapbookFlipNext {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateY(16deg) translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateY(0deg) translateX(0px);
+  }
+}
+
+@keyframes scrapbookFlipPrev {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateY(-16deg) translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateY(0deg) translateX(0px);
+  }
+}
+
+.scrapbook-flip-next {
+  animation: scrapbookFlipNext 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scrapbook-flip-prev {
+  animation: scrapbookFlipPrev 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Gold star stickers ── */
+.scrapbook-star {
+  position: absolute;
+  color: #d4a017;
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 0 3px rgba(212, 160, 23, 0.55));
+  pointer-events: none;
+  user-select: none;
+}
+.scrapbook-star-sm { font-size: 10px; }
+.scrapbook-star-lg { font-size: 22px; }
+
+html.pink .scrapbook-star {
+  color: #ff80c8;
+  filter: drop-shadow(0 0 3px rgba(255, 110, 180, 0.55));
+}
+
+/* ── Polaroid ── */
+.scrapbook-polaroid {
+  background: #ffffff;
+  padding: 7px 7px 28px;
+  width: 155px;
+  box-shadow:
+    2px 5px 20px rgba(0, 0, 0, 0.22),
+    0 1px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.scrapbook-photo {
+  width: 100%;
+  height: 128px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scrapbook-photo-glyph {
+  font-size: 36px;
+  color: rgba(255, 255, 255, 0.3);
+  user-select: none;
+  pointer-events: none;
+}
+
+.scrapbook-polaroid-caption {
+  font-family: "Caveat", cursive;
+  font-size: 14px;
+  color: #4a4040;
+  text-align: center;
+  margin-top: 6px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.pink .scrapbook-polaroid-caption {
+  color: #882060;
+}
+
+/* ── Page numbers ── */
+.scrapbook-page-num {
+  position: absolute;
+  font-family: "Caveat", cursive;
+  font-size: 12px;
+  color: #a09890;
+  pointer-events: none;
+}
+html.pink .scrapbook-page-num {
+  color: #c080b0;
+}
+
+/* ── Right page typography ── */
+.scrapbook-year {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9a9189;
+  margin-bottom: 4px;
+}
+html.pink .scrapbook-year {
+  color: #b870a0;
+}
+
+.scrapbook-title {
+  font-family: "Caveat", cursive;
+  font-size: 30px;
+  font-weight: 700;
+  color: #2a2420;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+html.pink .scrapbook-title {
+  color: #3d0a20;
+}
+
+.scrapbook-subtitle {
+  font-family: "Caveat", cursive;
+  font-size: 17px;
+  color: #6b5f58;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+html.pink .scrapbook-subtitle {
+  color: #a05080;
+}
+
+.scrapbook-wavy {
+  font-family: "Caveat", cursive;
+  font-size: 14px;
+  color: var(--accent);
+  opacity: 0.55;
+  letter-spacing: 0.2em;
+  margin-bottom: 10px;
+}
+
+.scrapbook-desc {
+  font-family: "Caveat", cursive;
+  font-size: 16px;
+  color: #3d3530;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+html.pink .scrapbook-desc {
+  color: #5a1535;
+}
+
+.scrapbook-notes {
+  font-family: "Caveat", cursive;
+  font-size: 14px;
+  color: #9a9189;
+  font-style: italic;
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+  margin-bottom: 10px;
+}
+html.pink .scrapbook-notes {
+  color: #b870a0;
+}
+
+.scrapbook-tech-tag {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  padding: 2px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  letter-spacing: 0.04em;
+}
+
+.scrapbook-link {
+  font-family: "Caveat", cursive;
+  font-size: 16px;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-block;
+}
+.scrapbook-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Navigation ── */
+.scrapbook-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.scrapbook-nav-btn {
+  font-family: "Caveat", cursive;
+  font-size: 16px;
+  color: #8a817b;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.scrapbook-nav-btn:hover {
+  color: var(--accent);
+}
+html.pink .scrapbook-nav-btn {
+  color: #b06090;
+}
+
+.scrapbook-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d4cdc6;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: block;
+}
+.scrapbook-dot.active {
+  background: var(--accent);
+  transform: scale(1.35);
+}
+html.pink .scrapbook-dot {
+  background: #f0c0e0;
+}
+
+/* ── Responsive: stack pages on mobile ── */
+@media (max-width: 639px) {
+  .scrapbook-book {
+    flex-direction: column;
+    min-height: unset;
+    border-radius: 6px;
+  }
+  .scrapbook-binding {
+    display: none;
+  }
+  .scrapbook-page-left {
+    border-right: 1px solid #d4cdc6;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    min-height: 240px;
+    box-shadow: none;
+  }
+  html.pink .scrapbook-page-left {
+    border-color: #f0d0e4;
+  }
+  .scrapbook-page-right {
+    border-left: 1px solid #d4cdc6;
+    border-top: 2px dashed #d4cdc6;
+    border-radius: 0 0 6px 6px;
+    box-shadow: none;
+  }
+  html.pink .scrapbook-page-right {
+    border-color: #f0d0e4;
+  }
+}
