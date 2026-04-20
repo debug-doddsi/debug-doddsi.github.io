@@ -2,6 +2,8 @@ import { Gamepad2 } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
 import { Notebook } from "../components/ui/Notebook";
 import { NewspaperReader, type PaperArticle } from "../components/ui/NewspaperReader";
+import { ScrapbookProjects } from "../components/ui/ScrapbookProjects";
+import { SkillsGlobe } from "../components/ui/SkillsGlobe";
 import {
   Accordion,
   AccordionContent,
@@ -71,6 +73,58 @@ const NEWSPAPER_DEMO_PAPERS: PaperArticle[] = [
   },
 ];
 
+const SCRAPBOOK_DEMO_PROJECTS = [
+  {
+    id: "web-app",
+    title: "Recipe Keeper",
+    subtitle: "a full-stack cooking companion",
+    description:
+      "A web app for storing, tagging, and scaling recipes. Built for the family group chat that kept losing links. Features fuzzy search and a grocery list generator.",
+    tech: ["Next.js", "Prisma", "PostgreSQL", "Tailwind"],
+    year: "2024",
+    imageColor: "#b8895a",
+    notes: "* grandma approved",
+    polaroidRotation: -3,
+    link: "https://example.com",
+  },
+  {
+    id: "hardware",
+    title: "Plant Monitor",
+    subtitle: "so my succulents stop dying",
+    description:
+      "A soil moisture sensor that texts me when a plant needs watering. Powered by an ESP32, a bag of resistors, and sheer frustration at forgetting to water things.",
+    tech: ["C++", "Arduino", "MQTT", "Python"],
+    year: "2023",
+    imageColor: "#6a9e72",
+    notes: "* success rate: 80%. rip cactus.",
+    polaroidRotation: 2,
+  },
+  {
+    id: "data-vis",
+    title: "Tube Delays",
+    subtitle: "data viz for the chronically annoyed",
+    description:
+      "Scraped two years of TfL delay data and visualised peak disruption patterns by line and hour. Turns out the Central line is exactly as bad as you think.",
+    tech: ["Python", "pandas", "D3.js", "FastAPI"],
+    year: "2023",
+    imageColor: "#4a6fa5",
+    polaroidRotation: -1.5,
+  },
+  {
+    id: "game",
+    title: "Tiny Dungeon",
+    subtitle: "a weekend game jam entry",
+    description:
+      "A 48-hour game jam entry — a turn-based dungeon crawler that fits in a terminal window. More fun to make than it is to play, but that's the spirit of a jam.",
+    tech: ["Rust", "crossterm", "RON"],
+    year: "2022",
+    imageColor: "#6b4e8a",
+    notes: "* placed 12th out of 47. I'll take it.",
+    polaroidRotation: 3,
+    link: "https://example.com",
+  },
+];
+
 // Add new components here — kept in alphabetical order
 const COMPONENTS = [
   {
@@ -86,6 +140,18 @@ const COMPONENTS = [
     demo: (
       <Notebook chapters={NOTEBOOK_DEMO_CHAPTERS} footerLabel="playground" />
     ),
+  },
+  {
+    id: "scrapbook",
+    name: "The Scrapbook",
+    description: "a page-flipping project showcase",
+    demo: <ScrapbookProjects projects={SCRAPBOOK_DEMO_PROJECTS} />,
+  },
+  {
+    id: "skills-globe",
+    name: "The Skills Globe",
+    description: "a 3D interactive tag cloud on a spinning sphere",
+    demo: <SkillsGlobe />,
   },
 ];
 
@@ -143,3 +209,4 @@ export function PlaygroundPage() {
     </PageShell>
   );
 }
+
