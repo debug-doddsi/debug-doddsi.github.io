@@ -2,6 +2,7 @@ import { Gamepad2 } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
 import { Notebook } from "../components/ui/Notebook";
 import { ScrapbookProjects } from "../components/ui/ScrapbookProjects";
+import { SkillsGlobe } from "../components/ui/SkillsGlobe";
 import {
   Accordion,
   AccordionContent,
@@ -103,6 +104,12 @@ const COMPONENTS = [
     name: "The Scrapbook",
     description: "a page-flipping project showcase",
     demo: <ScrapbookProjects projects={SCRAPBOOK_DEMO_PROJECTS} />,
+  },
+  {
+    id: "skills-globe",
+    name: "The Skills Globe",
+    description: "a 3D interactive tag cloud on a spinning sphere",
+    demo: <SkillsGlobe />,
   },
 ];
 
