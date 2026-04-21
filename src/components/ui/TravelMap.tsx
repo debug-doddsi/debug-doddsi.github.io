@@ -19,23 +19,17 @@ function latLonToPercent(lat: number, lon: number) {
 }
 
 const PINS: TravelPin[] = [
-  { id: "home", label: "Edinburgh, Scotland", type: "home", lat: 55.9, lon: -3.2 },
-  { id: "london", label: "London", type: "visited", lat: 51.5, lon: -0.1 },
-  { id: "paris", label: "Paris", type: "visited", lat: 48.9, lon: 2.3 },
-  { id: "rome", label: "Rome", type: "visited", lat: 41.9, lon: 12.5 },
-  { id: "barcelona", label: "Barcelona", type: "visited", lat: 41.4, lon: 2.2 },
-  { id: "berlin", label: "Berlin", type: "visited", lat: 52.5, lon: 13.4 },
-  { id: "amsterdam", label: "Amsterdam", type: "visited", lat: 52.4, lon: 4.9 },
-  { id: "athens", label: "Athens", type: "visited", lat: 37.9, lon: 23.7 },
-  { id: "newyork", label: "New York", type: "visited", lat: 40.7, lon: -74.0 },
-  { id: "lisbon", label: "Lisbon", type: "visited", lat: 38.7, lon: -9.1 },
-  { id: "tokyo", label: "Tokyo", type: "wishlist", lat: 35.7, lon: 139.7 },
-  { id: "reykjavik", label: "Reykjavik", type: "wishlist", lat: 64.1, lon: -21.9 },
-  { id: "auckland", label: "Auckland", type: "wishlist", lat: -36.9, lon: 174.8 },
-  { id: "marrakech", label: "Marrakech", type: "wishlist", lat: 31.6, lon: -8.0 },
-  { id: "oslo", label: "Oslo", type: "wishlist", lat: 59.9, lon: 10.8 },
-  { id: "sydney", label: "Sydney", type: "wishlist", lat: -33.9, lon: 151.2 },
-  { id: "rio", label: "Rio de Janeiro", type: "wishlist", lat: -22.9, lon: -43.2 },
+  { id: "home",      label: "Edinburgh, Scotland", type: "home",     lat: 55.9,  lon: -3.2  },
+  { id: "newyork",   label: "New York",            type: "visited",  lat: 40.7,  lon: -74.0 },
+  { id: "lisbon",    label: "Portugal",            type: "visited",  lat: 38.7,  lon: -9.1  },
+  { id: "paris",     label: "France",              type: "visited",  lat: 48.9,  lon: 2.3   },
+  { id: "rome",      label: "Italy",               type: "visited",  lat: 41.9,  lon: 12.5  },
+  { id: "barcelona", label: "Barcelona",           type: "visited",  lat: 41.4,  lon: 2.2   },
+  { id: "istanbul",  label: "Turkey",              type: "visited",  lat: 41.0,  lon: 28.9  },
+  { id: "tokyo",     label: "Japan",               type: "wishlist", lat: 35.7,  lon: 139.7 },
+  { id: "bangkok",   label: "Thailand",            type: "wishlist", lat: 13.8,  lon: 100.5 },
+  { id: "sydney",    label: "Australia",           type: "wishlist", lat: -33.9, lon: 151.2 },
+  { id: "oslo",      label: "Norway",              type: "wishlist", lat: 59.9,  lon: 10.8  },
 ];
 
 // ─── SVG Pin Components ───────────────────────────────────────────────────────
@@ -230,9 +224,9 @@ function MapPin({ pin, visible }: MapPinProps) {
       onMouseLeave={() => setHovered(false)}
       title={pin.label}
     >
-      {pin.type === "home" && <FlagPin size={24} />}
-      {pin.type === "visited" && <MushroomPin size={22} />}
-      {pin.type === "wishlist" && <StarPin size={22} />}
+      {pin.type === "home" && <FlagPin size={16} />}
+      {pin.type === "visited" && <MushroomPin size={14} />}
+      {pin.type === "wishlist" && <StarPin size={14} />}
       {hovered && (
         <div className="travel-map-pin-tooltip">{pin.label}</div>
       )}
@@ -247,23 +241,21 @@ function DogEar() {
 
   return (
     <div
-      className="travel-map-dogear-zone"
+      className="travel-map-dogear"
       onMouseEnter={() => setUnfolded(true)}
       onMouseLeave={() => setUnfolded(false)}
     >
-      {/* Hidden note revealed on unfold */}
-      <div
-        className="travel-map-secret-note"
-        style={{ opacity: unfolded ? 1 : 0, transform: unfolded ? "translateY(0)" : "translateY(8px)" }}
-      >
-        <span className="handwritten">psst… you found me! 🗺️</span>
-      </div>
-      {/* Fold flap */}
+      {/* Note text — sits on the paper, revealed when triangle unfolds */}
+      <span className={`travel-map-dogear-note handwritten${unfolded ? " open" : ""}`}>
+        psst… hi! 🗺️
+      </span>
+      {/* The folded triangle — paper back-side colour, collapses to corner on hover */}
       <div
         className="travel-map-dogear-flap"
         style={{
-          transform: unfolded ? "scale(2.2)" : "scale(1)",
-          transformOrigin: "bottom right",
+          clipPath: unfolded
+            ? "polygon(100% 100%, 100% 100%, 100% 100%)"
+            : "polygon(100% 0, 100% 100%, 0 100%)",
         }}
       />
     </div>
@@ -279,9 +271,9 @@ interface FilterBarProps {
 
 function FilterBar({ activeFilters, onToggle }: FilterBarProps) {
   const items: { type: PinType; label: string; pin: ReactElement }[] = [
-    { type: "home", label: "home", pin: <FlagPin size={22} /> },
-    { type: "visited", label: "visited", pin: <MushroomPin size={20} /> },
-    { type: "wishlist", label: "wishlist", pin: <StarPin size={20} /> },
+    { type: "home",     label: "home",     pin: <FlagPin size={18} /> },
+    { type: "visited",  label: "visited",  pin: <MushroomPin size={16} /> },
+    { type: "wishlist", label: "wishlist", pin: <StarPin size={16} /> },
   ];
 
   return (
@@ -361,21 +353,35 @@ export function TravelMap() {
             />
           </g>
 
-          {/* Latitude grid lines — faint */}
-          {[60, 120, 180, 240, 300, 360, 420].map((y) => (
-            <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="0.8" />
+          {/* Graticule — 30° longitude lines */}
+          {[83, 167, 250, 333, 417, 500, 583, 667, 750, 833, 917].map((x) => (
+            <line key={x} x1={x} y1="0" x2={x} y2="500" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
           ))}
-          {[100, 200, 300, 400, 500, 600, 700, 800, 900].map((x) => (
-            <line key={x} x1={x} y1="0" x2={x} y2="500" stroke="rgba(255,255,255,0.05)" strokeWidth="0.8" />
+          {/* Graticule — 30° latitude lines */}
+          {[83, 167, 333, 417].map((y) => (
+            <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
           ))}
+          {/* Tropic of Cancer (23.4°N) and Tropic of Capricorn (23.4°S) */}
+          <line x1="0" y1="185" x2="1000" y2="185" stroke="rgba(255,255,255,0.12)" strokeWidth="0.7" strokeDasharray="6 4" />
+          <line x1="0" y1="315" x2="1000" y2="315" stroke="rgba(255,255,255,0.12)" strokeWidth="0.7" strokeDasharray="6 4" />
+          {/* Equator */}
+          <line x1="0" y1="250" x2="1000" y2="250" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
+          {/* Prime meridian */}
+          <line x1="500" y1="0" x2="500" y2="500" stroke="rgba(255,255,255,0.10)" strokeWidth="0.7" />
 
-          {/* Landmasses */}
+          {/* Landmasses — slightly stronger definition */}
           {[
             NORTH_AMERICA, GREENLAND, SOUTH_AMERICA,
             EUROPE, AFRICA, ICELAND,
             ASIA, JAPAN, AUSTRALIA, NEW_ZEALAND, ANTARCTICA
           ].map((d, i) => (
-            <path key={i} d={d} fill="#8ab88a" stroke="rgba(0,0,0,0.08)" strokeWidth="0.8" strokeLinejoin="round" />
+            <path key={i} d={d} fill="#7dab7d" stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" strokeLinejoin="round" />
+          ))}
+          {/* Inland tone overlay for texture */}
+          {[
+            NORTH_AMERICA, SOUTH_AMERICA, EUROPE, AFRICA, ASIA, AUSTRALIA
+          ].map((d, i) => (
+            <path key={`t${i}`} d={d} fill="rgba(255,255,255,0.06)" stroke="none" />
           ))}
 
           {/* Subtle paper vignette overlay */}
