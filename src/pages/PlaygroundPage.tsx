@@ -4,6 +4,7 @@ import { Notebook } from "../components/ui/Notebook";
 import { NewspaperReader, type PaperArticle } from "../components/ui/NewspaperReader";
 import { ScrapbookProjects } from "../components/ui/ScrapbookProjects";
 import { SkillsGlobe } from "../components/ui/SkillsGlobe";
+import { TravelMap } from "../components/ui/TravelMap";
 import {
   Accordion,
   AccordionContent,
@@ -152,6 +153,12 @@ const COMPONENTS = [
     name: "The Skills Globe",
     description: "a 3D interactive tag cloud on a spinning sphere",
     demo: <SkillsGlobe />,
+  },
+  {
+    id: "travel-map",
+    name: "The Map",
+    description: "a paper map pinned to the wall, with push-pin travels",
+    demo: <TravelMap />,
   },
 ];
 
