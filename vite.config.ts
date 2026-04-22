@@ -17,7 +17,7 @@ export default defineConfig({
         background_color: '#fdf6e8',
         display: 'standalone',
         scope: '/',
-        start_url: '/?tab=kitchen',
+        start_url: '/sourdough',
         icons: [
           {
             src: 'pwa-192x192.png',

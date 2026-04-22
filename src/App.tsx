@@ -31,8 +31,17 @@ function renderTab(tab: TabId) {
 }
 
 function getInitialTab(): TabId {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("tab") === "kitchen" ? "kitchen" : "about";
+  const { pathname, search } = window.location;
+  // Match both the redirect path (/sourdough kept by SW navigation fallback)
+  // and the query-param path (/?tab=kitchen from the redirect page on first visit)
+  if (
+    pathname === "/sourdough" ||
+    pathname === "/sourdough/" ||
+    new URLSearchParams(search).get("tab") === "kitchen"
+  ) {
+    return "kitchen";
+  }
+  return "about";
 }
 
 export default function App() {
