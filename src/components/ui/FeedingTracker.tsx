@@ -21,6 +21,9 @@ const PRESET_TAGS = [
   "#thick-consistency",
   "#bubbly",
   "#not-bubbly",
+  "#into-fridge",
+  "#out-of-fridge",
+  "#late-feed",
 ];
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
