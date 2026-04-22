@@ -423,19 +423,22 @@ function FeedingDetail({
             <Trash2 size={12} />
           </button>
         ) : (
-          <div className="flex gap-1">
-            <button
-              onClick={onDelete}
-              className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
-            >
-              Confirm
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="px-3 py-2 rounded-md border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-semibold transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="flex flex-col items-end gap-1 flex-1">
+            <p className="text-xs font-semibold text-red-700">Are you sure?</p>
+            <div className="flex gap-1">
+              <button
+                onClick={onDelete}
+                className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="px-3 py-1.5 rounded-md border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -451,7 +454,7 @@ type ViewMode =
   | { kind: "new" }
   | { kind: "edit"; entryId: string };
 
-export function FeedingTracker() {
+export function FeedingTracker({ onBack }: { onBack?: () => void }) {
   const { entries, isLoading, addEntry, updateEntry, deleteEntry } =
     useSourdoughData();
   const [mode, setMode] = useState<ViewMode>({ kind: "list" });
@@ -470,7 +473,17 @@ export function FeedingTracker() {
       <span className="font-display text-lg text-amber-900">Sourdough Tracker</span>
     );
     actionStrip = (
-      <div className="flex justify-end px-4 py-2 border-b border-amber-200/50">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-amber-200/50">
+        {onBack ? (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
+          >
+            <ArrowLeft size={13} /> Back
+          </button>
+        ) : (
+          <div />
+        )}
         <button
           onClick={() => setMode({ kind: "new" })}
           className="flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-600 transition-colors"

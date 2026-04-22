@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Check, PartyPopper } from "lucide-react";
-import { useBakeSession } from "../../hooks/useBakeSession";
+import { type BakeSession } from "../../hooks/useBakeSession";
 
-export function BakingGuide() {
-  const { session, startBake, toggleStep, completeBake } = useBakeSession();
+interface BakingGuideProps {
+  session: BakeSession | null;
+  startBake: (starterMass: number) => void;
+  toggleStep: (stepId: string) => void;
+  completeBake: () => void;
+}
+
+export function BakingGuide({ session, startBake, toggleStep, completeBake }: BakingGuideProps) {
   const [starterInput, setStarterInput] = useState("");
   const [inputError, setInputError] = useState("");
+  const [confirmStop, setConfirmStop] = useState(false);
 
   const handleStart = () => {
     const n = Number(starterInput);
@@ -77,7 +84,7 @@ export function BakingGuide() {
         </p>
       </div>
 
-      {/* checklist — bread-body handles scroll, no max-h here */}
+      {/* checklist */}
       <div className="flex flex-col gap-1">
         {session.steps.map((step, i) => (
           <button
@@ -129,6 +136,40 @@ export function BakingGuide() {
           >
             Complete Bake
           </button>
+        </div>
+      )}
+
+      {/* stop bake */}
+      {!allDone && (
+        <div className="pt-1 pb-2">
+          {!confirmStop ? (
+            <button
+              onClick={() => setConfirmStop(true)}
+              className="w-full py-2 rounded-lg border border-amber-300/60 text-amber-800/70 hover:border-amber-400 hover:text-amber-900 text-xs font-medium transition-colors"
+            >
+              Stop Bake
+            </button>
+          ) : (
+            <div className="flex flex-col items-center gap-2 rounded-lg border border-red-200 bg-red-50/50 px-4 py-3">
+              <p className="text-xs font-semibold text-red-700">
+                Are you sure? This will discard the current bake.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={completeBake}
+                  className="px-4 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
+                >
+                  Yes, stop
+                </button>
+                <button
+                  onClick={() => setConfirmStop(false)}
+                  className="px-4 py-1.5 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs font-semibold transition-colors"
+                >
+                  Keep going
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
