@@ -7,6 +7,7 @@ import { WorkPage } from "./pages/WorkPage";
 import { PlaygroundPage } from "./pages/PlaygroundPage";
 import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
+import { KitchenPage } from "./pages/KitchenPage";
 import { HomePage } from "./pages/HomePage";
 import { StarCursor } from "./components/ui/StarCursor";
 
@@ -24,6 +25,8 @@ function renderTab(tab: TabId) {
       return <WritingPage />;
     case "contact":
       return <ContactPage />;
+    case "kitchen":
+      return <KitchenPage />;
   }
 }
 
