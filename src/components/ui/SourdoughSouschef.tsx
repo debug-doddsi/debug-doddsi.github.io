@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ArrowLeft, BookOpen, Flame } from "lucide-react";
+import { BookOpen, Flame } from "lucide-react";
 import { FeedingTracker } from "./FeedingTracker";
 import { BakingGuide } from "./BakingGuide";
 import { BreadShell } from "./BreadShell";
+import { useBakeSession } from "../../hooks/useBakeSession";
 
 type SouschefView = "home" | "track" | "bake";
 
@@ -11,35 +12,32 @@ const CRUST_MID = "#a86b18";
 
 export function SourdoughSouschef() {
   const [view, setView] = useState<SouschefView>("home");
+  const { session, startBake, toggleStep, completeBake } = useBakeSession();
 
-  // ── Track — FeedingTracker manages its own BreadShell internally ──────────
+  // ── Track — FeedingTracker renders its own BreadShell with back button inside
   if (view === "track") {
-    return (
-      <div className="space-y-3">
-        <button
-          onClick={() => setView("home")}
-          className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          <ArrowLeft size={14} /> Back
-        </button>
-        <FeedingTracker />
-      </div>
-    );
+    return <FeedingTracker onBack={() => setView("home")} />;
   }
 
-  // ── Bake — BreadShell with "Let's Bake" dome, back strip + BakingGuide body
+  // ── Bake — dome changes once session is active
   if (view === "bake") {
     return (
       <BreadShell
         dome={
-          <>
+          session ? (
             <span className="font-display text-lg" style={{ color: CRUST }}>
-              Let's Bake
+              Let's Bake!
             </span>
-            <span className="text-xs mt-0.5" style={{ color: CRUST_MID }}>
-              enter starter mass to begin
-            </span>
-          </>
+          ) : (
+            <>
+              <span className="font-display text-lg" style={{ color: CRUST }}>
+                Let's Bake
+              </span>
+              <span className="text-xs mt-0.5" style={{ color: CRUST_MID }}>
+                enter starter mass to begin
+              </span>
+            </>
+          )
         }
       >
         {/* back strip */}
@@ -48,10 +46,15 @@ export function SourdoughSouschef() {
             onClick={() => setView("home")}
             className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
           >
-            <ArrowLeft size={13} /> Back
+            ← Back
           </button>
         </div>
-        <BakingGuide />
+        <BakingGuide
+          session={session}
+          startBake={startBake}
+          toggleStep={toggleStep}
+          completeBake={completeBake}
+        />
       </BreadShell>
     );
   }
