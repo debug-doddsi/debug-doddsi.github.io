@@ -1296,7 +1296,8 @@ html.pink .travel-map-filter-label {
     #9a5e10 80%,
     #8a5210 100%
   );
-  border-radius: 58% 58% 6px 6px / 38% 38% 6px 6px;
+  /* Fixed pixel V-radius → dome depth is constant regardless of total height */
+  border-radius: 58% 58% 6px 6px / 100px 100px 6px 6px;
   padding: 10px 10px 12px;
   box-shadow:
     0 4px 16px rgba(168, 107, 24, 0.35),
@@ -1305,27 +1306,35 @@ html.pink .travel-map-filter-label {
 
 .bread-inner {
   background: linear-gradient(to bottom, #fdf6e8, #f9eecc);
-  border-radius: 52% 52% 4px 4px / 32% 32% 4px 4px;
+  /* Inner V-radius slightly smaller than crust → even crust ring all round */
+  border-radius: 52% 52% 4px 4px / 88px 88px 4px 4px;
   overflow: hidden;
-  min-height: 280px;
+  /* Fixed height → identical slice size on every view */
+  height: 520px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Curved crown — heading lives here, centred within the dome arc.
-   Height matches the V-radius of bread-inner (32% of min-height 280px ≈ 90px).
-   Content in the dome must be centred to stay clear of the clipped corners. */
+/* Curved crown — heading sits toward the bottom of the arc so it reads as
+   nestled inside the dome rather than floating at the top. */
 .bread-dome {
+  flex-shrink: 0;
+  height: 96px;           /* matches V-radius — body starts in the safe flat zone */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 96px;
-  padding: 0 15%;
+  justify-content: flex-end; /* push title to base of dome */
+  padding: 0 15% 14px;
   text-align: center;
 }
 
-/* Straight body — full-width content, below the curve, no clipping */
+/* Straight body — scrolls independently; bread-inner clips overflow */
 .bread-body {
-  /* inherits cream background; no extra styles needed */
+  flex: 1;
+  min-height: 0;           /* required for flex child overflow-y to work */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 107, 24, 0.3) transparent;
 }
 
 /* Pink-mode override — bread stays warm regardless of theme */
@@ -1339,9 +1348,11 @@ html.pink .bread-crust {
     #9a5e10 80%,
     #8a5210 100%
   );
+  border-radius: 58% 58% 6px 6px / 100px 100px 6px 6px;
 }
 html.pink .bread-inner {
   background: linear-gradient(to bottom, #fdf6e8, #f9eecc);
+  border-radius: 52% 52% 4px 4px / 88px 88px 4px 4px;
 }
 
 /* bread form inputs */
