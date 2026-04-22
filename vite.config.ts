@@ -17,7 +17,7 @@ export default defineConfig({
         background_color: '#fdf6e8',
         display: 'standalone',
         scope: '/',
-        start_url: '/',
+        start_url: '/?tab=kitchen',
         icons: [
           {
             src: 'pwa-192x192.png',
