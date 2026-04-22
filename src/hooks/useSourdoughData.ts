@@ -20,6 +20,7 @@ export interface FeedingEntry {
   peakTime: string | null;
   images: FeedingImage[];
   notes: string;
+  tags: string[];
   createdAt: string;
 }
 
@@ -75,9 +76,13 @@ async function getAllFeedings(): Promise<FeedingEntry[]> {
     req.onsuccess = (e) => {
       const cursor = (e.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {
-        results.push(cursor.value as FeedingEntry);
+        const raw = cursor.value as Omit<FeedingEntry, "tags"> & { tags?: string[] };
+        results.push({ tags: [], ...raw });
         cursor.continue();
       } else {
+        results.sort((a, b) =>
+          (b.date + "T" + b.time).localeCompare(a.date + "T" + a.time)
+        );
         resolve(results);
       }
     };

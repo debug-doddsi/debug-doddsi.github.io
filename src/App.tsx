@@ -30,13 +30,19 @@ function renderTab(tab: TabId) {
   }
 }
 
+function getInitialTab(): TabId {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("tab") === "kitchen" ? "kitchen" : "about";
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>("about");
+  const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const { isPink, toggle } = usePinkMode();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
+  // Skip the entry splash when arriving via a direct link (e.g. /sourdough)
+  const [hasEntered, setHasEntered] = useState(() => getInitialTab() !== "about");
 
-  const [displayedTab, setDisplayedTab] = useState<TabId>("about");
+  const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
   const [isExiting, setIsExiting] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
