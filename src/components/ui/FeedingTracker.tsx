@@ -21,6 +21,9 @@ const PRESET_TAGS = [
   "#thick-consistency",
   "#bubbly",
   "#not-bubbly",
+  "#into-fridge",
+  "#out-of-fridge",
+  "#late-feed",
 ];
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -434,8 +437,8 @@ function FeedingDetail({
         )}
       </div>
 
-      {/* let's bake today */}
-      <div className="pb-1">
+      {/* let's bake today — only for today's entries */}
+      {entry.date === today() && <div className="pb-1">
         {!confirmBake ? (
           <button
             onClick={() => setConfirmBake(true)}
@@ -467,7 +470,7 @@ function FeedingDetail({
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
