@@ -5,6 +5,9 @@ import { BakingGuide } from "./BakingGuide";
 
 type SouschefView = "home" | "track" | "bake";
 
+// Crust brown used throughout so Track/Bake labels are legible on cream bread
+const CRUST_BROWN = "#8a5210";
+
 export function SourdoughSouschef() {
   const [view, setView] = useState<SouschefView>("home");
 
@@ -44,42 +47,78 @@ export function SourdoughSouschef() {
     );
   }
 
-  // home
+  // ── home ── bread slice with title in dome, buttons in body ──────────────
   return (
-    <div className="flex flex-col items-center justify-center gap-8 py-10">
-      <div className="text-center space-y-2">
-        <h1 className="font-display text-3xl text-neutral-100 tracking-tight">
-          Sourdough Souschef
-        </h1>
-        <p className="text-neutral-400 text-sm">What do you want to do?</p>
+    <div className="relative w-full max-w-lg mx-auto pt-10">
+      {/* steam wisps */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 flex justify-around pointer-events-none">
+        <span className="steam-wisp" style={{ animationDelay: "0s" }} />
+        <span className="steam-wisp" style={{ animationDelay: "0.7s" }} />
+        <span className="steam-wisp" style={{ animationDelay: "1.4s" }} />
       </div>
 
-      <div className="flex gap-4">
-        <button
-          onClick={() => setView("track")}
-          className="group flex flex-col items-center gap-3 px-8 py-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-amber-700/50 hover:bg-amber-950/30 transition-all duration-200 shadow-lg"
-        >
-          <span className="w-12 h-12 rounded-xl bg-amber-800/20 border border-amber-700/30 flex items-center justify-center group-hover:bg-amber-800/30 transition-colors">
-            <BookOpen size={22} className="text-amber-500" />
-          </span>
-          <span className="text-sm font-semibold text-neutral-200">Track</span>
-          <span className="text-[11px] text-neutral-500 text-center max-w-[100px]">
-            Log starter feedings
-          </span>
-        </button>
+      <div className="bread-crust">
+        <div className="bread-inner">
+          {/* dome — title centred in the curved crown */}
+          <div className="bread-dome">
+            <h1
+              className="font-display text-xl tracking-tight"
+              style={{ color: CRUST_BROWN }}
+            >
+              Sourdough Souschef
+            </h1>
+            <p className="text-xs mt-1" style={{ color: "#a86b18" }}>
+              What do you want to do?
+            </p>
+          </div>
 
-        <button
-          onClick={() => setView("bake")}
-          className="group flex flex-col items-center gap-3 px-8 py-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-orange-700/50 hover:bg-orange-950/30 transition-all duration-200 shadow-lg"
-        >
-          <span className="w-12 h-12 rounded-xl bg-orange-800/20 border border-orange-700/30 flex items-center justify-center group-hover:bg-orange-800/30 transition-colors">
-            <Flame size={22} className="text-orange-500" />
-          </span>
-          <span className="text-sm font-semibold text-neutral-200">Bake</span>
-          <span className="text-[11px] text-neutral-500 text-center max-w-[100px]">
-            Recipe + timeline
-          </span>
-        </button>
+          {/* body — buttons in the straight rectangular section */}
+          <div className="flex justify-center gap-5 px-8 py-6">
+            {/* Track */}
+            <button
+              onClick={() => setView("track")}
+              className="group flex flex-col items-center gap-3 px-7 py-5 rounded-xl bg-amber-50/70 border-2 border-amber-300/50 hover:border-amber-500/70 hover:bg-amber-100/70 transition-all duration-200 shadow-sm"
+            >
+              <span className="w-10 h-10 rounded-lg bg-amber-200/60 border border-amber-400/40 flex items-center justify-center group-hover:bg-amber-200/90 transition-colors">
+                <BookOpen size={20} style={{ color: CRUST_BROWN }} />
+              </span>
+              <span
+                className="text-sm font-bold"
+                style={{ color: CRUST_BROWN }}
+              >
+                Track
+              </span>
+              <span
+                className="text-[11px] text-center max-w-[90px] leading-tight"
+                style={{ color: "#a86b18" }}
+              >
+                Log starter feedings
+              </span>
+            </button>
+
+            {/* Bake */}
+            <button
+              onClick={() => setView("bake")}
+              className="group flex flex-col items-center gap-3 px-7 py-5 rounded-xl bg-amber-50/70 border-2 border-amber-300/50 hover:border-amber-600/70 hover:bg-amber-100/70 transition-all duration-200 shadow-sm"
+            >
+              <span className="w-10 h-10 rounded-lg bg-amber-200/60 border border-amber-400/40 flex items-center justify-center group-hover:bg-amber-200/90 transition-colors">
+                <Flame size={20} style={{ color: CRUST_BROWN }} />
+              </span>
+              <span
+                className="text-sm font-bold"
+                style={{ color: CRUST_BROWN }}
+              >
+                Bake
+              </span>
+              <span
+                className="text-[11px] text-center max-w-[90px] leading-tight"
+                style={{ color: "#a86b18" }}
+              >
+                Recipe + timeline
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

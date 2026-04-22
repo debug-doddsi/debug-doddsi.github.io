@@ -60,7 +60,7 @@ function FlourBadge({ type }: { type: FlourType }) {
   );
 }
 
-// collapsed entry row
+// collapsed entry row — date · time · ratio only
 function FeedingRow({
   entry,
   onClick,
@@ -72,17 +72,13 @@ function FeedingRow({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-amber-200/40 hover:bg-amber-50/40 transition-colors text-left text-xs text-neutral-700"
+      className="w-full flex items-center gap-3 px-4 py-2.5 border-b border-amber-200/40 hover:bg-amber-50/40 transition-colors text-left text-xs text-neutral-700"
     >
-      <span className="font-medium text-neutral-800 shrink-0 w-24">
+      <span className="font-medium text-neutral-800 shrink-0 w-28">
         {formatDate(entry.date)}
       </span>
-      <span className="text-neutral-500 shrink-0">{entry.time}</span>
-      <FlourBadge type={entry.flourType} />
-      <span className="flex-1 truncate text-neutral-600">
-        {entry.starterMass}g · {entry.flourMass}g · {entry.waterMass}g
-      </span>
-      <span className="text-neutral-400 shrink-0 font-mono">{ratio}</span>
+      <span className="text-neutral-500 shrink-0 w-12">{entry.time}</span>
+      <span className="flex-1 font-mono text-neutral-500">{ratio}</span>
       {entry.peakTime && (
         <span className="flex items-center gap-0.5 text-amber-700 shrink-0">
           <Clock size={10} />
@@ -447,8 +443,15 @@ function FeedingDetail({
 }
 
 // ─── bread shell ──────────────────────────────────────────────────────────────
+// dome = centred text in the curved crown; body = straight rectangular section below
 
-function BreadSliceShell({ children }: { children: React.ReactNode }) {
+function BreadSliceShell({
+  dome,
+  body,
+}: {
+  dome: React.ReactNode;
+  body: React.ReactNode;
+}) {
   return (
     <div className="relative w-full max-w-lg mx-auto pt-10">
       {/* steam wisps */}
@@ -459,7 +462,12 @@ function BreadSliceShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="bread-crust">
-        <div className="bread-inner">{children}</div>
+        <div className="bread-inner">
+          {/* curved crown — heading centred here */}
+          <div className="bread-dome">{dome}</div>
+          {/* straight body — table, forms, buttons go here */}
+          <div>{body}</div>
+        </div>
       </div>
     </div>
   );
@@ -483,65 +491,65 @@ export function FeedingTracker() {
       ? entries.find((e) => e.id === mode.entryId) ?? null
       : null;
 
-  // header
-  let heading: React.ReactNode;
-  let headerAction: React.ReactNode;
+  // ── dome: centred title ───────────────────────────────────────────────────
+  let domeContent: React.ReactNode;
+  // ── body action strip (just below the dome, above main content) ───────────
+  let actionStrip: React.ReactNode = null;
 
   if (mode.kind === "list") {
-    heading = <span className="font-display text-base text-neutral-800">Sourdough Tracker</span>;
-    headerAction = (
-      <button
-        onClick={() => setMode({ kind: "new" })}
-        className="flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-600 transition-colors"
-      >
-        <Plus size={13} /> Add Feed
-      </button>
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">Sourdough Tracker</span>
+    );
+    actionStrip = (
+      <div className="flex justify-end px-4 py-2 border-b border-amber-200/50">
+        <button
+          onClick={() => setMode({ kind: "new" })}
+          className="flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-600 transition-colors"
+        >
+          <Plus size={13} /> Add Feed
+        </button>
+      </div>
     );
   } else if (mode.kind === "new") {
-    heading = <span className="font-display text-base text-neutral-800">New Feed</span>;
-    headerAction = (
-      <button
-        onClick={() => setMode({ kind: "list" })}
-        className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
-      >
-        <X size={13} /> Cancel
-      </button>
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">New Feed</span>
     );
   } else if (mode.kind === "detail" && activeEntry) {
-    heading = (
-      <button
-        onClick={() => setMode({ kind: "list" })}
-        className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
-      >
-        <ArrowLeft size={13} /> Back
-      </button>
-    );
-    headerAction = (
-      <span className="font-display text-base text-neutral-800">
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">
         {formatDate(activeEntry.date)}
       </span>
     );
-  } else if (mode.kind === "edit" && activeEntry) {
-    heading = (
-      <button
-        onClick={() => setMode({ kind: "detail", entryId: activeEntry.id })}
-        className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
-      >
-        <ArrowLeft size={13} /> Back
-      </button>
+    actionStrip = (
+      <div className="flex px-4 py-2 border-b border-amber-200/50">
+        <button
+          onClick={() => setMode({ kind: "list" })}
+          className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
+        >
+          <ArrowLeft size={13} /> Back
+        </button>
+      </div>
     );
-    headerAction = <span className="font-display text-base text-neutral-800">Edit Feed</span>;
+  } else if (mode.kind === "edit" && activeEntry) {
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">Edit Feed</span>
+    );
+    actionStrip = (
+      <div className="flex px-4 py-2 border-b border-amber-200/50">
+        <button
+          onClick={() => setMode({ kind: "detail", entryId: activeEntry.id })}
+          className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
+        >
+          <ArrowLeft size={13} /> Back
+        </button>
+      </div>
+    );
   }
 
-  return (
-    <BreadSliceShell>
-      {/* header bar */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-amber-200/40">
-        <div>{heading}</div>
-        <div>{headerAction}</div>
-      </div>
+  const bodyContent = (
+    <>
+      {actionStrip}
 
-      {/* content area */}
       {isLoading ? (
         <div className="flex flex-col gap-2 px-5 py-4">
           {[1, 2, 3].map((i) => (
@@ -549,7 +557,7 @@ export function FeedingTracker() {
           ))}
         </div>
       ) : mode.kind === "list" ? (
-        <div className="overflow-y-auto max-h-80">
+        <div className="overflow-y-auto max-h-72">
           {entries.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-amber-700/60 italic">
               No feedings yet — add your first one!
@@ -597,6 +605,8 @@ export function FeedingTracker() {
           }
         />
       ) : null}
-    </BreadSliceShell>
+    </>
   );
+
+  return <BreadSliceShell dome={domeContent} body={bodyContent} />;
 }
