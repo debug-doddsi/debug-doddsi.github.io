@@ -7,6 +7,7 @@ import {
   type FeedingImage,
   type FlourType,
 } from "../../hooks/useSourdoughData";
+import { BreadShell } from "./BreadShell";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -442,37 +443,6 @@ function FeedingDetail({
   );
 }
 
-// ─── bread shell ──────────────────────────────────────────────────────────────
-// dome = centred text in the curved crown; body = straight rectangular section below
-
-function BreadSliceShell({
-  dome,
-  body,
-}: {
-  dome: React.ReactNode;
-  body: React.ReactNode;
-}) {
-  return (
-    <div className="relative w-full max-w-lg mx-auto pt-10">
-      {/* steam wisps */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 flex justify-around pointer-events-none">
-        <span className="steam-wisp" style={{ animationDelay: "0s" }} />
-        <span className="steam-wisp" style={{ animationDelay: "0.7s" }} />
-        <span className="steam-wisp" style={{ animationDelay: "1.4s" }} />
-      </div>
-
-      <div className="bread-crust">
-        <div className="bread-inner">
-          {/* curved crown — heading centred here */}
-          <div className="bread-dome">{dome}</div>
-          {/* straight body — table, forms, buttons go here */}
-          <div>{body}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── main tracker ─────────────────────────────────────────────────────────────
 
 type ViewMode =
@@ -493,7 +463,6 @@ export function FeedingTracker() {
 
   // ── dome: centred title ───────────────────────────────────────────────────
   let domeContent: React.ReactNode;
-  // ── body action strip (just below the dome, above main content) ───────────
   let actionStrip: React.ReactNode = null;
 
   if (mode.kind === "list") {
@@ -546,8 +515,8 @@ export function FeedingTracker() {
     );
   }
 
-  const bodyContent = (
-    <>
+  return (
+    <BreadShell dome={domeContent}>
       {actionStrip}
 
       {isLoading ? (
@@ -557,7 +526,7 @@ export function FeedingTracker() {
           ))}
         </div>
       ) : mode.kind === "list" ? (
-        <div className="overflow-y-auto max-h-72">
+        <>
           {entries.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-amber-700/60 italic">
               No feedings yet — add your first one!
@@ -571,7 +540,7 @@ export function FeedingTracker() {
               />
             ))
           )}
-        </div>
+        </>
       ) : mode.kind === "new" ? (
         <FeedingForm
           initial={blankEntry()}
@@ -582,17 +551,15 @@ export function FeedingTracker() {
           onCancel={() => setMode({ kind: "list" })}
         />
       ) : mode.kind === "detail" && activeEntry ? (
-        <div className="overflow-y-auto max-h-96">
-          <FeedingDetail
-            entry={activeEntry}
-            onUpdate={updateEntry}
-            onDelete={async () => {
-              await deleteEntry(activeEntry.id);
-              setMode({ kind: "list" });
-            }}
-            onEdit={() => setMode({ kind: "edit", entryId: activeEntry.id })}
-          />
-        </div>
+        <FeedingDetail
+          entry={activeEntry}
+          onUpdate={updateEntry}
+          onDelete={async () => {
+            await deleteEntry(activeEntry.id);
+            setMode({ kind: "list" });
+          }}
+          onEdit={() => setMode({ kind: "edit", entryId: activeEntry.id })}
+        />
       ) : mode.kind === "edit" && activeEntry ? (
         <FeedingForm
           initial={{ ...activeEntry }}
@@ -605,8 +572,6 @@ export function FeedingTracker() {
           }
         />
       ) : null}
-    </>
+    </BreadShell>
   );
-
-  return <BreadSliceShell dome={domeContent} body={bodyContent} />;
 }
