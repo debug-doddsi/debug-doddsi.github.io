@@ -1324,7 +1324,7 @@ html.pink .travel-map-filter-label {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end; /* push title to base of dome */
-  padding: 0 15% 14px;
+  padding: 0 15% 8px;
   text-align: center;
 }
 
@@ -1385,27 +1385,32 @@ select.bread-input {
 /* ─── Steam wisps ─────────────────────────────────────────────────────────── */
 
 @keyframes steam {
-  0% {
-    transform: translateY(0) scaleX(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateY(-18px) scaleX(1.3);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translateY(-36px) scaleX(0.8);
-    opacity: 0;
-  }
+  0%   { transform: translateY(0)    scaleX(1)    translateX(0);    opacity: 0.72; }
+  20%  { transform: translateY(-9px)  scaleX(0.88) translateX(2px);  opacity: 0.58; }
+  40%  { transform: translateY(-18px) scaleX(1.18) translateX(-3px); opacity: 0.42; }
+  60%  { transform: translateY(-27px) scaleX(0.82) translateX(3px);  opacity: 0.26; }
+  80%  { transform: translateY(-35px) scaleX(1.05) translateX(-2px); opacity: 0.12; }
+  100% { transform: translateY(-44px) scaleX(0.7)  translateX(0);    opacity: 0; }
 }
 
 .steam-wisp {
   position: absolute;
-  width: 4px;
-  height: 16px;
-  background: rgba(255, 240, 210, 0.8);
+  width: 3px;
+  height: 18px;
+  background: rgba(210, 215, 220, 0.65);
   border-radius: 50% 50% 0 0;
-  animation: steam 2.2s ease-in-out infinite;
-  filter: blur(2px);
+  animation: steam 2.4s ease-in-out infinite;
+  filter: blur(1.5px);
   bottom: 0;
+}
+
+/* ─── Sourdough view transitions ──────────────────────────────────────────── */
+
+@keyframes breadViewEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bread-view-enter {
+  animation: breadViewEnter 0.22s ease forwards;
 }

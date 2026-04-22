@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, PartyPopper } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Check, PartyPopper, Timer, Bell } from "lucide-react";
 import { type BakeSession } from "../../hooks/useBakeSession";
 
 interface BakingGuideProps {
@@ -9,10 +9,57 @@ interface BakingGuideProps {
   completeBake: () => void;
 }
 
+function playBell() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+    osc.start();
+    osc.stop(ctx.currentTime + 2);
+  } catch {
+    // Web Audio not available
+  }
+}
+
+function fmtMs(ms: number) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
 export function BakingGuide({ session, startBake, toggleStep, completeBake }: BakingGuideProps) {
   const [starterInput, setStarterInput] = useState("");
   const [inputError, setInputError] = useState("");
   const [confirmStop, setConfirmStop] = useState(false);
+
+  // stepId → endTime (ms since epoch)
+  const [timers, setTimers] = useState<Record<string, number>>({});
+  const belled = useRef<Set<string>>(new Set());
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (Object.keys(timers).length === 0) return;
+    const id = setInterval(() => {
+      setTick((t) => t + 1);
+      for (const [stepId, endTime] of Object.entries(timers)) {
+        if (Date.now() >= endTime && !belled.current.has(stepId)) {
+          belled.current.add(stepId);
+          playBell();
+        }
+      }
+    }, 500);
+    return () => clearInterval(id);
+  }, [timers]);
+
+  const startTimer = (stepId: string, minutes: number) => {
+    setTimers((prev) => ({ ...prev, [stepId]: Date.now() + minutes * 60_000 }));
+  };
 
   const handleStart = () => {
     const n = Number(starterInput);
@@ -28,7 +75,7 @@ export function BakingGuide({ session, startBake, toggleStep, completeBake }: Ba
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-5 px-6 py-10">
+      <div className="flex flex-col items-center justify-start gap-5 px-6 pt-10 pb-4">
         <p className="text-sm font-medium text-amber-900 text-center">
           How much starter do you want to use?
         </p>
@@ -86,38 +133,72 @@ export function BakingGuide({ session, startBake, toggleStep, completeBake }: Ba
 
       {/* checklist */}
       <div className="flex flex-col gap-1">
-        {session.steps.map((step, i) => (
-          <button
-            key={step.id}
-            onClick={() => toggleStep(step.id)}
-            className={`flex items-start gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-              step.done
-                ? "bg-amber-200/50 border border-amber-300/50"
-                : "bg-amber-50/60 border border-amber-200/40 hover:border-amber-300"
-            }`}
-          >
-            <span
-              className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+        {session.steps.map((step, i) => {
+          const endTime = timers[step.id];
+          const remaining = endTime !== undefined ? endTime - Date.now() : null;
+          const timerRunning = remaining !== null && remaining > 0;
+          const timerDone = remaining !== null && remaining <= 0;
+
+          return (
+            <div
+              key={step.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => toggleStep(step.id)}
+              onKeyDown={(e) => e.key === " " && toggleStep(step.id)}
+              className={`flex items-start gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                 step.done
-                  ? "bg-amber-600 border-amber-600"
-                  : "border-amber-400/60"
+                  ? "bg-amber-200/50 border border-amber-300/50"
+                  : "bg-amber-50/60 border border-amber-200/40 hover:border-amber-300"
               }`}
             >
-              {step.done && <Check size={11} className="text-white" />}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p
-                className={`text-sm font-medium ${
-                  step.done ? "line-through text-neutral-400" : "text-neutral-800"
+              <span
+                className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  step.done
+                    ? "bg-amber-600 border-amber-600"
+                    : "border-amber-400/60"
                 }`}
               >
-                <span className="text-amber-700 mr-1">{i + 1}.</span>
-                {step.label}
-              </p>
-              <p className="text-[10px] text-amber-700/60 mt-0.5">{step.note}</p>
+                {step.done && <Check size={11} className="text-white" />}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-sm font-medium ${
+                    step.done ? "line-through text-neutral-400" : "text-neutral-800"
+                  }`}
+                >
+                  <span className="text-amber-700 mr-1">{i + 1}.</span>
+                  {step.label}
+                </p>
+                <p className="text-[10px] text-amber-700/60 mt-0.5">{step.note}</p>
+              </div>
+              {step.timerMinutes !== undefined && !step.done && (
+                <span
+                  onClick={(e) => e.stopPropagation()}
+                  className="shrink-0 flex items-center mt-0.5"
+                >
+                  {timerDone ? (
+                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-green-700">
+                      <Bell size={10} /> Done!
+                    </span>
+                  ) : timerRunning ? (
+                    <span className="text-[11px] font-mono font-bold text-amber-700">
+                      {fmtMs(remaining!)}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => startTimer(step.id, step.timerMinutes!)}
+                      className="flex items-center gap-0.5 text-[10px] text-amber-500 hover:text-amber-800 transition-colors"
+                    >
+                      <Timer size={10} />
+                      {step.timerMinutes}m
+                    </button>
+                  )}
+                </span>
+              )}
             </div>
-          </button>
-        ))}
+          );
+        })}
       </div>
 
       {/* completion */}
