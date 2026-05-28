@@ -8,6 +8,7 @@ import { PlaygroundPage } from "./pages/PlaygroundPage";
 import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
+import { DnDPage } from "./pages/DnDPage";
 import { HomePage } from "./pages/HomePage";
 import { StarCursor } from "./components/ui/StarCursor";
 
@@ -27,6 +28,8 @@ function renderTab(tab: TabId) {
       return <ContactPage />;
     case "kitchen":
       return <KitchenPage />;
+    case "dnd":
+      return <DnDPage />;
   }
 }
 
@@ -40,6 +43,13 @@ function getInitialTab(): TabId {
     new URLSearchParams(search).get("tab") === "kitchen"
   ) {
     return "kitchen";
+  }
+  if (
+    pathname === "/dndmapmaker" ||
+    pathname === "/dndmapmaker/" ||
+    new URLSearchParams(search).get("tab") === "dnd"
+  ) {
+    return "dnd";
   }
   return "about";
 }

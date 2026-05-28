@@ -35,6 +35,9 @@ importers:
       simple-icons:
         specifier: ^16.17.0
         version: 16.17.0
+      simplex-noise:
+        specifier: ^4.0.3
+        version: 4.0.3
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -3736,6 +3739,9 @@ packages:
   simple-icons@16.17.0:
     resolution: {integrity: sha512-bRrGtzM6NLgxeMWmRcfDdrRksECk101lRrCn6jjj6qzUB6lQ+E5smnr52rqS1kLPmbLpS/g6iF463j50M4BT7A==}
     engines: {node: '>=0.12.18'}
+
+  simplex-noise@4.0.3:
+    resolution: {integrity: sha512-qSE2I4AngLQG7BXqoZj51jokT4WUXe8mOBrvfOXpci8+6Yu44+/dD5zqDpOx3Ux792eamTd2lLcI8jqFntk/lg==}
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
@@ -8220,6 +8226,8 @@ snapshots:
   signal-exit@4.1.0: {}
 
   simple-icons@16.17.0: {}
+
+  simplex-noise@4.0.3: {}
 
   sisteransi@1.0.5: {}
 
