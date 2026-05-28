@@ -6,9 +6,10 @@ import {
   Send,
   Heart,
   ChefHat,
+  Map,
 } from "lucide-react";
 
-export type TabId = "about" | "work" | "playground" | "writing" | "contact" | "kitchen";
+export type TabId = "about" | "work" | "playground" | "writing" | "contact" | "kitchen" | "dnd";
 
 interface NavItem {
   id: TabId;
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "writing", label: "Writing", icon: <Pencil size={16} /> },
   { id: "contact", label: "Contact", icon: <Send size={16} /> },
   { id: "kitchen", label: "Kitchen", icon: <ChefHat size={16} /> },
+  { id: "dnd", label: "D&D Map", icon: <Map size={16} /> },
 ];
 
 interface SidebarProps {
