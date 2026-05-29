@@ -18,7 +18,7 @@ interface MountainFeature { cx: number; cy: number; size: number; }
 interface LandscapeLocation { type: "city" | "town"; cx: number; cy: number; }
 interface RiverPoint { gx: number; gy: number; }
 
-type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith";
+type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "shop";
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; }
 
 type RGB = [number, number, number];
@@ -202,7 +202,7 @@ function renderWaterWaves(ctx: CanvasRenderingContext2D, hm: Float32Array, seed:
 // ─── Rivers ───────────────────────────────────────────────────────────────────
 
 function generateRivers(hm: Float32Array, seed: number): RiverPoint[][] {
-  const count = 2 + Math.floor(seededRand(seed, 77777) * 4);
+  const count = 4 + Math.floor(seededRand(seed, 77777) * 4);
   const candidates: Array<{ gx: number; gy: number }> = [];
   for (let gy = 8; gy < HM_H - 8; gy += 3)
     for (let gx = 8; gx < HM_W - 8; gx += 3)
@@ -265,7 +265,7 @@ function renderRivers(ctx: CanvasRenderingContext2D, rivers: RiverPoint[][]): vo
     g.addColorStop(0, "rgba(100,140,170,0.65)");
     g.addColorStop(1, "rgba(82,116,140,0.88)");
     ctx.strokeStyle = g;
-    ctx.lineWidth = 2.8;
+    ctx.lineWidth = 4.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.stroke();
@@ -279,7 +279,7 @@ function renderRivers(ctx: CanvasRenderingContext2D, rivers: RiverPoint[][]): vo
     }
     ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
     ctx.strokeStyle = "rgba(200,225,240,0.22)";
-    ctx.lineWidth = 0.9;
+    ctx.lineWidth = 1.4;
     ctx.stroke();
   }
   ctx.restore();
@@ -353,57 +353,33 @@ function renderForests(ctx: CanvasRenderingContext2D, clusters: ForestCluster[],
 
 function drawMountain(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
   ctx.save();
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  const hw = size, h = size * 1.45, base = cy + size * 0.3, peak = cy - h;
-
-  // Cast shadow
+  // Grey circular mass (top-down view, matches tree style)
   ctx.beginPath();
-  ctx.moveTo(cx - hw * 0.8, base + 3);
-  ctx.lineTo(cx + hw + 5, base + 3);
-  ctx.lineTo(cx + hw * 0.5 + 5, peak + h * 0.3 + 3);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(18,12,5,0.16)";
+  ctx.arc(cx, cy, size * 0.52, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(148,138,122,0.82)";
   ctx.fill();
-
-  // Dark (shadow) face
-  ctx.beginPath();
-  ctx.moveTo(cx, peak); ctx.lineTo(cx + hw, base); ctx.lineTo(cx - hw * 0.08, base); ctx.closePath();
-  ctx.fillStyle = "rgb(100,85,65)";
-  ctx.fill();
-
-  // Light face
-  ctx.beginPath();
-  ctx.moveTo(cx, peak); ctx.lineTo(cx - hw, base); ctx.lineTo(cx - hw * 0.08, base); ctx.closePath();
-  ctx.fillStyle = "rgb(192,180,160)";
-  ctx.fill();
-
-  // Snow cap
-  const sh = h * 0.27, sy = peak + sh, sw = hw * (sh / h);
-  ctx.beginPath();
-  ctx.moveTo(cx, peak); ctx.lineTo(cx - sw, sy); ctx.lineTo(cx + sw, sy); ctx.closePath();
-  ctx.fillStyle = "rgba(238,234,226,0.96)";
-  ctx.fill();
-
-  // Hatching on dark face
-  const hc = 3 + Math.floor(size / 8);
-  ctx.strokeStyle = "rgba(68,52,36,0.48)";
+  // Radiating spokes like tree but grey-toned
+  const spokes = 6 + Math.floor(size * 0.25);
+  ctx.strokeStyle = "rgba(88,78,65,0.48)";
   ctx.lineWidth = 0.65;
-  for (let i = 0; i < hc; i++) {
-    const t = (i + 1) / (hc + 1);
+  for (let s = 0; s < spokes; s++) {
+    const a = (s / spokes) * Math.PI * 2;
     ctx.beginPath();
-    ctx.moveTo(cx + t * hw * 0.88, peak + h * t);
-    ctx.lineTo(cx + t * hw * 0.88 - hw * 0.16, peak + h * t + size * 0.2);
+    ctx.moveTo(cx + Math.cos(a) * size * 0.15, cy + Math.sin(a) * size * 0.15);
+    ctx.lineTo(cx + Math.cos(a) * size * 0.46, cy + Math.sin(a) * size * 0.46);
     ctx.stroke();
   }
-
-  // Ridge outline
+  // Snow cap: bright inner circle
   ctx.beginPath();
-  ctx.moveTo(cx - hw, base); ctx.lineTo(cx, peak); ctx.lineTo(cx + hw, base);
-  ctx.strokeStyle = "rgba(38,28,16,0.82)";
-  ctx.lineWidth = 0.95;
+  ctx.arc(cx, cy, size * 0.22, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(232,228,220,0.92)";
+  ctx.fill();
+  // Outer outline
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.52, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(55,45,32,0.55)";
+  ctx.lineWidth = 0.65;
   ctx.stroke();
-
   ctx.restore();
 }
 
@@ -459,21 +435,21 @@ function drawCityIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.fillStyle = "rgba(88,68,44,0.92)";
   ctx.strokeStyle = "rgba(28,18,8,0.9)";
-  ctx.lineWidth = 0.8;
+  ctx.lineWidth = 1.2;
 
   // Central keep
-  ctx.fillRect(cx - 9, cy - 14, 18, 14);
-  ctx.strokeRect(cx - 9, cy - 14, 18, 14);
+  ctx.fillRect(cx - 14, cy - 22, 28, 22);
+  ctx.strokeRect(cx - 14, cy - 22, 28, 22);
   // Crenellations
   for (let c = 0; c < 4; c++) {
-    if (c % 2 === 0) { ctx.fillRect(cx - 9 + c * 4.5, cy - 17, 4.5, 3); }
+    if (c % 2 === 0) { ctx.fillRect(cx - 14 + c * 7, cy - 27, 7, 5); }
   }
   // Side towers
-  ctx.fillRect(cx - 14, cy - 10, 6, 10); ctx.strokeRect(cx - 14, cy - 10, 6, 10);
-  ctx.fillRect(cx + 8, cy - 10, 6, 10); ctx.strokeRect(cx + 8, cy - 10, 6, 10);
+  ctx.fillRect(cx - 22, cy - 16, 9, 16); ctx.strokeRect(cx - 22, cy - 16, 9, 16);
+  ctx.fillRect(cx + 13, cy - 16, 9, 16); ctx.strokeRect(cx + 13, cy - 16, 9, 16);
   // Gate arch
   ctx.beginPath();
-  ctx.arc(cx, cy - 3, 3, Math.PI, 0);
+  ctx.arc(cx, cy - 5, 5, Math.PI, 0);
   ctx.fillStyle = "rgba(45,32,18,0.9)"; ctx.fill();
 
   ctx.restore();
@@ -484,12 +460,12 @@ function drawTownIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.fillStyle = "rgba(162,138,102,0.92)";
   ctx.strokeStyle = "rgba(38,28,12,0.85)";
-  ctx.lineWidth = 0.75;
-  ctx.fillRect(cx - 6, cy - 6, 12, 6); ctx.strokeRect(cx - 6, cy - 6, 12, 6);
+  ctx.lineWidth = 1.0;
+  ctx.fillRect(cx - 10, cy - 10, 20, 10); ctx.strokeRect(cx - 10, cy - 10, 20, 10);
   ctx.beginPath();
-  ctx.moveTo(cx - 7.5, cy - 6); ctx.lineTo(cx, cy - 13); ctx.lineTo(cx + 7.5, cy - 6); ctx.closePath();
+  ctx.moveTo(cx - 12, cy - 10); ctx.lineTo(cx, cy - 21); ctx.lineTo(cx + 12, cy - 10); ctx.closePath();
   ctx.fillStyle = "rgba(115,88,58,0.9)"; ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "rgba(45,32,18,0.7)"; ctx.fillRect(cx - 2, cy - 5, 4, 3);
+  ctx.fillStyle = "rgba(45,32,18,0.7)"; ctx.fillRect(cx - 2.5, cy - 9, 5, 4);
   ctx.restore();
 }
 
@@ -583,6 +559,23 @@ function drawBlacksmithIcon(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
   ctx.closePath();
   ctx.fill(); ctx.stroke();
   ctx.fillRect(cx - 5, cy - 3, 10, 4); ctx.strokeRect(cx - 5, cy - 3, 10, 4);
+  ctx.restore();
+}
+
+function drawShopIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  ctx.save();
+  ctx.fillStyle = "rgba(175,138,88,0.9)";
+  ctx.strokeStyle = "rgba(38,28,14,0.82)";
+  ctx.lineWidth = 0.8;
+  // Awning arc
+  ctx.beginPath(); ctx.arc(cx, cy - 10, 8, Math.PI, 0); ctx.fill(); ctx.stroke();
+  // Body
+  ctx.fillStyle = "rgba(155,125,88,0.9)";
+  ctx.fillRect(cx - 7, cy - 10, 14, 10); ctx.strokeRect(cx - 7, cy - 10, 14, 10);
+  // Door
+  ctx.fillStyle = "rgba(80,58,32,0.85)"; ctx.fillRect(cx - 2.5, cy - 7, 5, 7);
+  // Windows
+  ctx.fillStyle = "rgba(200,185,140,0.7)"; ctx.fillRect(cx - 6, cy - 9, 3, 3);
   ctx.restore();
 }
 
@@ -705,6 +698,59 @@ function drawBorder(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.restore();
 }
 
+// ─── Legend ───────────────────────────────────────────────────────────────────
+
+function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): void {
+  ctx.save();
+  const lx = W - 148, ly = 22, lw = 134, rowH = 26;
+  const items = mode === "landscape"
+    ? [
+        { label: "City",     draw: (x: number, y: number) => drawCityIcon(ctx, x, y) },
+        { label: "Town",     draw: (x: number, y: number) => drawTownIcon(ctx, x, y) },
+        { label: "Forest",   draw: (x: number, y: number) => drawTree(ctx, x, y, 7) },
+        { label: "Mountain", draw: (x: number, y: number) => drawMountain(ctx, x, y, 10) },
+      ]
+    : [
+        { label: "Castle",      draw: (x: number, y: number) => drawTownCastleIcon(ctx, x, y) },
+        { label: "Inn",         draw: (x: number, y: number) => drawInnIcon(ctx, x, y) },
+        { label: "Tavern",      draw: (x: number, y: number) => drawTavernIcon(ctx, x, y) },
+        { label: "Market",      draw: (x: number, y: number) => drawMarketIcon(ctx, x, y) },
+        { label: "Church",      draw: (x: number, y: number) => drawChurchIcon(ctx, x, y) },
+        { label: "Blacksmith",  draw: (x: number, y: number) => drawBlacksmithIcon(ctx, x, y) },
+        { label: "Shop",        draw: (x: number, y: number) => drawShopIcon(ctx, x, y) },
+      ];
+
+  const lh = items.length * rowH + 20;
+  // Background box
+  ctx.fillStyle = "rgba(228,210,175,0.88)";
+  roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
+  ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.8;
+  roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+
+  // Header
+  ctx.font = "bold 9px 'Cinzel', serif";
+  ctx.fillStyle = "rgba(55,38,18,0.88)";
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText("LEGEND", lx + lw / 2, ly + 5);
+
+  // Separator line
+  ctx.beginPath(); ctx.moveTo(lx + 6, ly + 16); ctx.lineTo(lx + lw - 6, ly + 16);
+  ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+
+  // Rows
+  for (let i = 0; i < items.length; i++) {
+    const rowY = ly + 18 + i * rowH + rowH / 2;
+    // Icon centred in a 24px column
+    items[i].draw(lx + 20, rowY);
+    // Label
+    ctx.font = "10px 'Cinzel', serif";
+    ctx.fillStyle = "rgba(45,30,12,0.92)";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(items[i].label, lx + 38, rowY - 2);
+  }
+  ctx.restore();
+}
+
 // ─── Tattered Edges ───────────────────────────────────────────────────────────
 
 function drawTatteredEdges(ctx: CanvasRenderingContext2D, seed: number): void {
@@ -807,6 +853,7 @@ function renderLandscape(ctx: CanvasRenderingContext2D, seed: number): void {
   }
   drawCompassRose(ctx, 64, H - 64, 38);
   drawBorder(ctx, seed);
+  drawLegend(ctx, "landscape");
   postProcess(ctx, seed);
 }
 
@@ -901,6 +948,70 @@ function subdivideBlock(bx: number, by: number, bw: number, bh: number, idx: num
   return buildings;
 }
 
+function drawWagon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  ctx.save();
+  ctx.fillStyle = "rgba(145,108,68,0.85)";
+  ctx.strokeStyle = "rgba(55,38,18,0.88)"; ctx.lineWidth = 0.8;
+  // Body
+  ctx.fillRect(cx - 10, cy - 5, 20, 7); ctx.strokeRect(cx - 10, cy - 5, 20, 7);
+  // Wheels
+  for (const wx of [cx - 7, cx + 7]) {
+    ctx.beginPath(); ctx.arc(wx, cy + 4, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(88,62,32,0.88)"; ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "rgba(55,38,18,0.65)"; ctx.lineWidth = 0.6;
+    for (let s = 0; s < 4; s++) {
+      const a = s * Math.PI / 2;
+      ctx.beginPath(); ctx.moveTo(wx, cy + 4);
+      ctx.lineTo(wx + Math.cos(a) * 4, cy + 4 + Math.sin(a) * 4); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawProduce(ctx: CanvasRenderingContext2D, cx: number, cy: number, seed: number, idx: number): void {
+  ctx.save();
+  const n = 2 + Math.floor(seededRand(idx, seed + 70001) * 3);
+  for (let i = 0; i < n; i++) {
+    const ox = (i % 2) * 9 - 4, oy = Math.floor(i / 2) * -7;
+    const rv = seededRand(idx * 5 + i, seed + 70002) * 30 | 0;
+    ctx.fillStyle = `rgba(${165 + rv},${130 + (rv >> 1)},82,0.88)`;
+    ctx.strokeStyle = "rgba(55,38,18,0.72)"; ctx.lineWidth = 0.6;
+    ctx.fillRect(cx + ox - 4, cy + oy - 4, 8, 7);
+    ctx.strokeRect(cx + ox - 4, cy + oy - 4, 8, 7);
+    // Stave line
+    ctx.beginPath();
+    ctx.moveTo(cx + ox - 4, cy + oy - 1); ctx.lineTo(cx + ox + 4, cy + oy - 1);
+    ctx.strokeStyle = "rgba(90,65,30,0.35)"; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
+  ctx.save();
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const ks = Math.min(b.w, b.h) * 0.88;
+  // Courtyard fill
+  ctx.fillStyle = "rgba(185,170,140,0.85)";
+  ctx.fillRect(cx - ks / 2, cy - ks / 2, ks, ks);
+  // Curtain wall
+  ctx.strokeStyle = "rgba(45,32,15,0.90)"; ctx.lineWidth = 3.5;
+  ctx.strokeRect(cx - ks / 2, cy - ks / 2, ks, ks);
+  // Inner keep
+  const ki = ks * 0.44;
+  ctx.fillStyle = "rgba(88,72,50,0.92)"; ctx.fillRect(cx - ki / 2, cy - ki / 2, ki, ki);
+  ctx.strokeStyle = "rgba(35,25,10,0.92)"; ctx.lineWidth = 1.4; ctx.strokeRect(cx - ki / 2, cy - ki / 2, ki, ki);
+  // Corner turrets (circles at outer wall corners)
+  const turretR = Math.max(5, ks * 0.12);
+  for (const [tx, ty] of [[cx - ks / 2, cy - ks / 2], [cx + ks / 2, cy - ks / 2], [cx + ks / 2, cy + ks / 2], [cx - ks / 2, cy + ks / 2]] as [number, number][]) {
+    ctx.beginPath(); ctx.arc(tx, ty, turretR, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(78,62,42,0.95)"; ctx.fill();
+    ctx.strokeStyle = "rgba(35,25,10,0.90)"; ctx.lineWidth = 1; ctx.stroke();
+  }
+  // Gatehouse (south side centre)
+  ctx.fillStyle = "rgba(35,25,10,0.88)"; ctx.fillRect(cx - 5, cy + ks / 2 - 10, 10, 11);
+  ctx.restore();
+}
+
 function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.fillStyle = "rgb(228,213,178)";
   ctx.fillRect(0, 0, W, H);
@@ -923,6 +1034,20 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
         const rv = seededRand((b.x | 0) * 7 + (b.y | 0), seed + 40005) * 18 | 0;
         ctx.fillStyle = `rgb(${200 + rv},${183 + rv},${152 + rv})`;
         ctx.fillRect(b.x, b.y, b.w, b.h);
+        // Diagonal tile hatch texture
+        ctx.save();
+        ctx.strokeStyle = "rgba(88,68,42,0.10)"; ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        const spacing = 7;
+        for (let hx2 = b.x - b.h; hx2 < b.x + b.w + b.h; hx2 += spacing) {
+          const x1 = Math.max(b.x, hx2);
+          const y1 = b.y + Math.max(0, b.x - hx2);
+          const x2 = Math.min(b.x + b.w, hx2 + b.h);
+          const y2 = b.y + b.h - Math.max(0, b.x + b.w - (hx2 + b.h));
+          if (x1 < x2 && y1 !== y2) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
+        }
+        ctx.stroke();
+        ctx.restore();
         ctx.fillStyle = "rgba(130,105,78,0.35)";
         ctx.fillRect(b.x, b.y + b.h - 3, b.w, 3);
         ctx.fillRect(b.x + b.w - 3, b.y, 3, b.h);
@@ -934,32 +1059,24 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     }
   }
 
-  // Layer 2: parks (green ellipses with trees)
+  // Layer 2: parks (organic tree clusters — fluffy, no geometric ellipse fill)
   const parks = generateParks(seed);
   for (let i = 0; i < parks.length; i++) {
     const p = parks[i];
-    ctx.save();
-    ctx.translate(p.cx, p.cy);
-    ctx.rotate(p.angle);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, p.rx, p.ry, 0, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(108,138,72,0.88)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(68,95,42,0.6)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.restore();
-    const treeCount = 4 + Math.floor(seededRand(i, seed + 30010) * 5);
+    const r = (p.rx + p.ry) / 2;
+    const treeCount = 10 + Math.floor(seededRand(i, seed + 30010) * 7);
     for (let t = 0; t < treeCount; t++) {
       const a = seededRand(i * 20 + t, seed + 30011) * Math.PI * 2;
-      const dr = seededRand(i * 20 + t + 100, seed + 30012);
-      drawTree(ctx, p.cx + Math.cos(a) * dr * p.rx * 0.72, p.cy + Math.sin(a) * dr * p.ry * 0.72, 5 + seededRand(i * 20 + t + 200, seed + 30013) * 4);
+      const dr = Math.sqrt(seededRand(i * 20 + t + 100, seed + 30012)) * r * 0.88;
+      const tx = p.cx + Math.cos(a) * dr;
+      const ty = p.cy + Math.sin(a) * dr;
+      drawTree(ctx, tx, ty, 5 + seededRand(i * 20 + t + 200, seed + 30013) * 5);
     }
   }
 
   // Layer 3: organic roads (Bézier, cut through buildings)
-  const roads = generateTownRoads(seed);
-  for (const road of roads) {
+  const townRoads = generateTownRoads(seed);
+  for (const road of townRoads) {
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -989,11 +1106,24 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.lineWidth = 1;
   ctx.strokeRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
 
+  // Layer 4.5: environmental props (wagons + produce near roads)
+  const propCount = 5 + Math.floor(seededRand(215, seed) * 5);
+  for (let w = 0; w < propCount; w++) {
+    const t = seededRand(w + 500, seed + 50001);
+    const road = townRoads[Math.floor(t * townRoads.length)];
+    const bt = 0.25 + seededRand(w + 501, seed + 50002) * 0.5;
+    const wx = (1 - bt) ** 2 * road.p0.x + 2 * (1 - bt) * bt * road.cp.x + bt ** 2 * road.p1.x + (seededRand(w + 502, seed + 50003) - 0.5) * 32;
+    const wy = (1 - bt) ** 2 * road.p0.y + 2 * (1 - bt) * bt * road.cp.y + bt ** 2 * road.p1.y + (seededRand(w + 503, seed + 50004) - 0.5) * 22;
+    if (Math.hypot(wx - hx, wy - hy) < 75) continue;
+    if (seededRand(w, seed + 50005) > 0.5) drawWagon(ctx, wx, wy);
+    else drawProduce(ctx, wx, wy, seed, w);
+  }
+
   // Layer 5: special building icons nearest the hub (drawn over roads)
   const sorted = allBuildings
     .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
     .sort((a, b) => a.d - b.d);
-  const specialOrder: BuildingType[] = ["castle", "church", "inn", "inn", "tavern", "tavern", "tavern", "market", "blacksmith", "blacksmith"];
+  const specialOrder: BuildingType[] = ["castle", "church", "inn", "inn", "tavern", "tavern", "tavern", "market", "blacksmith", "blacksmith", "shop", "shop"];
   const usedLots = new Set<string>();
   let si = 0;
   for (const { i } of sorted) {
@@ -1002,6 +1132,7 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     const lotKey = `${lotCx | 0},${lotCy | 0}`;
     if (usedLots.has(lotKey)) continue;
     usedLots.add(lotKey);
+    if (specialOrder[si] === "castle") renderCastleFootprint(ctx, b);
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2 + 4;
     switch (specialOrder[si]) {
       case "castle": drawTownCastleIcon(ctx, cx, cy); break;
@@ -1010,6 +1141,7 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
       case "market": drawMarketIcon(ctx, cx, cy); break;
       case "church": drawChurchIcon(ctx, cx, cy); break;
       case "blacksmith": drawBlacksmithIcon(ctx, cx, cy); break;
+      case "shop": drawShopIcon(ctx, cx, cy); break;
     }
     si++;
   }
@@ -1033,6 +1165,7 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
 
   drawCompassRose(ctx, W - 64, H - 64, 38);
   drawBorder(ctx, seed);
+  drawLegend(ctx, "town");
   postProcess(ctx, seed);
 }
 
@@ -1077,7 +1210,10 @@ function drawPins(ctx: CanvasRenderingContext2D, pins: UserPin[]): void {
 export function DnDMapGenerator() {
   const [mode, setMode] = useState<"landscape" | "town">("landscape");
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 999983));
-  const [pins, setPins] = useState<UserPin[]>([]);
+  const [pinsLandscape, setPinsLandscape] = useState<UserPin[]>([]);
+  const [pinsTown, setPinsTown] = useState<UserPin[]>([]);
+  const pins = mode === "landscape" ? pinsLandscape : pinsTown;
+  const setPins = (mode === "landscape" ? setPinsLandscape : setPinsTown) as (v: UserPin[] | ((prev: UserPin[]) => UserPin[])) => void;
   const [isAddingPin, setIsAddingPin] = useState(false);
   const [pendingPin, setPendingPin] = useState<{ nx: number; ny: number } | null>(null);
   const [labelInput, setLabelInput] = useState("");
@@ -1190,7 +1326,7 @@ export function DnDMapGenerator() {
           {(["landscape", "town"] as const).map((m, i) => (
             <button
               key={m}
-              onClick={() => { setMode(m); setPendingPin(null); }}
+              onClick={() => { setMode(m); setPendingPin(null); setIsAddingPin(false); }}
               className={cn(
                 "px-3 py-1.5 transition-colors",
                 i > 0 && "border-l border-neutral-800",
@@ -1203,7 +1339,7 @@ export function DnDMapGenerator() {
         </div>
 
         <button
-          onClick={() => { setSeed(Math.floor(Math.random() * 999983)); setPins([]); setPendingPin(null); }}
+          onClick={() => { setSeed(Math.floor(Math.random() * 999983)); setPins([]); setPendingPin(null); setIsAddingPin(false); }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono border border-neutral-800 rounded hover:border-accent hover:text-accent transition-colors"
         >
           <RefreshCw size={11} /> new map
