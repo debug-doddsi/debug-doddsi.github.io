@@ -14,10 +14,10 @@ const HM_H = 267;
 
 interface UserPin { id: string; nx: number; ny: number; label: string; }
 interface ForestCluster { cx: number; cy: number; }
-interface MountainFeature { cx: number; cy: number; size: number; }
 interface LandscapeLocation { type: "city" | "town"; cx: number; cy: number; }
 interface RiverPoint { gx: number; gy: number; }
 
+type MapScale = "small" | "medium" | "large";
 type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "shop";
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; }
 
@@ -55,7 +55,9 @@ function fbm(noise: ReturnType<typeof createNoise2D>, x: number, y: number, oct:
 
 // ─── Heightmap ────────────────────────────────────────────────────────────────
 
-function buildMaps(seed: number): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
+const SCALE_FREQ: Record<MapScale, number> = { small: 4.0, medium: 2.0, large: 1.0 };
+
+function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
   const tn = makeNoise(seed);
   const an = makeNoise(seed + 99991);
   const dn = makeNoise(seed + 49999);
@@ -65,12 +67,13 @@ function buildMaps(seed: number): { hm: Float32Array; am: Float32Array; sm: Floa
 
   const marginX = 0.06 + seededRand(10, seed) * 0.05;
   const marginY = 0.08 + seededRand(11, seed) * 0.05;
+  const tf = SCALE_FREQ[scale];
 
   let maxH = 0;
   for (let gy = 0; gy < HM_H; gy++) {
     for (let gx = 0; gx < HM_W; gx++) {
       const nx = gx / HM_W, ny = gy / HM_H;
-      const raw = fbm(tn, nx * 2.0, ny * 2.0, 6) + fbm(dn, nx * 8, ny * 8, 3) * 0.08;
+      const raw = fbm(tn, nx * tf, ny * tf, 6) + fbm(dn, nx * tf * 4, ny * tf * 4, 3) * 0.08;
       const ex = Math.max(0, Math.max((marginX - nx) / marginX, (nx - (1 - marginX)) / marginX));
       const ey = Math.max(0, Math.max((marginY - ny) / marginY, (ny - (1 - marginY)) / marginY));
       const fall = 1 - Math.min(1, Math.pow(Math.max(ex, ey) * 3.5, 1.3));
@@ -349,62 +352,29 @@ function renderForests(ctx: CanvasRenderingContext2D, clusters: ForestCluster[],
   }
 }
 
-// ─── Mountains ────────────────────────────────────────────────────────────────
+// ─── Rock Texture ─────────────────────────────────────────────────────────────
+// Mountains are expressed through terrain colour bands (highland → rocky →
+// high peaks → snow already in BANDS[]). This adds fine stippling for cells
+// above h > 0.76 to reinforce the stony texture without any geometric shapes.
 
-function drawMountain(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+function renderRockTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: number): void {
   ctx.save();
-  // Grey circular mass (top-down view, matches tree style)
-  ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.52, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(148,138,122,0.82)";
-  ctx.fill();
-  // Radiating spokes like tree but grey-toned
-  const spokes = 6 + Math.floor(size * 0.25);
-  ctx.strokeStyle = "rgba(88,78,65,0.48)";
-  ctx.lineWidth = 0.65;
-  for (let s = 0; s < spokes; s++) {
-    const a = (s / spokes) * Math.PI * 2;
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * size * 0.15, cy + Math.sin(a) * size * 0.15);
-    ctx.lineTo(cx + Math.cos(a) * size * 0.46, cy + Math.sin(a) * size * 0.46);
-    ctx.stroke();
-  }
-  // Snow cap: bright inner circle
-  ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.22, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(232,228,220,0.92)";
-  ctx.fill();
-  // Outer outline
-  ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.52, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(55,45,32,0.55)";
-  ctx.lineWidth = 0.65;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function placeMountains(hm: Float32Array, seed: number): MountainFeature[] {
-  const mts: MountainFeature[] = [];
-  const occ = new Set<string>();
-  for (let gy = 3; gy < HM_H - 3; gy++) {
-    for (let gx = 3; gx < HM_W - 3; gx++) {
-      if (hm[gy * HM_W + gx] < 0.75) continue;
-      if (seededRand(gy * HM_W + gx + 2, seed + 66666) > 0.11) continue;
-      let clear = true;
-      for (let dy = -5; dy <= 5 && clear; dy++)
-        for (let dx = -5; dx <= 5 && clear; dx++)
-          if (occ.has(`${gx+dx},${gy+dy}`)) clear = false;
-      if (!clear) continue;
-      occ.add(`${gx},${gy}`);
-      mts.push({ cx: (gx / HM_W) * W, cy: (gy / HM_H) * H, size: 14 + seededRand(mts.length * 3, seed) * 20 });
+  for (let gy = 1; gy < HM_H - 1; gy++) {
+    for (let gx = 1; gx < HM_W - 1; gx++) {
+      const h = hm[gy * HM_W + gx];
+      if (h < 0.76) continue;
+      if (seededRand(gy * HM_W + gx, seed + 11122) > 0.18) continue;
+      const px = (gx / HM_W) * W;
+      const py = (gy / HM_H) * H;
+      const opacity = Math.min(0.26, 0.06 + (h - 0.76) * 0.65);
+      ctx.fillStyle = `rgba(58,48,36,${opacity.toFixed(2)})`;
+      const r = 0.6 + seededRand(gx * 17 + gy, seed + 22244) * 1.5;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
-  return mts;
-}
-
-function renderMountains(ctx: CanvasRenderingContext2D, mts: MountainFeature[]): void {
-  for (const mt of [...mts].sort((a, b) => a.cy - b.cy))
-    drawMountain(ctx, mt.cx, mt.cy, mt.size);
+  ctx.restore();
 }
 
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
@@ -702,51 +672,77 @@ function drawBorder(ctx: CanvasRenderingContext2D, seed: number): void {
 
 function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): void {
   ctx.save();
-  const lx = W - 148, ly = 22, lw = 134, rowH = 26;
-  const items = mode === "landscape"
-    ? [
-        { label: "City",     draw: (x: number, y: number) => drawCityIcon(ctx, x, y) },
-        { label: "Town",     draw: (x: number, y: number) => drawTownIcon(ctx, x, y) },
-        { label: "Forest",   draw: (x: number, y: number) => drawTree(ctx, x, y, 7) },
-        { label: "Mountain", draw: (x: number, y: number) => drawMountain(ctx, x, y, 10) },
-      ]
-    : [
-        { label: "Castle",      draw: (x: number, y: number) => drawTownCastleIcon(ctx, x, y) },
-        { label: "Inn",         draw: (x: number, y: number) => drawInnIcon(ctx, x, y) },
-        { label: "Tavern",      draw: (x: number, y: number) => drawTavernIcon(ctx, x, y) },
-        { label: "Market",      draw: (x: number, y: number) => drawMarketIcon(ctx, x, y) },
-        { label: "Church",      draw: (x: number, y: number) => drawChurchIcon(ctx, x, y) },
-        { label: "Blacksmith",  draw: (x: number, y: number) => drawBlacksmithIcon(ctx, x, y) },
-        { label: "Shop",        draw: (x: number, y: number) => drawShopIcon(ctx, x, y) },
-      ];
 
-  const lh = items.length * rowH + 20;
-  // Background box
-  ctx.fillStyle = "rgba(228,210,175,0.88)";
-  roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
-  ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.8;
-  roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
-
-  // Header
-  ctx.font = "bold 9px 'Cinzel', serif";
-  ctx.fillStyle = "rgba(55,38,18,0.88)";
-  ctx.textAlign = "center"; ctx.textBaseline = "top";
-  ctx.fillText("LEGEND", lx + lw / 2, ly + 5);
-
-  // Separator line
-  ctx.beginPath(); ctx.moveTo(lx + 6, ly + 16); ctx.lineTo(lx + lw - 6, ly + 16);
-  ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
-
-  // Rows
-  for (let i = 0; i < items.length; i++) {
-    const rowY = ly + 18 + i * rowH + rowH / 2;
-    // Icon centred in a 24px column
-    items[i].draw(lx + 20, rowY);
-    // Label
-    ctx.font = "10px 'Cinzel', serif";
-    ctx.fillStyle = "rgba(45,30,12,0.92)";
-    ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText(items[i].label, lx + 38, rowY - 2);
+  if (mode === "landscape") {
+    // Colour-swatch legend showing terrain bands
+    const swatches = [
+      { color: "rgb(58,84,108)",   label: "Deep sea" },
+      { color: "rgb(85,120,145)",  label: "Coastal water" },
+      { color: "rgb(198,182,140)", label: "Shore / beach" },
+      { color: "rgb(135,152,92)",  label: "Lowland grass" },
+      { color: "rgb(90,120,62)",   label: "Forest" },
+      { color: "rgb(142,130,90)",  label: "Highland" },
+      { color: "rgb(168,158,138)", label: "Stone / rock" },
+      { color: "rgb(205,196,180)", label: "High peaks" },
+      { color: "rgb(238,234,226)", label: "Snow" },
+      { color: "rgb(210,188,122)", label: "Desert sand" },
+    ];
+    const sw = 14, rh = 17, pad = 7, lw = 148;
+    const lh = swatches.length * rh + pad * 2 + 14;
+    const lx = W - lw - 20, ly = 20;
+    ctx.fillStyle = "rgba(228,210,175,0.90)";
+    roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
+    ctx.strokeStyle = "rgba(55,38,18,0.50)"; ctx.lineWidth = 0.8;
+    roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+    ctx.font = "bold 8.5px 'Cinzel', serif";
+    ctx.fillStyle = "rgba(50,32,12,0.90)";
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.fillText("LEGEND", lx + lw / 2, ly + pad);
+    ctx.beginPath(); ctx.moveTo(lx + 5, ly + pad + 12); ctx.lineTo(lx + lw - 5, ly + pad + 12);
+    ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.6; ctx.stroke();
+    for (let i = 0; i < swatches.length; i++) {
+      const ey = ly + pad + 14 + i * rh;
+      ctx.fillStyle = swatches[i].color;
+      ctx.fillRect(lx + pad, ey + 2, sw, rh - 5);
+      ctx.strokeStyle = "rgba(40,26,10,0.35)"; ctx.lineWidth = 0.5;
+      ctx.strokeRect(lx + pad, ey + 2, sw, rh - 5);
+      ctx.fillStyle = "rgba(32,20,6,0.88)";
+      ctx.font = "8px 'Cinzel', serif";
+      ctx.textAlign = "left"; ctx.textBaseline = "top";
+      ctx.fillText(swatches[i].label, lx + pad + sw + 5, ey + 3);
+    }
+  } else {
+    // Icon legend for town mode
+    const iconItems: Array<{ label: string; draw: (x: number, y: number) => void }> = [
+      { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
+      { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
+      { label: "Tavern",     draw: (x, y) => drawTavernIcon(ctx, x, y) },
+      { label: "Market",     draw: (x, y) => drawMarketIcon(ctx, x, y) },
+      { label: "Church",     draw: (x, y) => drawChurchIcon(ctx, x, y) },
+      { label: "Blacksmith", draw: (x, y) => drawBlacksmithIcon(ctx, x, y) },
+      { label: "Shop",       draw: (x, y) => drawShopIcon(ctx, x, y) },
+    ];
+    const rowH = 26, lw = 134;
+    const lh = iconItems.length * rowH + 20;
+    const lx = W - lw - 20, ly = 20;
+    ctx.fillStyle = "rgba(228,210,175,0.90)";
+    roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
+    ctx.strokeStyle = "rgba(55,38,18,0.50)"; ctx.lineWidth = 0.8;
+    roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+    ctx.font = "bold 9px 'Cinzel', serif";
+    ctx.fillStyle = "rgba(55,38,18,0.88)";
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.fillText("LEGEND", lx + lw / 2, ly + 5);
+    ctx.beginPath(); ctx.moveTo(lx + 6, ly + 16); ctx.lineTo(lx + lw - 6, ly + 16);
+    ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+    for (let i = 0; i < iconItems.length; i++) {
+      const rowY = ly + 18 + i * rowH + rowH / 2;
+      iconItems[i].draw(lx + 20, rowY);
+      ctx.font = "10px 'Cinzel', serif";
+      ctx.fillStyle = "rgba(45,30,12,0.92)";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(iconItems[i].label, lx + 38, rowY - 2);
+    }
   }
   ctx.restore();
 }
@@ -834,17 +830,16 @@ function postProcess(ctx: CanvasRenderingContext2D, seed: number): void {
 
 // ─── Landscape Orchestrator ───────────────────────────────────────────────────
 
-function renderLandscape(ctx: CanvasRenderingContext2D, seed: number): void {
+function renderLandscape(ctx: CanvasRenderingContext2D, seed: number, scale: MapScale = "medium"): void {
   ctx.fillStyle = "rgb(230,216,180)"; ctx.fillRect(0, 0, W, H);
-  const { hm, am, sm } = buildMaps(seed);
+  const { hm, am, sm } = buildMaps(seed, scale);
   renderTerrain(ctx, hm, am, sm);
   renderWaterWaves(ctx, hm, seed);
   const rivers = generateRivers(hm, seed);
   renderRivers(ctx, rivers);
   const forests = placeForests(hm, am, seed);
   renderForests(ctx, forests, seed);
-  const mts = placeMountains(hm, seed);
-  renderMountains(ctx, mts);
+  renderRockTexture(ctx, hm, seed);
   renderDesertTexture(ctx, hm, am, seed);
   const locs = placeLandscapeLocations(hm, rivers, seed);
   for (const loc of locs) {
@@ -865,7 +860,6 @@ interface TownRoad {
   p1: { x: number; y: number };
 }
 
-interface TownPark { cx: number; cy: number; rx: number; ry: number; angle: number; }
 
 function generateTownRoads(seed: number): TownRoad[] {
   const roads: TownRoad[] = [];
@@ -905,22 +899,6 @@ function generateTownRoads(seed: number): TownRoad[] {
   return roads;
 }
 
-function generateParks(seed: number): TownPark[] {
-  const parks: TownPark[] = [];
-  const count = 3 + Math.floor(seededRand(300, seed) * 3);
-  for (let i = 0; parks.length < count && i < count * 4; i++) {
-    const cx = 60 + seededRand(i, seed + 30001) * (W - 120);
-    const cy = 50 + seededRand(i, seed + 30002) * (H - 100);
-    if (Math.hypot(cx - W / 2, cy - H / 2) < 90) continue;
-    parks.push({
-      cx, cy,
-      rx: 40 + seededRand(i, seed + 30003) * 50,
-      ry: 30 + seededRand(i, seed + 30004) * 40,
-      angle: seededRand(i, seed + 30005) * Math.PI,
-    });
-  }
-  return parks;
-}
 
 function subdivideBlock(bx: number, by: number, bw: number, bh: number, idx: number): TownBuilding[] {
   const n = 2 + Math.floor(seededRand(idx, 999) * 4);
@@ -1013,30 +991,35 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
 }
 
 function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
-  ctx.fillStyle = "rgb(228,213,178)";
+  ctx.fillStyle = "rgb(225,210,178)";
   ctx.fillRect(0, 0, W, H);
 
-  // Layer 1: building coverage across full canvas
+  // Layer 1: Dense building grid (26×20 = 520 lots)
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
-  const COLS = 18, ROWS = 14;
+  const COLS = 26, ROWS = 20;
   const lotW = W / COLS, lotH = H / ROWS;
 
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       const idx = row * COLS + col;
-      const lx = col * lotW + (seededRand(idx, seed + 40001) - 0.5) * 4;
-      const ly = row * lotH + (seededRand(idx, seed + 40002) - 0.5) * 4;
-      const lw = lotW - 6 + (seededRand(idx, seed + 40003) - 0.5) * 8;
-      const lh = lotH - 5 + (seededRand(idx, seed + 40004) - 0.5) * 6;
-      if (lw < 20 || lh < 20) continue;
-      const buildings = subdivideBlock(lx + 3, ly + 3, lw - 6, lh - 6, idx);
+      const lx = col * lotW + (seededRand(idx, seed + 40001) - 0.5) * 3;
+      const ly = row * lotH + (seededRand(idx, seed + 40002) - 0.5) * 3;
+      const lw = lotW - 3 + (seededRand(idx, seed + 40003) - 0.5) * 5;
+      const lh = lotH - 3 + (seededRand(idx, seed + 40004) - 0.5) * 4;
+      if (lw < 16 || lh < 16) continue;
+      const buildings = subdivideBlock(lx + 2, ly + 2, lw - 4, lh - 4, idx);
       for (const b of buildings) {
-        const rv = seededRand((b.x | 0) * 7 + (b.y | 0), seed + 40005) * 18 | 0;
-        ctx.fillStyle = `rgb(${200 + rv},${183 + rv},${152 + rv})`;
+        const rv = seededRand((b.x | 0) * 7 + (b.y | 0), seed + 40005) * 22 | 0;
+        // Base fill
+        ctx.fillStyle = `rgb(${198 + rv},${180 + rv},${148 + rv})`;
         ctx.fillRect(b.x, b.y, b.w, b.h);
-        // Diagonal tile hatch texture
+        // Roof stripe (darker top edge)
+        const roofH = Math.max(3, Math.min(b.h * 0.28, 7));
+        ctx.fillStyle = `rgb(${158 + rv},${140 + rv},${110 + rv})`;
+        ctx.fillRect(b.x, b.y, b.w, roofH);
+        // Diagonal tile texture
         ctx.save();
-        ctx.strokeStyle = "rgba(88,68,42,0.10)"; ctx.lineWidth = 0.5;
+        ctx.strokeStyle = "rgba(88,68,42,0.09)"; ctx.lineWidth = 0.5;
         ctx.beginPath();
         const spacing = 7;
         for (let hx2 = b.x - b.h; hx2 < b.x + b.w + b.h; hx2 += spacing) {
@@ -1048,10 +1031,12 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
         }
         ctx.stroke();
         ctx.restore();
-        ctx.fillStyle = "rgba(130,105,78,0.35)";
+        // Shadow south/east edges
+        ctx.fillStyle = "rgba(110,85,55,0.30)";
         ctx.fillRect(b.x, b.y + b.h - 3, b.w, 3);
         ctx.fillRect(b.x + b.w - 3, b.y, 3, b.h);
-        ctx.strokeStyle = "rgba(38,28,12,0.58)";
+        // Ink outline
+        ctx.strokeStyle = "rgba(38,28,12,0.60)";
         ctx.lineWidth = 0.6;
         ctx.strokeRect(b.x, b.y, b.w, b.h);
         allBuildings.push({ b, lotCx: lx + lw / 2, lotCy: ly + lh / 2 });
@@ -1059,67 +1044,94 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     }
   }
 
-  // Layer 2: parks (organic tree clusters — fluffy, no geometric ellipse fill)
-  const parks = generateParks(seed);
-  for (let i = 0; i < parks.length; i++) {
-    const p = parks[i];
-    const r = (p.rx + p.ry) / 2;
-    const treeCount = 10 + Math.floor(seededRand(i, seed + 30010) * 7);
+  // Hub position (for road + plaza placement)
+  const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
+  const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
+
+  // Layer 2a: Dense border trees lining the town wall (inside + outside)
+  const borderTreeCount = 140 + Math.floor(seededRand(400, seed) * 60);
+  for (let t = 0; t < borderTreeCount; t++) {
+    const side = Math.floor(seededRand(t, seed + 50001) * 4);
+    const inset = 10 + seededRand(t, seed + 50002) * 42;
+    let btx: number, bty: number;
+    if (side === 0) { btx = seededRand(t, seed + 50003) * W; bty = inset; }
+    else if (side === 1) { btx = seededRand(t, seed + 50004) * W; bty = H - inset; }
+    else if (side === 2) { btx = inset; bty = seededRand(t, seed + 50005) * H; }
+    else { btx = W - inset; bty = seededRand(t, seed + 50006) * H; }
+    drawTree(ctx, btx, bty, 5 + seededRand(t, seed + 50007) * 5);
+  }
+
+  // Layer 2b: Green zones — dense organic clusters throughout the town
+  const greenCount = 7 + Math.floor(seededRand(300, seed) * 5);
+  for (let i = 0; i < greenCount; i++) {
+    const gcx = 55 + seededRand(i, seed + 31001) * (W - 110);
+    const gcy = 45 + seededRand(i, seed + 31002) * (H - 90);
+    if (Math.hypot(gcx - hx, gcy - hy) < 75) continue;
+    const gr = 38 + seededRand(i, seed + 31003) * 68;
+    const treeCount = 22 + Math.floor(seededRand(i, seed + 31004) * 22);
+    // Vary tree density: more at centre, sparse at edges (Poisson-like)
     for (let t = 0; t < treeCount; t++) {
-      const a = seededRand(i * 20 + t, seed + 30011) * Math.PI * 2;
-      const dr = Math.sqrt(seededRand(i * 20 + t + 100, seed + 30012)) * r * 0.88;
-      const tx = p.cx + Math.cos(a) * dr;
-      const ty = p.cy + Math.sin(a) * dr;
-      drawTree(ctx, tx, ty, 5 + seededRand(i * 20 + t + 200, seed + 30013) * 5);
+      const a = seededRand(i * 40 + t, seed + 31005) * Math.PI * 2;
+      // sqrt distribution — more uniform; bias towards edges for organic look
+      const dr = Math.pow(seededRand(i * 40 + t + 100, seed + 31006), 0.7) * gr;
+      drawTree(ctx,
+        gcx + Math.cos(a) * dr + (seededRand(i * 40 + t + 300, seed + 31008) - 0.5) * 8,
+        gcy + Math.sin(a) * dr + (seededRand(i * 40 + t + 400, seed + 31009) - 0.5) * 8,
+        4 + seededRand(i * 40 + t + 200, seed + 31007) * 6);
     }
   }
 
-  // Layer 3: organic roads (Bézier, cut through buildings)
+  // Layer 3: Grey gravel paths + organic roads
   const townRoads = generateTownRoads(seed);
   for (const road of townRoads) {
     ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    // Wide grey gravel base
     ctx.beginPath();
     ctx.moveTo(road.p0.x, road.p0.y);
     ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(112,100,82,0.95)";
-    ctx.lineWidth = 22;
+    ctx.strokeStyle = "rgba(162,153,135,0.90)";
+    ctx.lineWidth = 26;
     ctx.stroke();
+    // Lighter worn-earth centre lane
     ctx.beginPath();
     ctx.moveTo(road.p0.x, road.p0.y);
     ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(145,132,110,0.45)";
-    ctx.lineWidth = 10;
+    ctx.strokeStyle = "rgba(180,168,138,0.82)";
+    ctx.lineWidth = 16;
+    ctx.stroke();
+    // Faint highlight
+    ctx.beginPath();
+    ctx.moveTo(road.p0.x, road.p0.y);
+    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+    ctx.strokeStyle = "rgba(200,188,158,0.30)";
+    ctx.lineWidth = 7;
     ctx.stroke();
     ctx.restore();
   }
 
-  // Layer 4: open town center plaza
-  const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
-  const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
+  // Layer 4: Open town center plaza
   const plazaW = 80 + seededRand(213, seed) * 30;
   const plazaH = 60 + seededRand(214, seed) * 28;
-  ctx.fillStyle = "rgba(215,200,165,0.95)";
+  ctx.fillStyle = "rgba(210,196,160,0.95)";
   ctx.fillRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
-  ctx.strokeStyle = "rgba(80,60,30,0.5)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(80,60,30,0.5)"; ctx.lineWidth = 1;
   ctx.strokeRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
 
-  // Layer 4.5: environmental props (wagons + produce near roads)
-  const propCount = 5 + Math.floor(seededRand(215, seed) * 5);
+  // Layer 4.5: Environmental props (wagons + produce near roads)
+  const propCount = 7 + Math.floor(seededRand(215, seed) * 7);
   for (let w = 0; w < propCount; w++) {
     const t = seededRand(w + 500, seed + 50001);
     const road = townRoads[Math.floor(t * townRoads.length)];
     const bt = 0.25 + seededRand(w + 501, seed + 50002) * 0.5;
     const wx = (1 - bt) ** 2 * road.p0.x + 2 * (1 - bt) * bt * road.cp.x + bt ** 2 * road.p1.x + (seededRand(w + 502, seed + 50003) - 0.5) * 32;
     const wy = (1 - bt) ** 2 * road.p0.y + 2 * (1 - bt) * bt * road.cp.y + bt ** 2 * road.p1.y + (seededRand(w + 503, seed + 50004) - 0.5) * 22;
-    if (Math.hypot(wx - hx, wy - hy) < 75) continue;
+    if (Math.hypot(wx - hx, wy - hy) < 70) continue;
     if (seededRand(w, seed + 50005) > 0.5) drawWagon(ctx, wx, wy);
     else drawProduce(ctx, wx, wy, seed, w);
   }
 
-  // Layer 5: special building icons nearest the hub (drawn over roads)
+  // Layer 5: Special building icons near the hub
   const sorted = allBuildings
     .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
     .sort((a, b) => a.d - b.d);
@@ -1146,19 +1158,16 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     si++;
   }
 
-  // Town wall (full canvas perimeter)
+  // Town wall (perimeter)
   ctx.save();
-  ctx.strokeStyle = "rgba(55,40,20,0.88)";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = "rgba(55,40,20,0.88)"; ctx.lineWidth = 6;
   ctx.strokeRect(8, 8, W - 16, H - 16);
-  ctx.strokeStyle = "rgba(75,55,28,0.55)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(75,55,28,0.55)"; ctx.lineWidth = 1;
   ctx.strokeRect(20, 20, W - 40, H - 40);
   for (const [tx, ty] of [[8, 8], [W - 8, 8], [W - 8, H - 8], [8, H - 8]] as [number, number][]) {
     ctx.fillStyle = "rgba(55,40,20,0.9)";
     ctx.fillRect(tx - 8, ty - 8, 16, 16);
-    ctx.strokeStyle = "rgba(28,18,8,0.88)";
-    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = "rgba(28,18,8,0.88)"; ctx.lineWidth = 0.8;
     ctx.strokeRect(tx - 8, ty - 8, 16, 16);
   }
   ctx.restore();
@@ -1209,6 +1218,7 @@ function drawPins(ctx: CanvasRenderingContext2D, pins: UserPin[]): void {
 
 export function DnDMapGenerator() {
   const [mode, setMode] = useState<"landscape" | "town">("landscape");
+  const [scale, setScale] = useState<MapScale>("medium");
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 999983));
   const [pinsLandscape, setPinsLandscape] = useState<UserPin[]>([]);
   const [pinsTown, setPinsTown] = useState<UserPin[]>([]);
@@ -1250,12 +1260,12 @@ export function DnDMapGenerator() {
     setIsGenerating(true);
     const tid = setTimeout(() => {
       ctx.clearRect(0, 0, W, H);
-      if (mode === "landscape") renderLandscape(ctx, seed);
+      if (mode === "landscape") renderLandscape(ctx, seed, scale);
       else renderTown(ctx, seed);
       setIsGenerating(false);
     }, 0);
     return () => clearTimeout(tid);
-  }, [seed, mode]);
+  }, [seed, mode, scale]);
 
   // Pin overlay
   useEffect(() => {
@@ -1338,6 +1348,24 @@ export function DnDMapGenerator() {
           ))}
         </div>
 
+        {mode === "landscape" && (
+          <div className="flex rounded overflow-hidden border border-neutral-800 text-xs font-mono">
+            {(["small", "medium", "large"] as const).map((s, i) => (
+              <button
+                key={s}
+                onClick={() => setScale(s)}
+                className={cn(
+                  "px-2.5 py-1.5 transition-colors",
+                  i > 0 && "border-l border-neutral-800",
+                  scale === s ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
         <button
           onClick={() => { setSeed(Math.floor(Math.random() * 999983)); setPins([]); setPendingPin(null); setIsAddingPin(false); }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono border border-neutral-800 rounded hover:border-accent hover:text-accent transition-colors"
@@ -1407,7 +1435,7 @@ export function DnDMapGenerator() {
       <p className="font-mono text-[10px] text-neutral-600 text-center select-none">
         {isAddingPin
           ? "click the map to place a pin · click an existing pin to remove · esc to cancel"
-          : `${mode} map · seed ${seed}`}
+          : `${mode} map${mode === "landscape" ? ` · ${scale} scale` : ""} · seed ${seed}`}
       </p>
     </div>
   );
