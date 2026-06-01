@@ -21,6 +21,7 @@ type MapScale = "small" | "medium" | "large";
 type CivSize = "village" | "town" | "city";
 type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "potions" | "armoury";
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; doorSide?: "N"|"S"|"E"|"W"; }
+interface FarmArea { fx: number; fy: number; fw: number; fh: number; f: number; }
 
 type RGB = [number, number, number];
 
@@ -435,7 +436,7 @@ function renderSnow(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: numbe
 // ─── Civ Terrain ──────────────────────────────────────────────────────────────
 
 // Flat grass terrain for civilisation mode (no mountains, no deep ocean)
-function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): boolean {
+function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
   const gn = makeNoise(seed + 44321);
   const dn = makeNoise(seed + 55432);
   const img = ctx.createImageData(W, H);
@@ -461,12 +462,9 @@ function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: Civ
     }
   }
   ctx.putImageData(img, 0, 0);
-  const hasPond = seededRand(751, seed) < (size === "city" ? 0.18 : 0.30);
-  if (hasPond) renderPond(ctx, seed);
-  return hasPond;
 }
 
-function renderPond(ctx: CanvasRenderingContext2D, seed: number): void {
+function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number } {
   const pcx = (0.12 + seededRand(760, seed) * 0.76) * W;
   const pcy = (0.12 + seededRand(761, seed) * 0.76) * H;
   const rx = 28 + seededRand(762, seed) * 44;
@@ -485,6 +483,7 @@ function renderPond(ctx: CanvasRenderingContext2D, seed: number): void {
     ctx.strokeStyle = "rgba(190,215,235,0.22)"; ctx.lineWidth = 0.8; ctx.stroke();
   }
   ctx.restore();
+  return { cx: pcx, cy: pcy, rx, ry };
 }
 
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
@@ -567,20 +566,27 @@ function drawTownCastleIcon(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
 
 function drawInnIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(35,25,12,0.85)"; ctx.lineWidth = 0.85;
-  // Headboard
-  ctx.fillStyle = "rgba(108,78,48,0.95)";
-  ctx.fillRect(cx - 8, cy - 9, 16, 5); ctx.strokeRect(cx - 8, cy - 9, 16, 5);
+  ctx.strokeStyle = "rgba(35,25,12,0.88)"; ctx.lineWidth = 0.85;
   // Bed frame
-  ctx.fillStyle = "rgba(145,112,72,0.92)";
-  ctx.fillRect(cx - 8, cy - 4, 16, 10); ctx.strokeRect(cx - 8, cy - 4, 16, 10);
-  // Footboard
-  ctx.fillStyle = "rgba(108,78,48,0.95)";
-  ctx.fillRect(cx - 8, cy + 6, 16, 3); ctx.strokeRect(cx - 8, cy + 6, 16, 3);
-  // Pillow (offset left, oval)
-  ctx.fillStyle = "rgba(232,222,202,0.92)";
-  ctx.beginPath(); ctx.ellipse(cx - 1, cy - 1, 5, 3, 0, 0, Math.PI * 2);
-  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(118,85,52,0.95)";
+  ctx.fillRect(cx - 9, cy - 13, 18, 26); ctx.strokeRect(cx - 9, cy - 13, 18, 26);
+  // Mattress
+  ctx.fillStyle = "rgba(225,212,185,0.95)";
+  ctx.fillRect(cx - 7, cy - 11, 14, 21); ctx.strokeRect(cx - 7, cy - 11, 14, 21);
+  // Blanket (lower portion)
+  ctx.fillStyle = "rgba(178,140,98,0.88)";
+  ctx.fillRect(cx - 7, cy - 3, 14, 13); ctx.strokeRect(cx - 7, cy - 3, 14, 13);
+  // Blanket fold
+  ctx.beginPath(); ctx.moveTo(cx - 7, cy - 3); ctx.lineTo(cx + 7, cy - 3);
+  ctx.strokeStyle = "rgba(35,25,12,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+  // Two pillows side by side
+  ctx.strokeStyle = "rgba(35,25,12,0.60)"; ctx.lineWidth = 0.7;
+  ctx.fillStyle = "rgba(245,235,215,0.96)";
+  ctx.fillRect(cx - 7, cy - 11, 6, 6); ctx.strokeRect(cx - 7, cy - 11, 6, 6);
+  ctx.fillRect(cx + 1, cy - 11, 6, 6); ctx.strokeRect(cx + 1, cy - 11, 6, 6);
+  // Headboard (darker bar at top)
+  ctx.fillStyle = "rgba(85,58,32,0.96)";
+  ctx.fillRect(cx - 9, cy - 13, 18, 3);
   ctx.restore();
 }
 
@@ -606,17 +612,27 @@ function drawTavernIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): 
 
 function drawMarketIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78;
+  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.85;
+  // Bag body
   ctx.beginPath();
-  ctx.moveTo(cx - 8, cy - 5);
-  for (let i = 0; i <= 4; i++) {
-    const x = cx - 8 + i * 4, y = i % 2 === 0 ? cy - 10 : cy - 5;
-    ctx.lineTo(x, y);
-  }
-  ctx.fillStyle = "rgba(185,155,100,0.88)"; ctx.fill(); ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy);
-  ctx.stroke();
+  ctx.moveTo(cx - 6, cy - 3);
+  ctx.bezierCurveTo(cx - 8, cy + 2, cx - 7, cy + 9, cx - 4, cy + 11);
+  ctx.lineTo(cx + 4, cy + 11);
+  ctx.bezierCurveTo(cx + 7, cy + 9, cx + 8, cy + 2, cx + 6, cy - 3);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(192,152,62,0.92)"; ctx.fill(); ctx.stroke();
+  // Neck tie
+  ctx.fillStyle = "rgba(148,110,38,0.92)";
+  ctx.fillRect(cx - 3.5, cy - 7, 7, 4); ctx.strokeRect(cx - 3.5, cy - 7, 7, 4);
+  // Cords above tie
+  ctx.beginPath(); ctx.moveTo(cx - 2.5, cy - 7); ctx.lineTo(cx - 1.5, cy - 12);
+  ctx.moveTo(cx + 2.5, cy - 7); ctx.lineTo(cx + 1.5, cy - 12);
+  ctx.strokeStyle = "rgba(148,108,38,0.65)"; ctx.lineWidth = 0.9; ctx.stroke();
+  // Coin embossed on bag
+  ctx.beginPath(); ctx.arc(cx, cy + 4, 3.5, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(115,82,18,0.55)"; ctx.lineWidth = 0.8; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy + 1.5); ctx.lineTo(cx, cy + 6.5);
+  ctx.strokeStyle = "rgba(115,82,18,0.40)"; ctx.lineWidth = 0.6; ctx.stroke();
   ctx.restore();
 }
 
@@ -1471,13 +1487,12 @@ function renderMarketPlaza(ctx: CanvasRenderingContext2D, cx: number, cy: number
 function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
   ctx.save();
   const { x, y, w, h } = b;
-  const bcx = x + w / 2, bcy = y + h / 2;
   const cseed = ((x * 13 + y * 7) | 0) + 72000;
 
   // Drop shadow
   ctx.fillStyle = "rgba(28,16,4,0.24)"; ctx.fillRect(x + 4, y + 3, w, h);
 
-  // Stone wall base — lighter grey than castle
+  // Stone wall base
   ctx.fillStyle = "rgb(192,184,165)";
   ctx.fillRect(x, y, w, h);
 
@@ -1493,17 +1508,6 @@ function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): v
     ctx.fillRect(sx, sy, sw2, sh2); ctx.strokeRect(sx, sy, sw2, sh2);
   }
 
-  // Top-down steeple cross in center
-  const steepleW = Math.min(w * 0.30, 16);
-  const steepleH = Math.min(h * 0.30, 16);
-  const armW = Math.max(3, (steepleW * 0.38) | 0);
-  ctx.fillStyle = "rgb(108,98,82)";
-  ctx.fillRect(bcx - armW/2, bcy - steepleH, armW, steepleH * 2);
-  ctx.fillRect(bcx - steepleW, bcy - armW/2, steepleW * 2, armW);
-  ctx.strokeStyle = "rgba(28,18,6,0.65)"; ctx.lineWidth = 0.6;
-  ctx.strokeRect(bcx - armW/2, bcy - steepleH, armW, steepleH * 2);
-  ctx.strokeRect(bcx - steepleW, bcy - armW/2, steepleW * 2, armW);
-
   // Depth shadow on south + east edges
   ctx.fillStyle = "rgba(28,16,4,0.18)";
   ctx.fillRect(x, y + h - 4, w, 4);
@@ -1513,12 +1517,12 @@ function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): v
   ctx.strokeStyle = "rgba(22,14,4,0.90)"; ctx.lineWidth = 1.1;
   ctx.strokeRect(x, y, w, h);
 
-  // Bell icon badge in top-left corner
-  const badgeR = Math.max(7, Math.min(w, h) * 0.18);
-  const bix = x + badgeR + 4, biy = y + badgeR + 4;
+  // Bell icon badge centered on building
+  const badgeR = Math.max(8, Math.min(w, h) * 0.22);
+  const bix = x + w / 2, biy = y + h / 2;
   ctx.beginPath(); ctx.arc(bix, biy, badgeR, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(248,242,225,0.84)"; ctx.fill();
-  ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.7; ctx.stroke();
+  ctx.fillStyle = "rgba(248,242,225,0.92)"; ctx.fill();
+  ctx.strokeStyle = "rgba(55,38,18,0.62)"; ctx.lineWidth = 0.9; ctx.stroke();
   const iconS = badgeR / 11;
   ctx.save();
   ctx.translate(bix, biy); ctx.scale(iconS, iconS); ctx.translate(-bix, -biy);
@@ -1578,97 +1582,141 @@ function drawFountain(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.restore();
 }
 
-function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
+function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number): { cx: number; cy: number; r: number } {
   ctx.save();
-  const side = Math.floor(seededRand(800, seed) * 4);
-  const pos  = 0.25 + seededRand(801, seed) * 0.50;
-  const dockLen = 95 + seededRand(802, seed) * 65;
-  const dockW   = 42 + seededRand(803, seed) * 28;
-  const piers   = 2 + Math.floor(seededRand(804, seed) * 3);
-  let bx: number, by: number, px: number, py: number, qx: number, qy: number;
-  if      (side === 0) { bx = pos*W; by = 0;    px =  0; py =  1; qx = 1; qy = 0; }
-  else if (side === 1) { bx = W;     by = pos*H; px = -1; py =  0; qx = 0; qy = 1; }
-  else if (side === 2) { bx = pos*W; by = H;     px =  0; py = -1; qx = 1; qy = 0; }
-  else                 { bx = 0;     by = pos*H; px =  1; py =  0; qx = 0; qy = 1; }
-  const wl = dockLen * 0.42;
-  ctx.fillStyle = "rgba(68,105,140,0.80)";
+  const dockAngle = seededRand(800, seed) * Math.PI * 2;
+  const dockLen = 28 + seededRand(802, seed) * 22;
+  const dockW = 16 + seededRand(803, seed) * 10;
+  const rampLen = 18;
+  // Shore point (where dock meets pond edge)
+  const shoreX = pondCx + Math.cos(dockAngle) * pondRx;
+  const shoreY = pondCy + Math.sin(dockAngle) * pondRy;
+  // Direction from shore toward pond center
+  const ddx = pondCx - shoreX, ddy = pondCy - shoreY;
+  const ddlen = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
+  const px = ddx/ddlen, py = ddy/ddlen;
+  const qx = -py, qy = px;
+
+  // Land ramp (behind shore, on dry ground)
+  ctx.fillStyle = "rgba(148,118,78,0.90)";
   ctx.beginPath();
-  ctx.moveTo(bx - qx*dockW/2,         by - qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2,         by + qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2 - px*wl, by + qy*dockW/2 - py*wl);
-  ctx.lineTo(bx - qx*dockW/2 - px*wl, by - qy*dockW/2 - py*wl);
+  ctx.moveTo(shoreX - qx*dockW/2 - px*rampLen, shoreY - qy*dockW/2 - py*rampLen);
+  ctx.lineTo(shoreX + qx*dockW/2 - px*rampLen, shoreY + qy*dockW/2 - py*rampLen);
+  ctx.lineTo(shoreX + qx*dockW/2, shoreY + qy*dockW/2);
+  ctx.lineTo(shoreX - qx*dockW/2, shoreY - qy*dockW/2);
   ctx.closePath(); ctx.fill();
-  ctx.fillStyle = "rgba(148,118,78,0.94)";
+  ctx.strokeStyle = "rgba(55,38,18,0.80)"; ctx.lineWidth = 1.2; ctx.stroke();
+
+  // Main dock planks (over water)
+  ctx.fillStyle = "rgba(148,118,78,0.96)";
   ctx.beginPath();
-  ctx.moveTo(bx - qx*dockW/2,              by - qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2,              by + qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2 + px*dockLen, by + qy*dockW/2 + py*dockLen);
-  ctx.lineTo(bx - qx*dockW/2 + px*dockLen, by - qy*dockW/2 + py*dockLen);
+  ctx.moveTo(shoreX - qx*dockW/2, shoreY - qy*dockW/2);
+  ctx.lineTo(shoreX + qx*dockW/2, shoreY + qy*dockW/2);
+  ctx.lineTo(shoreX + qx*dockW/2 + px*dockLen, shoreY + qy*dockW/2 + py*dockLen);
+  ctx.lineTo(shoreX - qx*dockW/2 + px*dockLen, shoreY - qy*dockW/2 + py*dockLen);
   ctx.closePath(); ctx.fill();
   ctx.strokeStyle = "rgba(55,38,18,0.82)"; ctx.lineWidth = 1.2; ctx.stroke();
+  // Plank lines
   ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.7;
-  for (let pl = 0; pl <= dockLen; pl += 9) {
+  for (let pl = 4; pl <= dockLen; pl += 7) {
     ctx.beginPath();
-    ctx.moveTo(bx - qx*dockW/2 + px*pl, by - qy*dockW/2 + py*pl);
-    ctx.lineTo(bx + qx*dockW/2 + px*pl, by + qy*dockW/2 + py*pl);
+    ctx.moveTo(shoreX - qx*dockW/2 + px*pl, shoreY - qy*dockW/2 + py*pl);
+    ctx.lineTo(shoreX + qx*dockW/2 + px*pl, shoreY + qy*dockW/2 + py*pl);
     ctx.stroke();
   }
-  for (let p2 = 0; p2 < piers; p2++) {
-    const t = (p2 + 1) / (piers + 1);
-    const ppx = bx + qx*(t*dockW - dockW/2);
-    const ppy = by + qy*(t*dockW - dockW/2);
+  // Mooring posts
+  for (let p2 = 0; p2 < 2; p2++) {
+    const pf = (p2 + 1) / 3;
+    const ppx = shoreX + qx*(pf*dockW - dockW/2) + px*dockLen*0.6;
+    const ppy = shoreY + qy*(pf*dockW - dockW/2) + py*dockLen*0.6;
     ctx.fillStyle = "rgba(90,65,38,0.92)";
-    ctx.fillRect(ppx - 3, ppy - 4, 6, 8);
+    ctx.fillRect(ppx - 2.5, ppy - 3, 5, 6);
     ctx.strokeStyle = "rgba(45,30,12,0.88)"; ctx.lineWidth = 0.8;
-    ctx.strokeRect(ppx - 3, ppy - 4, 6, 8);
+    ctx.strokeRect(ppx - 2.5, ppy - 3, 5, 6);
   }
-  const boatCx = bx - qx*(dockW/2 + 22) + px*dockLen*0.55;
-  const boatCy = by - qy*(dockW/2 + 22) + py*dockLen*0.55;
-  const boatAngle = Math.atan2(-py, -px);
-  ctx.save(); ctx.translate(boatCx, boatCy); ctx.rotate(boatAngle);
+  // Small boat moored beside dock
+  const boatX = shoreX + qx*(dockW/2 + 14) + px*dockLen*0.55;
+  const boatY = shoreY + qy*(dockW/2 + 14) + py*dockLen*0.55;
+  ctx.save(); ctx.translate(boatX, boatY); ctx.rotate(Math.atan2(py, px));
   ctx.fillStyle = "rgba(105,80,52,0.90)";
   ctx.beginPath();
-  ctx.moveTo(-18, 0); ctx.quadraticCurveTo(0, 10, 18, 0);
-  ctx.quadraticCurveTo(18, -7, 0, -8); ctx.quadraticCurveTo(-18, -7, -18, 0);
+  ctx.moveTo(-13, 0); ctx.quadraticCurveTo(0, 7, 13, 0);
+  ctx.quadraticCurveTo(13, -5, 0, -6); ctx.quadraticCurveTo(-13, -5, -13, 0);
   ctx.closePath(); ctx.fill();
   ctx.strokeStyle = "rgba(45,30,12,0.82)"; ctx.lineWidth = 0.9; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, -26);
-  ctx.strokeStyle = "rgba(80,58,32,0.90)"; ctx.lineWidth = 1.3; ctx.stroke();
   ctx.restore();
   ctx.restore();
+  return { cx: shoreX + px*dockLen/2, cy: shoreY + py*dockLen/2, r: Math.max(dockLen, dockW) + 20 };
 }
 
-function renderFarms(ctx: CanvasRenderingContext2D, seed: number, size: CivSize, hx: number, hy: number, allBuildings: Array<{b: TownBuilding}>): void {
-  if (size === "city") return;
-  const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
-  for (let f = 0; f < farmCount; f++) {
-    const fa = (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
-    const fd = 200 + seededRand(f, seed + 82002) * 200;
-    const fx = Math.max(25, Math.min(W - 135, hx + Math.cos(fa) * fd));
-    const fy = Math.max(25, Math.min(H - 110, hy + Math.sin(fa) * fd));
-    const fw = 75 + seededRand(f, seed + 82003) * 85;
-    const fh = 55 + seededRand(f, seed + 82004) * 60;
+function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number }> {
+  if (seededRand(908, seed) > 0.38) return [];
+  ctx.save();
+  const side1 = Math.floor(seededRand(901, seed) * 4);
+  const side2 = (side1 + 2) % 4;
+  const p1pos = 0.2 + seededRand(902, seed) * 0.6;
+  const p2pos = 0.2 + seededRand(903, seed) * 0.6;
+  let startX = 0, startY = 0, endX = 0, endY = 0;
+  if      (side1 === 0) { startX = p1pos*W; startY = 0; }
+  else if (side1 === 1) { startX = W; startY = p1pos*H; }
+  else if (side1 === 2) { startX = p1pos*W; startY = H; }
+  else                  { startX = 0; startY = p1pos*H; }
+  if      (side2 === 0) { endX = p2pos*W; endY = 0; }
+  else if (side2 === 1) { endX = W; endY = p2pos*H; }
+  else if (side2 === 2) { endX = p2pos*W; endY = H; }
+  else                  { endX = 0; endY = p2pos*H; }
+  const cp1x = startX + (endX-startX)*0.30 + (seededRand(904, seed)-0.5)*280;
+  const cp1y = startY + (endY-startY)*0.30 + (seededRand(905, seed)-0.5)*230;
+  const cp2x = startX + (endX-startX)*0.70 + (seededRand(906, seed)-0.5)*280;
+  const cp2y = startY + (endY-startY)*0.70 + (seededRand(907, seed)-0.5)*230;
+  const riverW = 10;
+  // Shadow
+  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+  ctx.strokeStyle = "rgba(40,72,110,0.42)"; ctx.lineWidth = riverW + 4;
+  ctx.lineCap = "round"; ctx.stroke();
+  // Main river
+  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+  ctx.strokeStyle = "rgba(72,118,162,0.80)"; ctx.lineWidth = riverW;
+  ctx.lineCap = "round"; ctx.stroke();
+  // Highlight
+  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+  ctx.strokeStyle = "rgba(145,195,235,0.18)"; ctx.lineWidth = riverW * 0.38;
+  ctx.stroke();
+  ctx.restore();
+  // Return sampled center-line points for exclusion
+  const pts: Array<{x: number; y: number}> = [];
+  for (let s = 0; s <= 60; s++) {
+    const t = s / 60, mt = 1 - t;
+    pts.push({
+      x: mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX,
+      y: mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY,
+    });
+  }
+  return pts;
+}
+
+function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: FarmArea[], allBuildings: Array<{b: TownBuilding}>): void {
+  for (const { fx, fy, fw, fh, f } of farmAreas) {
     // Skip farm if it overlaps any building
     if (allBuildings.some(({ b }) => fx < b.x + b.w + 10 && fx + fw > b.x - 10 && fy < b.y + b.h + 10 && fy + fh > b.y - 10)) continue;
     const farmType = seededRand(f, seed + 82005) < 0.55 ? "crops" : "animal";
-    // Ground
     ctx.fillStyle = farmType === "crops" ? "rgba(158,175,98,0.70)" : "rgba(185,168,122,0.65)";
     ctx.fillRect(fx, fy, fw, fh);
-    // Perimeter fence posts only — no interior bars spanning the full height
     ctx.fillStyle = "rgba(142,105,55,0.92)";
     for (let fp = fx; fp <= fx + fw + 1; fp += 14) {
-      ctx.fillRect(fp - 1.5, fy - 5, 3, 10);          // top edge
-      ctx.fillRect(fp - 1.5, fy + fh - 5, 3, 10);     // bottom edge
+      ctx.fillRect(fp - 1.5, fy - 5, 3, 10);
+      ctx.fillRect(fp - 1.5, fy + fh - 5, 3, 10);
     }
     for (let fp = fy + 14; fp < fy + fh - 4; fp += 14) {
-      ctx.fillRect(fx - 5, fp - 1.5, 10, 3);           // left edge
-      ctx.fillRect(fx + fw - 5, fp - 1.5, 10, 3);      // right edge
+      ctx.fillRect(fx - 5, fp - 1.5, 10, 3);
+      ctx.fillRect(fx + fw - 5, fp - 1.5, 10, 3);
     }
-    // Fence rails — outline only
     ctx.strokeStyle = "rgba(142,105,55,0.88)"; ctx.lineWidth = 1.5;
     ctx.strokeRect(fx, fy, fw, fh);
     if (farmType === "crops") {
-      // Vegetable rows
       ctx.strokeStyle = "rgba(55,92,32,0.48)"; ctx.lineWidth = 0.8;
       for (let row = fy + 10; row < fy + fh - 5; row += 9) {
         ctx.beginPath(); ctx.moveTo(fx + 6, row); ctx.lineTo(fx + fw - 6, row); ctx.stroke();
@@ -1679,7 +1727,6 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, size: CivSize,
         }
       }
     } else {
-      // Animal pen — sheep/cows
       const animalCount = 2 + (seededRand(f, seed + 82011) * 5 | 0);
       for (let a = 0; a < animalCount; a++) {
         const ax = fx + 12 + seededRand(a + f * 10, seed + 82012) * (fw - 24);
@@ -1690,7 +1737,6 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, size: CivSize,
         ctx.ellipse(ax, ay, 7, 5, aAngle, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(228,218,200,0.92)"; ctx.fill();
         ctx.strokeStyle = "rgba(82,65,38,0.70)"; ctx.lineWidth = 0.8; ctx.stroke();
-        // Head
         ctx.beginPath();
         ctx.arc(ax + Math.cos(aAngle) * 7, ay + Math.sin(aAngle) * 5, 3, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(185,172,148,0.92)"; ctx.fill(); ctx.stroke();
@@ -1704,10 +1750,10 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
-  // ── Layer 0: Flat grass terrain (no mountains, no ocean) ─────────────────
-  const hasCivWater = renderCivTerrain(ctx, seed, size);
+  // ── Layer 0: Flat grass terrain ──────────────────────────────────────────
+  renderCivTerrain(ctx, seed, size);
 
-  // ── Generate paths first — build proximity bitmap for collision checks ───
+  // ── Generate paths (road mask used for farm/pond placement) ──────────────
   const civPaths = generateCivPaths(seed, size);
   const pathStyle: "dirt" | "cobble" = size === "village" ? "dirt" : "cobble";
   const pathWidth = size === "village" ? 16 : size === "town" ? 22 : 32;
@@ -1737,9 +1783,46 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const mgy = ((cpy / H) * MASK_H) | 0;
     return mgx >= 0 && mgx < MASK_W && mgy >= 0 && mgy < MASK_H && roadMask[mgy * MASK_W + mgx] === 1;
   };
+  const rectOnRoad = (rx: number, ry: number, rw: number, rh: number): boolean =>
+    isOnRoad(rx + rw/2, ry + rh/2) || isOnRoad(rx, ry) || isOnRoad(rx+rw, ry) || isOnRoad(rx, ry+rh) || isOnRoad(rx+rw, ry+rh);
 
-  // ── Layer 1: Docks — only if there is water as a major landscape feature ─
-  if (size !== "village" && hasCivWater && seededRand(710, seed) < 0.75) renderDocks(ctx, seed);
+  // ── Pre-compute farm areas (so pond/dock can check against them) ──────────
+  const farmAreas: FarmArea[] = [];
+  if (size !== "city") {
+    const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
+    for (let f = 0; f < farmCount; f++) {
+      const fa = (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
+      const fd = 200 + seededRand(f, seed + 82002) * 200;
+      const fx = Math.max(25, Math.min(W - 135, hx + Math.cos(fa) * fd));
+      const fy = Math.max(25, Math.min(H - 110, hy + Math.sin(fa) * fd));
+      const fw = 75 + seededRand(f, seed + 82003) * 85;
+      const fh = 55 + seededRand(f, seed + 82004) * 60;
+      if (rectOnRoad(fx, fy, fw, fh)) continue;
+      farmAreas.push({ fx, fy, fw, fh, f });
+    }
+  }
+  const isOnFarmPt = (px2: number, py2: number): boolean =>
+    farmAreas.some(f => px2 >= f.fx && px2 <= f.fx + f.fw && py2 >= f.fy && py2 <= f.fy + f.fh);
+
+  // ── Layer 1a: River (flows through civ, 38% chance) ──────────────────────
+  const riverPts = renderCivRiver(ctx, seed);
+  const isOnRiver = (px2: number, py2: number): boolean =>
+    riverPts.some(pt => Math.hypot(px2 - pt.x, py2 - pt.y) < 14);
+
+  // ── Layer 1b: Pond + dock (town/city only, not inside a farm) ────────────
+  const pondCxC = (0.12 + seededRand(760, seed) * 0.76) * W;
+  const pondCyC = (0.12 + seededRand(761, seed) * 0.76) * H;
+  let pondData: { cx: number; cy: number; rx: number; ry: number } | null = null;
+  let dockData: { cx: number; cy: number; r: number } | null = null;
+  const pondInFarm = isOnFarmPt(pondCxC, pondCyC);
+  if (size !== "village" && !pondInFarm) {
+    pondData = renderPond(ctx, seed);
+    dockData = renderDocksOnPond(ctx, pondData.cx, pondData.cy, pondData.rx, pondData.ry, seed);
+  }
+  const isOnPond = (px2: number, py2: number): boolean =>
+    pondData !== null && Math.hypot(px2 - pondData.cx, py2 - pondData.cy) < Math.max(pondData.rx, pondData.ry) + 8;
+  const isOnDock = (px2: number, py2: number): boolean =>
+    dockData !== null && Math.hypot(px2 - dockData.cx, py2 - dockData.cy) < dockData.r;
 
   // ── Layer 2: Paths ───────────────────────────────────────────────────────
   for (let i = 0; i < civPaths.length; i++) drawPath(ctx, civPaths[i], seed, i, pathStyle, pathWidth);
@@ -1796,29 +1879,28 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
     castleCx = Math.max(castleW/2+32, Math.min(W-castleW/2-32, hx + Math.cos(bestAngle)*castleDist));
     castleCy = Math.max(castleH/2+32, Math.min(H-castleH/2-32, hy + Math.sin(bestAngle)*castleDist));
+    // Rotate castle so its gate (south face) faces the hub plaza
+    const castleToHub = Math.atan2(hy - castleCy, hx - castleCx);
+    ctx.save();
+    ctx.translate(castleCx, castleCy);
+    ctx.rotate(castleToHub + Math.PI / 2);
+    ctx.translate(-castleCx, -castleCy);
     renderCastleFootprint(ctx, { x: castleCx-castleW/2, y: castleCy-castleH/2, w: castleW, h: castleH, type: "castle" });
-    // Driveway from gatehouse to nearest spoke point
-    let minDriveDist = Infinity, driveTarget = { x: hx, y: hy };
-    for (const spoke of civPaths) {
-      for (let st = 0; st <= 20; st++) {
-        const tt = st / 20;
-        const spx = (1-tt)**2*spoke.p0.x + 2*(1-tt)*tt*spoke.cp.x + tt**2*spoke.p1.x;
-        const spy = (1-tt)**2*spoke.p0.y + 2*(1-tt)*tt*spoke.cp.y + tt**2*spoke.p1.y;
-        const dd = Math.hypot(spx - castleCx, spy - castleCy);
-        if (dd < minDriveDist) { minDriveDist = dd; driveTarget = { x: spx, y: spy }; }
-      }
-    }
-    const gateX = castleCx, gateY = castleCy + castleH / 2;
-    const dCpX = (gateX + driveTarget.x) / 2 + (seededRand(225, seed) - 0.5) * 50;
-    const dCpY = (gateY + driveTarget.y) / 2 + (seededRand(226, seed) - 0.5) * 50;
-    const driveRoad = { p0: { x: gateX, y: gateY }, cp: { x: dCpX, y: dCpY }, p1: driveTarget };
+    ctx.restore();
+    // Gate is on the hub-facing side of castle
+    const gateX = castleCx + Math.cos(castleToHub) * (castleH / 2);
+    const gateY = castleCy + Math.sin(castleToHub) * (castleH / 2);
+    // Driveway goes directly to hub plaza
+    const dCpX = (gateX + hx) / 2 + (seededRand(225, seed) - 0.5) * 50;
+    const dCpY = (gateY + hy) / 2 + (seededRand(226, seed) - 0.5) * 50;
+    const driveRoad = { p0: { x: gateX, y: gateY }, cp: { x: dCpX, y: dCpY }, p1: { x: hx, y: hy } };
     drawPath(ctx, driveRoad, seed, 998, "cobble", 20);
     // Add driveway to roadMask so buildings won't be placed on it
     const driveMaskR = Math.ceil((18 / W) * MASK_W);
     for (let st = 0; st <= 60; st++) {
       const tt = st / 60;
-      const spx = (1-tt)**2*gateX + 2*(1-tt)*tt*dCpX + tt**2*driveTarget.x;
-      const spy = (1-tt)**2*gateY + 2*(1-tt)*tt*dCpY + tt**2*driveTarget.y;
+      const spx = (1-tt)**2*gateX + 2*(1-tt)*tt*dCpX + tt**2*hx;
+      const spy = (1-tt)**2*gateY + 2*(1-tt)*tt*dCpY + tt**2*hy;
       const mgx = ((spx/W)*MASK_W)|0, mgy = ((spy/H)*MASK_H)|0;
       for (let dy = -driveMaskR; dy <= driveMaskR; dy++) {
         for (let dx = -driveMaskR; dx <= driveMaskR; dx++) {
@@ -1830,22 +1912,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
-  // ── Pre-compute farm areas (bidirectional overlap prevention) ────────────
-  interface FarmArea { fx: number; fy: number; fw: number; fh: number; }
-  const farmAreas: FarmArea[] = [];
-  if (size !== "city") {
-    const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
-    for (let f = 0; f < farmCount; f++) {
-      const fa = (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
-      const fd = 200 + seededRand(f, seed + 82002) * 200;
-      farmAreas.push({
-        fx: Math.max(25, Math.min(W - 135, hx + Math.cos(fa) * fd)),
-        fy: Math.max(25, Math.min(H - 110, hy + Math.sin(fa) * fd)),
-        fw: 75 + seededRand(f, seed + 82003) * 85,
-        fh: 55 + seededRand(f, seed + 82004) * 60,
-      });
-    }
-  }
+  // farmAreas pre-computed above (before pond/river rendering)
   const isOnFarm = (bx: number, by2: number, bw: number, bh: number): boolean =>
     farmAreas.some(f => bx < f.fx + f.fw + 8 && bx + bw > f.fx - 8 && by2 < f.fy + f.fh + 8 && by2 + bh > f.fy - 8);
 
@@ -1887,9 +1954,20 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
         if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 12 && Math.abs(bcy - castleCy) < castleH/2 + 12) continue;
-        if (isOnRoad(bcx, bcy)) continue;
+        if (rectOnRoad(bx, by2, bw, bh)) continue;
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (allBuildings.some(({ b }) => bx < b.x + b.w + 5 && bx + bw > b.x - 5 && by2 < b.y + b.h + 5 && by2 + bh > b.y - 5)) continue;
+
+        // Draw short access path from door edge to road for buildings set far back
+        if (offsetDist > pathWidth / 2 + 18) {
+          const roadEdgeX = px + nx * side * (pathWidth / 2 + 3);
+          const roadEdgeY = py + ny * side * (pathWidth / 2 + 3);
+          ctx.save();
+          ctx.beginPath(); ctx.moveTo(roadEdgeX, roadEdgeY); ctx.lineTo(bcx, bcy);
+          ctx.strokeStyle = "rgba(148,122,82,0.72)"; ctx.lineWidth = 5;
+          ctx.lineCap = "round"; ctx.stroke();
+          ctx.restore();
+        }
 
         // Door faces the road (direction from building center toward path point)
         const doorSide = getDoorSide(px - bcx, py - bcy);
@@ -1901,7 +1979,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Layer 4.5: Farms (village/town only) ────────────────────────────────
-  renderFarms(ctx, seed, size, hx, hy, allBuildings);
+  renderFarms(ctx, seed, farmAreas, allBuildings.map(e => ({ b: e.b })));
 
   // ── Layer 5: Trees + bushes — denser on outskirts ────────────────────────
   const isOnBuilding = (tx: number, ty: number): boolean =>
@@ -1922,6 +2000,10 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       if (size === "city" && Math.abs(px2 - castleCx) < castleW/2 + 8 && Math.abs(py2 - castleCy) < castleH/2 + 8) continue;
       if (isOnRoad(px2, py2)) continue;
       if (isOnBuilding(px2, py2)) continue;
+      if (isOnFarmPt(px2, py2)) continue;
+      if (isOnPond(px2, py2)) continue;
+      if (isOnDock(px2, py2)) continue;
+      if (isOnRiver(px2, py2)) continue;
       if (nv < 0.56 && seededRand(plantIdx, seed + 44211) < 0.55) {
         drawBush(ctx, px2, py2, 4 + seededRand(plantIdx, seed + 44212) * 4, seed, plantIdx);
       } else {
@@ -1931,17 +2013,18 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
-  // ── Layer 5.5: Market plaza (town/city — secondary cobbled plaza with stalls)
-  if (size !== "village" && seededRand(700, seed) < 0.40) {
-    const mCount = 1 + (seededRand(701, seed) < 0.45 ? 1 : 0);
-    for (let m = 0; m < mCount; m++) {
-      const mAngle = seededRand(m * 37 + 702, seed) * Math.PI * 2;
-      const mDist = hubR + 60 + seededRand(m * 37 + 703, seed) * 90;
-      const mcx = Math.max(80, Math.min(W - 80, hx + Math.cos(mAngle) * mDist));
-      const mcy = Math.max(65, Math.min(H - 65, hy + Math.sin(mAngle) * mDist));
-      // Only place if not overlapping castle area
-      if (size === "city" && Math.abs(mcx - castleCx) < castleW/2 + 55 && Math.abs(mcy - castleCy) < castleH/2 + 55) continue;
-      renderMarketPlaza(ctx, mcx, mcy, seed, m + 20);
+  // ── Layer 5.5: Market square — always present for town/city, connected to hub by road
+  if (size !== "village") {
+    const mAngle = seededRand(702, seed) * Math.PI * 2;
+    const mDist = hubR + 70 + seededRand(703, seed) * 80;
+    const mcx = Math.max(80, Math.min(W - 80, hx + Math.cos(mAngle) * mDist));
+    const mcy = Math.max(65, Math.min(H - 65, hy + Math.sin(mAngle) * mDist));
+    if (!(size === "city" && Math.abs(mcx - castleCx) < castleW/2 + 55 && Math.abs(mcy - castleCy) < castleH/2 + 55)) {
+      // Road from hub to market square
+      const mRoadCpX = (hx + mcx) / 2 + (seededRand(704, seed) - 0.5) * 60;
+      const mRoadCpY = (hy + mcy) / 2 + (seededRand(705, seed) - 0.5) * 60;
+      drawPath(ctx, { p0: { x: hx, y: hy }, cp: { x: mRoadCpX, y: mRoadCpY }, p1: { x: mcx, y: mcy } }, seed, 997, "cobble", pathWidth);
+      renderMarketPlaza(ctx, mcx, mcy, seed, 20);
     }
   }
 
