@@ -23,6 +23,18 @@ type BuildingType = "normal" | "castle" | "inn" | "tavern" | "merchant" | "churc
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; doorSide?: "N"|"S"|"E"|"W"; }
 interface FarmArea { fx: number; fy: number; fw: number; fh: number; f: number; }
 
+interface CubicSegment {
+  p0: { x: number; y: number };
+  cp1: { x: number; y: number };
+  cp2: { x: number; y: number };
+  p1: { x: number; y: number };
+}
+interface CivRoad {
+  segments: CubicSegment[];
+  width: number;
+  style: "primary" | "secondary" | "track";
+}
+
 type RGB = [number, number, number];
 
 // ─── Seeded RNG ──────────────────────────────────────────────────────────────
@@ -63,6 +75,16 @@ function fbm(noise: ReturnType<typeof createNoise2D>, x: number, y: number, oct:
 // ─── Heightmap ────────────────────────────────────────────────────────────────
 
 const SCALE_FREQ: Record<MapScale, number> = { small: 1.0, medium: 2.0, large: 4.0 };
+
+// Organic road generation tuning parameters
+const ORGANIC_ROAD = {
+  curviness:         0.65, // 0–1: perpendicular offset of control points relative to road length
+  wobble:            0.45, // 0–1: Perlin noise edge displacement (max ~5px at 1.0)
+  widthVariance:     0.65, // 0–1: sine-wave oscillation of road width along its length
+  minAngleDeltaDeg:  28,   // minimum angular separation between roads leaving same node
+  cobbleDensity:     0.85, // 0–1: fraction of cobblestone stamp positions that are filled
+  useChainedBeziers: true, // split roads >240px into 2 chained cubic segments
+};
 
 function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
   const tn = makeNoise(seed);
@@ -1070,71 +1092,196 @@ function renderLandscape(ctx: CanvasRenderingContext2D, seed: number, scale: Map
 
 // ─── Town ─────────────────────────────────────────────────────────────────────
 
-interface TownRoad {
-  p0: { x: number; y: number };
-  cp: { x: number; y: number };
-  p1: { x: number; y: number };
+// ─── Cubic Bézier road system ────────────────────────────────────────────────
+
+function cubicPoint(seg: CubicSegment, t: number): { x: number; y: number } {
+  const u = 1 - t;
+  return {
+    x: u*u*u*seg.p0.x + 3*u*u*t*seg.cp1.x + 3*u*t*t*seg.cp2.x + t*t*t*seg.p1.x,
+    y: u*u*u*seg.p0.y + 3*u*u*t*seg.cp1.y + 3*u*t*t*seg.cp2.y + t*t*t*seg.p1.y,
+  };
 }
 
+function cubicTangent(seg: CubicSegment, t: number): { dx: number; dy: number } {
+  const u = 1 - t;
+  let dx = 3*u*u*(seg.cp1.x-seg.p0.x) + 6*u*t*(seg.cp2.x-seg.cp1.x) + 3*t*t*(seg.p1.x-seg.cp2.x);
+  let dy = 3*u*u*(seg.cp1.y-seg.p0.y) + 6*u*t*(seg.cp2.y-seg.cp1.y) + 3*t*t*(seg.p1.y-seg.cp2.y);
+  const len = Math.sqrt(dx*dx+dy*dy) || 1;
+  dx /= len; dy /= len;
+  return { dx, dy };
+}
 
-function generateCivPaths(seed: number, size: CivSize): TownRoad[] {
-  const roads: TownRoad[] = [];
-  const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
-  const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
-  const spokeCount = size === "village" ? 3 + Math.floor(seededRand(202, seed) * 2) :
-                     size === "town"    ? 4 + Math.floor(seededRand(202, seed) * 3) :
-                                         5 + Math.floor(seededRand(202, seed) * 3);
-  for (let i = 0; i < spokeCount; i++) {
-    const baseAngle = (i / spokeCount) * Math.PI * 2 + (seededRand(i, seed + 20003) - 0.5) * (Math.PI / spokeCount * 0.75);
-    const cos = Math.cos(baseAngle), sin = Math.sin(baseAngle);
-    let t = 1e9;
-    if (Math.abs(cos) > 0.001) t = Math.min(t, cos > 0 ? (W - hx) / cos : -hx / cos);
-    if (Math.abs(sin) > 0.001) t = Math.min(t, sin > 0 ? (H - hy) / sin : -hy / sin);
-    const ex = Math.max(0, Math.min(W, hx + cos * t));
-    const ey = Math.max(0, Math.min(H, hy + sin * t));
-    const cpx = (hx + ex) / 2 + (-sin) * (seededRand(i, seed + 20004) - 0.5) * 280;
-    const cpy = (hy + ey) / 2 + cos * (seededRand(i, seed + 20005) - 0.5) * 220;
-    roads.push({ p0: { x: hx, y: hy }, cp: { x: cpx, y: cpy }, p1: { x: ex, y: ey } });
+interface RoadSample { x: number; y: number; tx: number; ty: number; nx: number; ny: number; }
+
+function sampleCivRoad(road: CivRoad, totalSteps: number): RoadSample[] {
+  const result: RoadSample[] = [];
+  const stepsPerSeg = Math.max(4, Math.ceil(totalSteps / road.segments.length));
+  for (let si = 0; si < road.segments.length; si++) {
+    const seg = road.segments[si];
+    const start = si === 0 ? 0 : 1; // avoid duplicating shared midpoint
+    for (let s = start; s <= stepsPerSeg; s++) {
+      const t = s / stepsPerSeg;
+      const { x, y } = cubicPoint(seg, t);
+      const { dx: tx, dy: ty } = cubicTangent(seg, Math.min(t, 0.9999));
+      result.push({ x, y, tx, ty, nx: -ty, ny: tx });
+    }
   }
-  const ringCount = size === "village" ? 0 :
-                    size === "town" ? 0 :
-                    Math.floor(seededRand(206, seed) * 2); // city: 0 or 1
-  for (let r = 0; r < ringCount; r++) {
-    const i1 = r % spokeCount;
-    const i2 = (i1 + Math.max(1, Math.floor(spokeCount / 2.2)) + r) % spokeCount;
-    const r1 = roads[i1], r2 = roads[i2];
-    const t1 = 0.30 + seededRand(r, seed + 20009) * 0.28;
-    const t2 = 0.30 + seededRand(r, seed + 20010) * 0.28;
-    const p1x = (1-t1)**2*r1.p0.x + 2*(1-t1)*t1*r1.cp.x + t1**2*r1.p1.x;
-    const p1y = (1-t1)**2*r1.p0.y + 2*(1-t1)*t1*r1.cp.y + t1**2*r1.p1.y;
-    const p2x = (1-t2)**2*r2.p0.x + 2*(1-t2)*t2*r2.cp.x + t2**2*r2.p1.x;
-    const p2y = (1-t2)**2*r2.p0.y + 2*(1-t2)*t2*r2.cp.y + t2**2*r2.p1.y;
-    const cpx = (p1x + p2x) / 2 + (seededRand(r, seed + 20011) - 0.5) * 160;
-    const cpy = (p1y + p2y) / 2 + (seededRand(r, seed + 20012) - 0.5) * 130;
-    roads.push({ p0: { x: p1x, y: p1y }, cp: { x: cpx, y: cpy }, p1: { x: p2x, y: p2y } });
+  return result;
+}
+
+function makeCivRoad(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  style: CivRoad["style"],
+  width: number,
+  seed: number,
+  idx: number
+): CivRoad {
+  const dist = Math.hypot(to.x - from.x, to.y - from.y);
+  const ddx = (to.x - from.x) / dist, ddy = (to.y - from.y) / dist;
+  const perpx = -ddy, perpy = ddx;
+  const maxOff = dist * ORGANIC_ROAD.curviness * 0.28;
+
+  if (!ORGANIC_ROAD.useChainedBeziers || dist < 240) {
+    // Single cubic segment — independent offsets on cp1/cp2 enable natural S-curves
+    const off1 = (seededRand(idx, seed + 70001) - 0.5) * 2 * maxOff;
+    const off2 = (seededRand(idx + 1, seed + 70002) - 0.5) * 2 * maxOff;
+    return {
+      segments: [{
+        p0: from,
+        cp1: { x: from.x + ddx*dist*0.33 + perpx*off1, y: from.y + ddy*dist*0.33 + perpy*off1 },
+        cp2: { x: from.x + ddx*dist*0.67 + perpx*off2, y: from.y + ddy*dist*0.67 + perpy*off2 },
+        p1: to,
+      }],
+      width, style,
+    };
   }
-  // Loop branches — short curved spurs off spokes that circle around building clusters
-  const loopCount = size === "village" ? 0
-                  : size === "town"    ? 1 + Math.floor(seededRand(210, seed) * 2)
-                  :                      2 + Math.floor(seededRand(210, seed) * 3);
-  for (let l = 0; l < loopCount; l++) {
-    const spokeIdx = Math.floor(seededRand(l + 1, seed + 20030) * spokeCount);
-    const spoke = roads[spokeIdx];
-    const t0 = 0.20 + seededRand(l, seed + 20031) * 0.35;
-    const t1 = Math.min(0.90, t0 + 0.18 + seededRand(l, seed + 20032) * 0.22);
-    const p0x = (1-t0)**2*spoke.p0.x + 2*(1-t0)*t0*spoke.cp.x + t0**2*spoke.p1.x;
-    const p0y = (1-t0)**2*spoke.p0.y + 2*(1-t0)*t0*spoke.cp.y + t0**2*spoke.p1.y;
-    const p1x = (1-t1)**2*spoke.p0.x + 2*(1-t1)*t1*spoke.cp.x + t1**2*spoke.p1.x;
-    const p1y = (1-t1)**2*spoke.p0.y + 2*(1-t1)*t1*spoke.cp.y + t1**2*spoke.p1.y;
-    const dx = p1x - p0x, dy = p1y - p0y;
-    const dlen = Math.sqrt(dx*dx + dy*dy) || 1;
-    const side = seededRand(l, seed + 20033) < 0.5 ? 1 : -1;
-    const bulge = 45 + seededRand(l, seed + 20034) * 65;
-    const cpx = (p0x + p1x) / 2 + (-dy / dlen) * bulge * side;
-    const cpy = (p0y + p1y) / 2 + ( dx / dlen) * bulge * side;
-    roads.push({ p0: { x: p0x, y: p0y }, cp: { x: cpx, y: cpy }, p1: { x: p1x, y: p1y } });
+
+  // Chained two-segment road for longer distances — passes through an offset midpoint
+  const midOff = (seededRand(idx + 2, seed + 70003) - 0.5) * 2 * maxOff * 0.6;
+  const M = { x: (from.x + to.x) / 2 + perpx * midOff, y: (from.y + to.y) / 2 + perpy * midOff };
+
+  const d1 = Math.hypot(M.x - from.x, M.y - from.y) || 1;
+  const d1x = (M.x - from.x) / d1, d1y = (M.y - from.y) / d1;
+  const p1x = -d1y, p1y = d1x;
+  const d2 = Math.hypot(to.x - M.x, to.y - M.y) || 1;
+  const d2x = (to.x - M.x) / d2, d2y = (to.y - M.y) / d2;
+  const p2x = -d2y, p2y = d2x;
+
+  const o1 = (seededRand(idx,     seed + 70001) - 0.5) * 2 * maxOff * 0.45;
+  const o2 = (seededRand(idx + 1, seed + 70002) - 0.5) * 2 * maxOff * 0.45;
+  const o3 = (seededRand(idx + 3, seed + 70004) - 0.5) * 2 * maxOff * 0.45;
+  const o4 = (seededRand(idx + 4, seed + 70005) - 0.5) * 2 * maxOff * 0.45;
+
+  return {
+    segments: [
+      {
+        p0: from,
+        cp1: { x: from.x + d1x*d1*0.35 + p1x*o1, y: from.y + d1y*d1*0.35 + p1y*o1 },
+        cp2: { x: M.x   - d1x*d1*0.35 + p1x*o2, y: M.y   - d1y*d1*0.35 + p1y*o2 },
+        p1: M,
+      },
+      {
+        p0: M,
+        cp1: { x: M.x  + d2x*d2*0.35 + p2x*o3, y: M.y  + d2y*d2*0.35 + p2y*o3 },
+        cp2: { x: to.x - d2x*d2*0.35 + p2x*o4, y: to.y - d2y*d2*0.35 + p2y*o4 },
+        p1: to,
+      },
+    ],
+    width, style,
+  };
+}
+
+function generateOrganicLayout(
+  seed: number,
+  size: CivSize,
+  hx: number,
+  hy: number
+): { roads: CivRoad[]; anchorPts: Array<{ x: number; y: number }> } {
+  const roads: CivRoad[] = [];
+  const anchorPts: Array<{ x: number; y: number }> = [{ x: hx, y: hy }];
+
+  const primaryW  = size === "village" ? 18 : size === "town" ? 24 : 32;
+  const secondaryW = size === "village" ? 11 : size === "town" ? 15 : 20;
+  const trackW    = size === "village" ?  7 : 9;
+
+  // ── Anchor buildings: placed at varying distances around hub ──────────────
+  const anchorCount = size === "village" ? 3 : size === "town" ? 5 : 7;
+  const minAngleDelta = (ORGANIC_ROAD.minAngleDeltaDeg * Math.PI) / 180;
+  const usedAngles: number[] = [];
+
+  for (let i = 0; i < anchorCount; i++) {
+    // Start with a base angle and enforce minimum angular separation
+    let angle = seededRand(i + 1, seed + 71000) * Math.PI * 2;
+    for (let attempt = 0; attempt < 24; attempt++) {
+      const tooClose = usedAngles.some(a => {
+        let d = Math.abs(a - angle) % (Math.PI * 2);
+        if (d > Math.PI) d = Math.PI * 2 - d;
+        return d < minAngleDelta;
+      });
+      if (!tooClose) break;
+      angle = (angle + minAngleDelta * 1.15 + seededRand(i * 10 + attempt, seed + 71001) * 0.25) % (Math.PI * 2);
+    }
+    // Extra per-anchor rotation breaks uniform angular spacing (±20°)
+    const extraRot = (seededRand(i + 1, seed + 71010) - 0.5) * 0.70;
+    usedAngles.push(angle);
+    const finalAngle = angle + extraRot;
+    const dist = 130 + seededRand(i + 1, seed + 71002) * 175;
+    anchorPts.push({
+      x: Math.max(55, Math.min(W - 55, hx + Math.cos(finalAngle) * dist)),
+      y: Math.max(55, Math.min(H - 55, hy + Math.sin(finalAngle) * dist)),
+    });
   }
-  return roads;
+
+  // ── Primary roads: hub → every anchor ────────────────────────────────────
+  for (let i = 1; i < anchorPts.length; i++) {
+    roads.push(makeCivRoad(anchorPts[0], anchorPts[i], "primary", primaryW, seed, i * 10));
+  }
+
+  // ── Cross-links: connect some anchors to each other (no right angles) ────
+  const crossLinks = size === "village" ? 0 : size === "town" ? 1 : 2 + Math.floor(seededRand(300, seed) * 2);
+  for (let c = 0; c < crossLinks; c++) {
+    const ai = 1 + (Math.floor(seededRand(c, seed + 71020) * (anchorPts.length - 1)));
+    let aj = 1 + (Math.floor(seededRand(c + 1, seed + 71021) * (anchorPts.length - 1)));
+    if (ai === aj) aj = (aj % (anchorPts.length - 1)) + 1;
+    // Avoid near-right-angle joins by enforcing angle check
+    const ax = anchorPts[ai], bx = anchorPts[aj];
+    const crossAngle = Math.atan2(bx.y - ax.y, bx.x - ax.x);
+    const hubAngleA = Math.atan2(hy - ax.y, hx - ax.x);
+    let angDiff = Math.abs(crossAngle - hubAngleA) % Math.PI;
+    if (angDiff > Math.PI / 2) angDiff = Math.PI - angDiff;
+    if (angDiff < 0.40) continue; // skip roads that would meet near 90°
+    roads.push(makeCivRoad(ax, bx, "secondary", secondaryW, seed, 100 + c * 10));
+  }
+
+  // ── Exit roads: extend from outermost anchors toward canvas edges ─────────
+  const exitCount = size === "village" ? 2 : 3;
+  for (let e = 0; e < exitCount; e++) {
+    const srcIdx = 1 + (e % (anchorPts.length - 1));
+    const a = anchorPts[srcIdx];
+    // Exit angle = away from hub, with small random wobble to break symmetry
+    const exitBase = Math.atan2(a.y - hy, a.x - hx) + (seededRand(e, seed + 71030) - 0.5) * 0.30;
+    const cos = Math.cos(exitBase), sin = Math.sin(exitBase);
+    let te = 1e9;
+    if (Math.abs(cos) > 0.001) te = Math.min(te, cos > 0 ? (W - a.x) / cos : -a.x / cos);
+    if (Math.abs(sin) > 0.001) te = Math.min(te, sin > 0 ? (H - a.y) / sin : -a.y / sin);
+    const exitPt = { x: Math.max(0, Math.min(W, a.x + cos * te)), y: Math.max(0, Math.min(H, a.y + sin * te)) };
+    roads.push(makeCivRoad(a, exitPt, "primary", primaryW, seed, 200 + e * 10));
+  }
+
+  // ── Wandering spur: a purposeless-looking branch for organic realism ──────
+  if (size !== "village") {
+    const spIdx = 1 + Math.floor(seededRand(400, seed) * (anchorPts.length - 1));
+    const sp = anchorPts[spIdx];
+    const spurAngle = Math.atan2(sp.y - hy, sp.x - hx) + (seededRand(401, seed) - 0.5) * 1.4;
+    const spurDist = 65 + seededRand(402, seed) * 85;
+    roads.push(makeCivRoad(sp, {
+      x: Math.max(30, Math.min(W - 30, sp.x + Math.cos(spurAngle) * spurDist)),
+      y: Math.max(30, Math.min(H - 30, sp.y + Math.sin(spurAngle) * spurDist)),
+    }, "track", trackW, seed, 300));
+  }
+
+  return { roads, anchorPts };
 }
 
 
@@ -1224,68 +1371,135 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
   ctx.restore();
 }
 
-function drawPath(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, idx: number, style: "dirt" | "cobble", width: number): void {
+// ─── Organic road rendering ───────────────────────────────────────────────────
+
+function drawJunctionBlob(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  r: number,
+  style: CivRoad["style"],
+  seed: number, idx: number
+): void {
+  const nPts = 8 + Math.floor(seededRand(idx, seed + 75000) * 5);
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
-  if (style === "dirt") {
+  ctx.beginPath();
+  for (let i = 0; i < nPts; i++) {
+    const angle = (i / nPts) * Math.PI * 2;
+    const rVar = 0.72 + seededRand(idx * nPts + i, seed + 75001) * 0.52;
+    const px = x + Math.cos(angle) * r * rVar;
+    const py = y + Math.sin(angle) * r * rVar;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fillStyle = style === "primary" ? "rgba(104,98,84,0.98)" : "rgba(155,128,80,0.92)";
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawOrganicRoad(
+  ctx: CanvasRenderingContext2D,
+  road: CivRoad,
+  seed: number,
+  idx: number
+): void {
+  const pts = sampleCivRoad(road, 64);
+  if (pts.length < 2) return;
+
+  const wobbleAmpl = ORGANIC_ROAD.wobble * 4.5;
+  const baseHW = road.width / 2;
+  const edgeNoise = makeNoise(seed + 70000 + idx * 7);
+
+  // Build left/right polygon edges with width variation and Perlin wobble
+  const left: Array<{ x: number; y: number }> = [];
+  const right: Array<{ x: number; y: number }> = [];
+  for (let i = 0; i < pts.length; i++) {
+    const frac = i / (pts.length - 1);
+    const widthMod = 1 + ORGANIC_ROAD.widthVariance * 0.28 * Math.sin(frac * Math.PI * 2.7);
+    const hw = baseHW * widthMod;
+    const noiseL = edgeNoise(pts[i].x / W * 9,       pts[i].y / H * 9      ) * wobbleAmpl;
+    const noiseR = edgeNoise(pts[i].x / W * 9 + 100, pts[i].y / H * 9 + 100) * wobbleAmpl;
+    left.push ({x: pts[i].x + pts[i].nx * (hw + noiseL), y: pts[i].y + pts[i].ny * (hw + noiseL)});
+    right.push({x: pts[i].x - pts[i].nx * (hw - noiseR), y: pts[i].y - pts[i].ny * (hw - noiseR)});
+  }
+
+  const fillColor = road.style === "primary"
+    ? "rgba(108,102,88,0.97)"
+    : road.style === "secondary"
+    ? "rgba(158,132,82,0.93)"
+    : "rgba(148,118,68,0.85)";
+
+  // 1. Filled road polygon
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(left[0].x, left[0].y);
+  for (const p of left) ctx.lineTo(p.x, p.y);
+  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  ctx.restore();
+
+  // 2. Edge shadow vignette — thin dark strip inside each road edge
+  ctx.save();
+  ctx.globalAlpha = 0.11;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const pt0 = pts[i], pt1 = pts[Math.min(i + 1, pts.length - 1)];
+    const insetW = Math.max(2, baseHW * 0.22);
     ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(82,62,36,0.55)"; ctx.lineWidth = width + 4; ctx.stroke();
+    ctx.moveTo(left[i].x, left[i].y);
+    ctx.lineTo(left[i + 1] ? left[i + 1].x : left[i].x, left[i + 1] ? left[i + 1].y : left[i].y);
+    ctx.lineTo(left[i].x - pt0.nx * insetW, left[i].y - pt0.ny * insetW);
+    ctx.closePath();
+    ctx.fillStyle = "rgb(28,16,4)"; ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(175,150,100,0.90)"; ctx.lineWidth = width; ctx.stroke();
-    const steps = 55;
-    for (let s = 0; s <= steps; s++) {
-      if (seededRand(s + idx * 100, seed + 60010) > 0.20) continue;
-      const t = s / steps;
-      const px = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-      const py = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-      const dx = 2*(1-t)*(road.cp.x-road.p0.x)+2*t*(road.p1.x-road.cp.x);
-      const dy = 2*(1-t)*(road.cp.y-road.p0.y)+2*t*(road.p1.y-road.cp.y);
-      const dlen = Math.sqrt(dx*dx+dy*dy)||1;
-      const nx2 = -dy/dlen, ny2 = dx/dlen;
-      const off = (seededRand(s + idx*100+1, seed+60011)-0.5)*width*0.65;
-      const tlen = 3 + seededRand(s + idx*100+2, seed+60012)*7;
-      ctx.beginPath();
-      ctx.moveTo(px+nx2*off, py+ny2*off);
-      ctx.lineTo(px+nx2*off+dx/dlen*tlen, py+ny2*off+dy/dlen*tlen);
-      ctx.strokeStyle = "rgba(128,102,62,0.26)"; ctx.lineWidth = 0.7; ctx.stroke();
-    }
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(65,52,35,0.70)"; ctx.lineWidth = width + 4; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(110,104,91,0.96)"; ctx.lineWidth = width; ctx.stroke();
-    const rowCount = Math.max(2, Math.floor(width / 8));
-    const steps = Math.max(60, width * 2.2 | 0);
-    for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      const px = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-      const py = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-      const dx = 2*(1-t)*(road.cp.x-road.p0.x)+2*t*(road.p1.x-road.cp.x);
-      const dy = (2*(1-t)*(road.cp.y-road.p0.y)+2*t*(road.p1.y-road.cp.y));
-      const dlen = Math.sqrt(dx*dx+dy*dy)||1;
-      const nx2 = -dy/dlen, ny2 = dx/dlen;
+    ctx.moveTo(right[i].x, right[i].y);
+    ctx.lineTo(right[i + 1] ? right[i + 1].x : right[i].x, right[i + 1] ? right[i + 1].y : right[i].y);
+    ctx.lineTo(right[i].x + pt1.nx * insetW, right[i].y + pt1.ny * insetW);
+    ctx.closePath();
+    ctx.fillStyle = "rgb(28,16,4)"; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // 3. Surface texture clipped to road polygon
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(left[0].x, left[0].y);
+  for (const p of left) ctx.lineTo(p.x, p.y);
+  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+  ctx.closePath();
+  ctx.clip();
+
+  if (road.style === "primary") {
+    // Cobblestones — rows of individually stamped stones
+    const rowCount = Math.max(2, (road.width / 8) | 0);
+    for (let s = 0; s < pts.length; s++) {
+      if (seededRand(s + idx * 200, seed + 71100) > ORGANIC_ROAD.cobbleDensity) continue;
       for (let row = 0; row < rowCount; row++) {
-        const off = (row - rowCount/2 + 0.5) * 7;
-        const jx = (seededRand(s*rowCount+row+idx*600, seed+60001)-0.5)*2.5;
-        const jy = (seededRand(s*rowCount+row+idx*600+100, seed+60002)-0.5)*2.5;
-        const cx2 = px + nx2*off + jx;
-        const cy2 = py + ny2*off + jy;
-        const rv = (seededRand(s*rowCount+row+idx*600+200, seed+60003)*28)|0;
+        const off = (row - rowCount / 2 + 0.5) * 7;
+        const jx = (seededRand(s * rowCount + row + idx * 600,       seed + 71101) - 0.5) * 2.5;
+        const jy = (seededRand(s * rowCount + row + idx * 600 + 100, seed + 71102) - 0.5) * 2.5;
+        const cx2 = pts[s].x + pts[s].nx * off + jx;
+        const cy2 = pts[s].y + pts[s].ny * off + jy;
+        const rv  = (seededRand(s * rowCount + row + idx * 600 + 200, seed + 71103) * 30) | 0;
         ctx.save(); ctx.translate(cx2, cy2);
-        ctx.fillStyle = `rgb(${104+rv},${97+rv},${87+rv})`;
+        ctx.fillStyle = `rgb(${102+rv},${96+rv},${86+rv})`;
         ctx.fillRect(-3, -2.5, 6, 5);
         ctx.strokeStyle = "rgba(45,35,22,0.52)"; ctx.lineWidth = 0.5;
         ctx.strokeRect(-3, -2.5, 6, 5);
         ctx.restore();
       }
+    }
+  } else {
+    // Dirt stipple — short scratched line segments scattered across road surface
+    for (let s = 0; s < pts.length; s++) {
+      if (seededRand(s + idx * 200, seed + 71200) > 0.22) continue;
+      const off  = (seededRand(s + idx * 200 + 1, seed + 71201) - 0.5) * road.width * 0.60;
+      const tlen = 2 + seededRand(s + idx * 200 + 2, seed + 71202) * 5;
+      ctx.beginPath();
+      ctx.moveTo(pts[s].x + pts[s].nx * off,               pts[s].y + pts[s].ny * off);
+      ctx.lineTo(pts[s].x + pts[s].nx * off + pts[s].tx * tlen, pts[s].y + pts[s].ny * off + pts[s].ty * tlen);
+      ctx.strokeStyle = "rgba(98,74,38,0.22)"; ctx.lineWidth = 0.7; ctx.stroke();
     }
   }
   ctx.restore();
@@ -1719,31 +1933,30 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
-  // ── Generate paths (road mask used for farm/pond placement) ──────────────
-  const civPaths = generateCivPaths(seed, size);
-  const pathStyle: "dirt" | "cobble" = size === "village" ? "dirt" : "cobble";
-  const pathWidth = size === "village" ? 16 : size === "town" ? 22 : 32;
+  // ── Step 1: Generate organic layout — anchors placed first, roads second ─
+  const { roads: civRoads, anchorPts } = generateOrganicLayout(seed, size, hx, hy);
+
+  // ── Road mask — sampled per-road with per-road margin ────────────────────
   const MASK_W = 200, MASK_H = 134;
   const roadMask = new Uint8Array(MASK_W * MASK_H);
-  const maskMarginPx = pathWidth / 2 + 10;
-  const maskR = Math.ceil((maskMarginPx / W) * MASK_W);
-  for (const road of civPaths) {
-    for (let s = 0; s <= 120; s++) {
-      const t = s / 120;
-      const spx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-      const spy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-      const mgx = ((spx / W) * MASK_W) | 0;
-      const mgy = ((spy / H) * MASK_H) | 0;
-      for (let dy = -maskR; dy <= maskR; dy++) {
-        for (let dx = -maskR; dx <= maskR; dx++) {
-          if (dx*dx + dy*dy > maskR*maskR) continue;
+
+  function paintRoadMask(road: CivRoad): void {
+    const marginPx = road.width / 2 + 10;
+    const maskR2 = Math.ceil((marginPx / W) * MASK_W);
+    for (const pt of sampleCivRoad(road, 80)) {
+      const mgx = ((pt.x / W) * MASK_W) | 0;
+      const mgy = ((pt.y / H) * MASK_H) | 0;
+      for (let dy = -maskR2; dy <= maskR2; dy++) {
+        for (let dx = -maskR2; dx <= maskR2; dx++) {
+          if (dx*dx + dy*dy > maskR2*maskR2) continue;
           const mx = mgx + dx, my = mgy + dy;
-          if (mx >= 0 && mx < MASK_W && my >= 0 && my < MASK_H)
-            roadMask[my * MASK_W + mx] = 1;
+          if (mx >= 0 && mx < MASK_W && my >= 0 && my < MASK_H) roadMask[my * MASK_W + mx] = 1;
         }
       }
     }
   }
+  for (const road of civRoads) paintRoadMask(road);
+
   const isOnRoad = (cpx: number, cpy: number): boolean => {
     const mgx = ((cpx / W) * MASK_W) | 0;
     const mgy = ((cpy / H) * MASK_H) | 0;
@@ -1770,25 +1983,25 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const isOnFarm = (bx: number, by2: number, bw: number, bh: number): boolean =>
     farmAreas.some(fa => bx < fa.fx + fa.fw + 8 && bx + bw > fa.fx - 8 && by2 < fa.fy + fa.fh + 8 && by2 + bh > fa.fy - 8);
 
-  // ── Pond: compute position, skip if inside a farm ────────────────────────
-  const rawHasPond = true; // every settlement has a nearby water source
+  // ── Pond: every settlement has a nearby water source ─────────────────────
+  const rawHasPond = true;
   const pondCx = (0.12 + seededRand(760, seed) * 0.76) * W;
   const pondCy = (0.12 + seededRand(761, seed) * 0.76) * H;
   const pondRx = 28 + seededRand(762, seed) * 44;
   const pondRy = 22 + seededRand(763, seed) * 35;
   const hasPond = rawHasPond && !farmAreas.some(fa => pondCx > fa.fx && pondCx < fa.fx + fa.fw && pondCy > fa.fy && pondCy < fa.fy + fa.fh);
 
-  // ── Layer 0: Terrain ──────────────────────────────────────────────────────
+  // ── Layer 0: Terrain + water ──────────────────────────────────────────────
   renderCivTerrain(ctx, seed, size);
   if (hasPond) renderPond(ctx, seed);
 
-  // ── River (occasional) ───────────────────────────────────────────────────
+  // ── River (occasional) ────────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
   const riverExR = 18;
   const isOnRiver = (px2: number, py2: number): boolean =>
     riverPts.some(p => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
 
-  // ── Layer 1: Docks — only on large water (lake), not small ponds ─────────
+  // ── Layer 1: Docks — only on large water ─────────────────────────────────
   const isLake = hasPond && (pondRx > 56 || pondRy > 42);
   let dockExcl: { cx: number; cy: number; r: number } | null = null;
   if (isLake && size !== "village") {
@@ -1799,49 +2012,53 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const isOnPond = (px2: number, py2: number): boolean =>
     hasPond && Math.hypot((px2-pondCx)/pondRx, (py2-pondCy)/pondRy) < 1.0;
 
-  // ── Layer 2: Paths ───────────────────────────────────────────────────────
-  for (let i = 0; i < civPaths.length; i++) drawPath(ctx, civPaths[i], seed, i, pathStyle, pathWidth);
+  // ── Layer 2a: Junction blobs at multi-road anchor points ──────────────────
+  for (let ai = 0; ai < anchorPts.length; ai++) {
+    const { x: ax, y: ay } = anchorPts[ai];
+    const connRoads = civRoads.filter(r => {
+      const p0 = r.segments[0].p0, p1 = r.segments[r.segments.length - 1].p1;
+      return Math.hypot(p0.x - ax, p0.y - ay) < 10 || Math.hypot(p1.x - ax, p1.y - ay) < 10;
+    });
+    if (connRoads.length < 2) continue;
+    const maxW = connRoads.reduce((m, r) => Math.max(m, r.width), 0);
+    const jStyle = connRoads.some(r => r.style === "primary") ? "primary" : "secondary";
+    drawJunctionBlob(ctx, ax, ay, maxW * 0.80, jStyle, seed, ai);
+  }
 
-  // ── Layer 2.5: Bridges at river×path intersections ───────────────────────
+  // ── Layer 2b: Road fills — widest drawn first so narrower overlay cleanly ─
+  for (let i = 0; i < civRoads.length; i++) {
+    drawOrganicRoad(ctx, civRoads[i], seed, i);
+  }
+
+  // ── Layer 2.5: Bridges at river×road intersections ────────────────────────
   if (riverPts.length > 0) {
     const bridgeDone = new Set<string>();
-    for (const road of civPaths) {
-      for (let s = 0; s <= 100; s++) {
-        const t = s / 100;
-        const bpx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-        const bpy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-        const nearRiver = riverPts.some(rp => Math.hypot(bpx - rp.x, bpy - rp.y) < riverExR);
-        if (!nearRiver) continue;
-        const key = `${(bpx / 20) | 0},${(bpy / 20) | 0}`;
+    for (const road of civRoads) {
+      for (const pt of sampleCivRoad(road, 100)) {
+        if (!riverPts.some(rp => Math.hypot(pt.x - rp.x, pt.y - rp.y) < riverExR)) continue;
+        const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
-        const dxt = 2*(1-t)*(road.cp.x-road.p0.x) + 2*t*(road.p1.x-road.cp.x);
-        const dyt = 2*(1-t)*(road.cp.y-road.p0.y) + 2*t*(road.p1.y-road.cp.y);
-        drawBridge(ctx, bpx, bpy, Math.atan2(dyt, dxt), pathWidth);
+        drawBridge(ctx, pt.x, pt.y, Math.atan2(pt.ty, pt.tx), road.width);
       }
     }
   }
 
-  // ── Layer 2.6: Bridges at pond×path intersections ────────────────────────
+  // ── Layer 2.6: Bridges at pond×road intersections ────────────────────────
   if (hasPond) {
     const pondBridgeDone = new Set<string>();
-    for (const road of civPaths) {
-      for (let s = 0; s <= 100; s++) {
-        const t = s / 100;
-        const bpx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-        const bpy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-        if (!isOnPond(bpx, bpy)) continue;
-        const key = `${(bpx / 20) | 0},${(bpy / 20) | 0}`;
+    for (const road of civRoads) {
+      for (const pt of sampleCivRoad(road, 100)) {
+        if (!isOnPond(pt.x, pt.y)) continue;
+        const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (pondBridgeDone.has(key)) continue;
         pondBridgeDone.add(key);
-        const dxt = 2*(1-t)*(road.cp.x-road.p0.x) + 2*t*(road.p1.x-road.cp.x);
-        const dyt = 2*(1-t)*(road.cp.y-road.p0.y) + 2*t*(road.p1.y-road.cp.y);
-        drawBridge(ctx, bpx, bpy, Math.atan2(dyt, dxt), pathWidth);
+        drawBridge(ctx, pt.x, pt.y, Math.atan2(pt.ty, pt.tx), road.width);
       }
     }
   }
 
-  // Hub plaza
+  // ── Hub plaza ─────────────────────────────────────────────────────────────
   const hubR = size === "village" ? 30 + seededRand(217, seed) * 15 :
                size === "town"    ? 42 + seededRand(217, seed) * 18 :
                                     55 + seededRand(217, seed) * 22;
@@ -1868,18 +2085,16 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
   ctx.restore();
 
-  // Plaza center feature
   if (size === "village") drawWell(ctx, hx, hy);
   else if (size === "town") drawTree(ctx, hx, hy, 38 + seededRand(218, seed) * 10);
   else drawFountain(ctx, hx, hy);
 
-  // ── Layer 3: Castle (city only) — placed off to the side, avoiding roads ─
+  // ── Layer 3: Castle (city only) ───────────────────────────────────────────
   let castleCx = -9999, castleCy = -9999;
   const castleW = 188, castleH = 168;
   if (size === "city") {
     const baseAngle = seededRand(220, seed) * Math.PI * 2;
     const castleDist = hubR + 185 + seededRand(221, seed) * 55;
-    // Try 12 angles and pick the one with fewest road crossings
     let bestAngle = baseAngle, bestHits = Infinity;
     for (let ai = 0; ai < 12; ai++) {
       const tryAngle = baseAngle + (ai / 12) * Math.PI * 2;
@@ -1893,7 +2108,6 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
     castleCx = Math.max(castleW/2+32, Math.min(W-castleW/2-32, hx + Math.cos(bestAngle)*castleDist));
     castleCy = Math.max(castleH/2+32, Math.min(H-castleH/2-32, hy + Math.sin(bestAngle)*castleDist));
-    // Rotate castle so its gate (south face) faces the hub plaza
     const castleToHub = Math.atan2(hy - castleCy, hx - castleCx);
     ctx.save();
     ctx.translate(castleCx, castleCy);
@@ -1901,52 +2115,33 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     ctx.translate(-castleCx, -castleCy);
     renderCastleFootprint(ctx, { x: castleCx-castleW/2, y: castleCy-castleH/2, w: castleW, h: castleH, type: "castle" });
     ctx.restore();
-    // Gate is on the hub-facing side of castle
     const gateX = castleCx + Math.cos(castleToHub) * (castleH / 2);
     const gateY = castleCy + Math.sin(castleToHub) * (castleH / 2);
-    // Driveway ends at hub plaza EDGE (not center) so it doesn't overlay the fountain
     const driveEndX = hx - Math.cos(castleToHub) * (hubR + 1);
     const driveEndY = hy - Math.sin(castleToHub) * (hubR + 1);
-    const dCpX = (gateX + driveEndX) / 2 + (seededRand(225, seed) - 0.5) * 50;
-    const dCpY = (gateY + driveEndY) / 2 + (seededRand(226, seed) - 0.5) * 50;
-    const driveRoad = { p0: { x: gateX, y: gateY }, cp: { x: dCpX, y: dCpY }, p1: { x: driveEndX, y: driveEndY } };
-    drawPath(ctx, driveRoad, seed, 998, "cobble", 20);
-    // Add driveway to roadMask so buildings won't be placed on it
-    const driveMaskR = Math.ceil((18 / W) * MASK_W);
-    for (let st = 0; st <= 60; st++) {
-      const tt = st / 60;
-      const spx = (1-tt)**2*gateX + 2*(1-tt)*tt*dCpX + tt**2*driveEndX;
-      const spy = (1-tt)**2*gateY + 2*(1-tt)*tt*dCpY + tt**2*driveEndY;
-      const mgx = ((spx/W)*MASK_W)|0, mgy = ((spy/H)*MASK_H)|0;
-      for (let dy = -driveMaskR; dy <= driveMaskR; dy++) {
-        for (let dx = -driveMaskR; dx <= driveMaskR; dx++) {
-          if (dx*dx+dy*dy > driveMaskR*driveMaskR) continue;
-          const mx2 = mgx+dx, my2 = mgy+dy;
-          if (mx2>=0 && mx2<MASK_W && my2>=0 && my2<MASK_H) roadMask[my2*MASK_W+mx2] = 1;
-        }
-      }
-    }
+    const driveRoad = makeCivRoad({ x: gateX, y: gateY }, { x: driveEndX, y: driveEndY }, "primary", 20, seed, 998);
+    drawOrganicRoad(ctx, driveRoad, seed, 999);
+    paintRoadMask(driveRoad);
   }
 
-  // ── Layer 4: Buildings — organic path-following, corners checked ─────────
+  // ── Layer 4: Buildings — placed along roads, facing road direction ─────────
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
-  const sideOffset = pathWidth / 2 + 6;
-  const bSteps = size === "village" ? 32 : size === "town" ? 42 : 55;
+  const bSteps = size === "village" ? 28 : size === "town" ? 38 : 50;
   const density = size === "village" ? 0.38 : size === "town" ? 0.55 : 0.68;
   const minBSize = size === "village" ? 22 : size === "town" ? 26 : 30;
   const maxBSize = size === "village" ? 38 : size === "town" ? 48 : 58;
-  const buildingPaths = civPaths;
 
-  for (let pi = 0; pi < buildingPaths.length; pi++) {
-    const road = buildingPaths[pi];
-    for (let si = 1; si < bSteps; si++) {
-      const t = si / bSteps;
-      const ppx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-      const ppy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
-      const dxt = 2*(1-t)*(road.cp.x-road.p0.x) + 2*t*(road.p1.x-road.cp.x);
-      const dyt = 2*(1-t)*(road.cp.y-road.p0.y) + 2*t*(road.p1.y-road.cp.y);
-      const dtlen = Math.sqrt(dxt*dxt + dyt*dyt) || 1;
-      const nnx = -dyt/dtlen, nny = dxt/dtlen;
+  for (let pi = 0; pi < civRoads.length; pi++) {
+    const road = civRoads[pi];
+    const roadPts = sampleCivRoad(road, bSteps);
+    const sideOffset = road.width / 2 + 6;
+    const accessPathColor = (road.style === "track" || size === "village")
+      ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
+
+    for (let si = 1; si < roadPts.length - 1; si++) {
+      const pt = roadPts[si];
+      const ppx = pt.x, ppy = pt.y;
+      const nnx = pt.nx, nny = pt.ny;
 
       for (const side of [1, -1] as const) {
         const placeSeed = pi * 10000 + si * 20 + (side === 1 ? 0 : 1);
@@ -1966,7 +2161,6 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
         if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
-        // Reject building if center OR any of the 4 closest road-facing edge midpoints is on road
         if (isOnRoad(bcx, bcy)) continue;
         const nearEdgeMidX = bcx - nnx * side * (Math.min(bw, bh) / 2);
         const nearEdgeMidY = bcy - nny * side * (Math.min(bw, bh) / 2);
@@ -1978,30 +2172,25 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         const doorSide = getDoorSide(ppx - bcx, ppy - bcy);
         const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
 
-        // Rotation to align building front wall with the road direction
-        // facingAngle = world angle pointing from building toward road
         const facingAngle = Math.atan2(-nny * side, -nnx * side);
         const doorDefaultAngles: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
         const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI/2;
-        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.30; // ±~17°
+        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.30;
         const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
 
-        // Access path from building center toward road edge
-        if (offsetDist > pathWidth + 4) {
-          const roadEdgeX = ppx + nnx * side * (pathWidth / 2 + 2);
-          const roadEdgeY = ppy + nny * side * (pathWidth / 2 + 2);
+        // Dirt access path from building to road edge when set back far enough
+        if (offsetDist > road.width + 4) {
+          const roadEdgeX = ppx + nnx * side * (road.width / 2 + 2);
+          const roadEdgeY = ppy + nny * side * (road.width / 2 + 2);
           ctx.save();
           ctx.beginPath(); ctx.moveTo(bcx, bcy); ctx.lineTo(roadEdgeX, roadEdgeY);
-          ctx.strokeStyle = pathStyle === "dirt" ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
+          ctx.strokeStyle = accessPathColor;
           ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
           ctx.restore();
         }
 
-        // Draw building rotated around its center to face the road
         ctx.save();
-        ctx.translate(bcx, bcy);
-        ctx.rotate(buildingAngle);
-        ctx.translate(-bcx, -bcy);
+        ctx.translate(bcx, bcy); ctx.rotate(buildingAngle); ctx.translate(-bcx, -bcy);
         drawHouseTopDown(ctx, b, seed, pi * 200 + si * 2 + (side === 1 ? 0 : 1), size === "village");
         ctx.restore();
         allBuildings.push({ b, lotCx: bcx, lotCy: bcy });
