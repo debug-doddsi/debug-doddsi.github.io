@@ -448,14 +448,15 @@ function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: Civ
       let r = (122 + gv * 44) | 0;
       let g = (148 + gv * 42) | 0;
       let b = (58 + gv * 24) | 0;
-      if (size === "village") {
-        const dv = fbm(dn, nx * 5, ny * 5, 3);
-        if (dv > 0.62) {
-          const t = Math.min(1, (dv - 0.62) / 0.18);
-          r = (r + t * (178 - r)) | 0;
-          g = (g + t * (152 - g)) | 0;
-          b = (b + t * (96 - b)) | 0;
-        }
+      // Dirt variation on all civ sizes (more pronounced in village)
+      const dv = fbm(dn, nx * 5, ny * 5, 3);
+      const dirtBase = size === "village" ? 0.62 : 0.66;
+      const dirtRange = size === "village" ? 0.18 : 0.22;
+      if (dv > dirtBase) {
+        const t = Math.min(1, (dv - dirtBase) / dirtRange);
+        r = (r + t * (178 - r)) | 0;
+        g = (g + t * (152 - g)) | 0;
+        b = (b + t * (96 - b)) | 0;
       }
       const i = (py * W + px) * 4;
       d[i] = Math.min(255, r); d[i+1] = Math.min(255, g); d[i+2] = Math.min(255, b); d[i+3] = 255;
@@ -1151,16 +1152,21 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
   ctx.fillStyle = "rgb(142,132,112)";
   ctx.fillRect(cx - ks/2, cy - ks/2, ks, ks);
 
-  // Stone block texture on walls (random lighter/darker rects)
-  for (let s = 0; s < 90; s++) {
+  // Stone block texture on walls — dense cobblestone pattern
+  for (let s = 0; s < 220; s++) {
     const sx = cx - ks/2 + seededRand(s, cseed + 1) * ks;
     const sy = cy - ks/2 + seededRand(s, cseed + 2) * ks;
-    const sw = 5 + seededRand(s, cseed + 3) * 12;
+    const sw = 4 + seededRand(s, cseed + 3) * 10;
     const sh = 3 + seededRand(s, cseed + 4) * 5;
-    const rv = (seededRand(s, cseed + 5) * 30 - 15) | 0;
+    const rv = (seededRand(s, cseed + 5) * 36 - 18) | 0;
     ctx.fillStyle = `rgb(${142+rv},${132+rv},${112+rv})`;
-    ctx.strokeStyle = "rgba(28,20,10,0.18)"; ctx.lineWidth = 0.4;
+    ctx.strokeStyle = "rgba(28,20,10,0.22)"; ctx.lineWidth = 0.5;
     ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh);
+  }
+  // Mortar lines along wall perimeter — horizontal bands
+  ctx.strokeStyle = "rgba(20,14,6,0.14)"; ctx.lineWidth = 0.7;
+  for (let row = cy - ks/2 + 6; row < cy + ks/2; row += 8) {
+    ctx.beginPath(); ctx.moveTo(cx - ks/2, row); ctx.lineTo(cx + ks/2, row); ctx.stroke();
   }
 
   // Courtyard (inner open area within walls)
@@ -1446,50 +1452,18 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
 
 
 function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
+  // Church is a regular tiled-roof building (larger than average), with a small bell badge
+  const idx = ((b.x * 13 + b.y * 7) | 0) + 72000;
+  // Use the standard house renderer with a warm stone palette
+  drawHouseTopDown(ctx, b, idx, 0, false);
+  // Small bell badge (no white circle background, just the icon directly)
+  const bix = b.x + b.w / 2, biy = b.y + b.h / 2;
+  const badgeR = Math.max(7, Math.min(b.w, b.h) * 0.18);
   ctx.save();
-  const { x, y, w, h } = b;
-  const cseed = ((x * 13 + y * 7) | 0) + 72000;
-
-  // Drop shadow
-  ctx.fillStyle = "rgba(28,16,4,0.24)"; ctx.fillRect(x + 4, y + 3, w, h);
-
-  // Stone wall base
-  ctx.fillStyle = "rgb(192,184,165)";
-  ctx.fillRect(x, y, w, h);
-
-  // Stone block texture
-  for (let s = 0; s < 42; s++) {
-    const sx = x + seededRand(s, cseed + 1) * w;
-    const sy = y + seededRand(s, cseed + 2) * h;
-    const sw2 = 5 + seededRand(s, cseed + 3) * 12;
-    const sh2 = 4 + seededRand(s, cseed + 4) * 5;
-    const rv = (seededRand(s, cseed + 5) * 20 - 10) | 0;
-    ctx.fillStyle = `rgb(${192+rv},${184+rv},${165+rv})`;
-    ctx.strokeStyle = "rgba(28,20,10,0.12)"; ctx.lineWidth = 0.4;
-    ctx.fillRect(sx, sy, sw2, sh2); ctx.strokeRect(sx, sy, sw2, sh2);
-  }
-
-  // Depth shadow on south + east edges
-  ctx.fillStyle = "rgba(28,16,4,0.18)";
-  ctx.fillRect(x, y + h - 4, w, 4);
-  ctx.fillRect(x + w - 4, y, 4, h);
-
-  // Outline
-  ctx.strokeStyle = "rgba(22,14,4,0.90)"; ctx.lineWidth = 1.1;
-  ctx.strokeRect(x, y, w, h);
-
-  // Bell icon badge centered on building
-  const badgeR = Math.max(8, Math.min(w, h) * 0.22);
-  const bix = x + w / 2, biy = y + h / 2;
-  ctx.beginPath(); ctx.arc(bix, biy, badgeR, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(248,242,225,0.92)"; ctx.fill();
-  ctx.strokeStyle = "rgba(55,38,18,0.62)"; ctx.lineWidth = 0.9; ctx.stroke();
-  const iconS = badgeR / 11;
-  ctx.save();
-  ctx.translate(bix, biy); ctx.scale(iconS, iconS); ctx.translate(-bix, -biy);
+  ctx.translate(bix, biy);
+  ctx.scale(badgeR / 11, badgeR / 11);
+  ctx.translate(-bix, -biy);
   drawChurchIcon(ctx, bix, biy);
-  ctx.restore();
-
   ctx.restore();
 }
 
@@ -1797,7 +1771,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     farmAreas.some(fa => bx < fa.fx + fa.fw + 8 && bx + bw > fa.fx - 8 && by2 < fa.fy + fa.fh + 8 && by2 + bh > fa.fy - 8);
 
   // ── Pond: compute position, skip if inside a farm ────────────────────────
-  const rawHasPond = seededRand(751, seed) < (size === "city" ? 0.18 : 0.30);
+  const rawHasPond = true; // every settlement has a nearby water source
   const pondCx = (0.12 + seededRand(760, seed) * 0.76) * W;
   const pondCy = (0.12 + seededRand(761, seed) * 0.76) * H;
   const pondRx = 28 + seededRand(762, seed) * 44;
@@ -1848,6 +1822,25 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
+  // ── Layer 2.6: Bridges at pond×path intersections ────────────────────────
+  if (hasPond) {
+    const pondBridgeDone = new Set<string>();
+    for (const road of civPaths) {
+      for (let s = 0; s <= 100; s++) {
+        const t = s / 100;
+        const bpx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
+        const bpy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
+        if (!isOnPond(bpx, bpy)) continue;
+        const key = `${(bpx / 20) | 0},${(bpy / 20) | 0}`;
+        if (pondBridgeDone.has(key)) continue;
+        pondBridgeDone.add(key);
+        const dxt = 2*(1-t)*(road.cp.x-road.p0.x) + 2*t*(road.p1.x-road.cp.x);
+        const dyt = 2*(1-t)*(road.cp.y-road.p0.y) + 2*t*(road.p1.y-road.cp.y);
+        drawBridge(ctx, bpx, bpy, Math.atan2(dyt, dxt), pathWidth);
+      }
+    }
+  }
+
   // Hub plaza
   const hubR = size === "village" ? 30 + seededRand(217, seed) * 15 :
                size === "town"    ? 42 + seededRand(217, seed) * 18 :
@@ -1877,7 +1870,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
   // Plaza center feature
   if (size === "village") drawWell(ctx, hx, hy);
-  else if (size === "town") drawTree(ctx, hx, hy, 14 + seededRand(218, seed) * 5);
+  else if (size === "town") drawTree(ctx, hx, hy, 38 + seededRand(218, seed) * 10);
   else drawFountain(ctx, hx, hy);
 
   // ── Layer 3: Castle (city only) — placed off to the side, avoiding roads ─
@@ -1972,9 +1965,12 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
-        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 14 && Math.abs(bcy - castleCy) < castleH/2 + 14) continue;
-        // Use center check — buildings sit alongside roads, so corners naturally touch road edge
+        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
+        // Reject building if center OR any of the 4 closest road-facing edge midpoints is on road
         if (isOnRoad(bcx, bcy)) continue;
+        const nearEdgeMidX = bcx - nnx * side * (Math.min(bw, bh) / 2);
+        const nearEdgeMidY = bcy - nny * side * (Math.min(bw, bh) / 2);
+        if (isOnRoad(nearEdgeMidX, nearEdgeMidY)) continue;
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
         if (allBuildings.some(({ b }) => bx < b.x + b.w + 5 && bx + bw > b.x - 5 && by2 < b.y + b.h + 5 && by2 + bh > b.y - 5)) continue;
@@ -1982,20 +1978,32 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         const doorSide = getDoorSide(ppx - bcx, ppy - bcy);
         const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
 
-        // Access path from door to road (drawn before building so building sits on top)
+        // Rotation to align building front wall with the road direction
+        // facingAngle = world angle pointing from building toward road
+        const facingAngle = Math.atan2(-nny * side, -nnx * side);
+        const doorDefaultAngles: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
+        const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI/2;
+        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.30; // ±~17°
+        const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
+
+        // Access path from building center toward road edge
         if (offsetDist > pathWidth + 4) {
           const roadEdgeX = ppx + nnx * side * (pathWidth / 2 + 2);
           const roadEdgeY = ppy + nny * side * (pathWidth / 2 + 2);
-          const doorX = doorSide === "E" ? bx + bw : doorSide === "W" ? bx : bx + bw/2;
-          const doorY = doorSide === "S" ? by2 + bh : doorSide === "N" ? by2 : by2 + bh/2;
           ctx.save();
-          ctx.beginPath(); ctx.moveTo(doorX, doorY); ctx.lineTo(roadEdgeX, roadEdgeY);
+          ctx.beginPath(); ctx.moveTo(bcx, bcy); ctx.lineTo(roadEdgeX, roadEdgeY);
           ctx.strokeStyle = pathStyle === "dirt" ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
           ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
           ctx.restore();
         }
 
+        // Draw building rotated around its center to face the road
+        ctx.save();
+        ctx.translate(bcx, bcy);
+        ctx.rotate(buildingAngle);
+        ctx.translate(-bcx, -bcy);
         drawHouseTopDown(ctx, b, seed, pi * 200 + si * 2 + (side === 1 ? 0 : 1), size === "village");
+        ctx.restore();
         allBuildings.push({ b, lotCx: bcx, lotCy: bcy });
       }
     }
