@@ -55,7 +55,7 @@ function fbm(noise: ReturnType<typeof createNoise2D>, x: number, y: number, oct:
 
 // ─── Heightmap ────────────────────────────────────────────────────────────────
 
-const SCALE_FREQ: Record<MapScale, number> = { small: 4.0, medium: 2.0, large: 1.0 };
+const SCALE_FREQ: Record<MapScale, number> = { small: 1.0, medium: 2.0, large: 4.0 };
 
 function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
   const tn = makeNoise(seed);
@@ -88,6 +88,11 @@ function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array
   if (maxH < 0.45) {
     const scale = 0.45 / maxH;
     for (let i = 0; i < hm.length; i++) hm[i] *= scale;
+  }
+
+  // World map mode: push more terrain below the water threshold for realistic ocean coverage
+  if (scale === "small") {
+    for (let i = 0; i < hm.length; i++) hm[i] *= 0.72;
   }
 
   // Hillshade
@@ -129,10 +134,10 @@ const BANDS: Array<{ t: number; rgb: RGB }> = [
   { t: 0.55, rgb: [118, 140, 78] },
   { t: 0.62, rgb: [90, 120, 62] },
   { t: 0.69, rgb: [68, 98, 48] },
-  { t: 0.75, rgb: [142, 130, 90] },
-  { t: 0.82, rgb: [168, 158, 138] },
-  { t: 0.90, rgb: [205, 196, 180] },
-  { t: 1.01, rgb: [238, 234, 226] },
+  { t: 0.75, rgb: [148, 138, 118] },
+  { t: 0.82, rgb: [182, 174, 162] },
+  { t: 0.90, rgb: [218, 212, 205] },
+  { t: 1.01, rgb: [242, 240, 238] },
 ];
 
 function lerpRGB(a: RGB, b: RGB, t: number): RGB {
@@ -150,7 +155,7 @@ function terrainColor(h: number, arid: number): RGB {
     }
   }
   // Desert override
-  if (arid > 0.62 && h > 0.41 && h < 0.65) {
+  if (arid > 0.62 && h > 0.41 && h < 0.58) {
     const t = Math.min(1, (arid - 0.62) / 0.15) * 0.85;
     return lerpRGB(base, [210, 188, 122], t);
   }
@@ -384,7 +389,7 @@ function renderDesertTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, am
   for (let gy = 1; gy < HM_H - 1; gy += 2) {
     for (let gx = 1; gx < HM_W - 1; gx += 2) {
       const h = hm[gy * HM_W + gx], arid = am[gy * HM_W + gx];
-      if (!(arid > 0.62 && h > 0.41 && h < 0.65)) continue;
+      if (!(arid > 0.62 && h > 0.41 && h < 0.58)) continue;
       if (seededRand(gy * HM_W + gx, seed + 77777) > 0.22) continue;
       const px = (gx / HM_W) * W, py = (gy / HM_H) * H;
       const a = seededRand(gx + gy * 17, seed + 88888) * 0.6;
@@ -990,8 +995,65 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
   ctx.restore();
 }
 
+function drawCobblestoneRoad(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, idx: number): void {
+  ctx.save();
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  // Wide base
+  ctx.beginPath();
+  ctx.moveTo(road.p0.x, road.p0.y);
+  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+  ctx.strokeStyle = "rgba(120,112,98,0.95)"; ctx.lineWidth = 28; ctx.stroke();
+  // Edge definition
+  ctx.beginPath();
+  ctx.moveTo(road.p0.x, road.p0.y);
+  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+  ctx.strokeStyle = "rgba(72,58,38,0.55)"; ctx.lineWidth = 30; ctx.stroke();
+  // Wide base again on top
+  ctx.beginPath();
+  ctx.moveTo(road.p0.x, road.p0.y);
+  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+  ctx.strokeStyle = "rgba(120,112,98,0.95)"; ctx.lineWidth = 28; ctx.stroke();
+  // Clip to road strip so stones don't overflow
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(road.p0.x, road.p0.y);
+  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+  ctx.lineWidth = 27;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "rgba(0,0,0,0)";
+  // Use the stroke as a clip path trick — stamp stones without clip since canvas path clip is complex; just stamp within road width
+  ctx.restore();
+
+  const steps = 90;
+  for (let s = 0; s <= steps; s++) {
+    const t = s / steps;
+    const px = (1 - t) ** 2 * road.p0.x + 2 * (1 - t) * t * road.cp.x + t ** 2 * road.p1.x;
+    const py = (1 - t) ** 2 * road.p0.y + 2 * (1 - t) * t * road.cp.y + t ** 2 * road.p1.y;
+    const dx = 2 * (1 - t) * (road.cp.x - road.p0.x) + 2 * t * (road.p1.x - road.cp.x);
+    const dy = 2 * (1 - t) * (road.cp.y - road.p0.y) + 2 * t * (road.p1.y - road.cp.y);
+    const dlen = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = -dy / dlen, ny = dx / dlen;
+
+    for (let row = -2; row <= 1; row++) {
+      const jx = (seededRand(s * 4 + row + idx * 500, seed + 60001) - 0.5) * 2.5;
+      const jy = (seededRand(s * 4 + row + idx * 500 + 100, seed + 60002) - 0.5) * 2.5;
+      const cx2 = px + nx * (row * 7 + 3.5) + jx;
+      const cy2 = py + ny * (row * 7 + 3.5) + jy;
+      const rv = (seededRand(s * 4 + row + idx * 500 + 200, seed + 60003) * 26) | 0;
+      ctx.save();
+      ctx.translate(cx2, cy2);
+      ctx.fillStyle = `rgb(${108 + rv},${100 + rv},${90 + rv})`;
+      ctx.fillRect(-3, -2.5, 6, 5);
+      ctx.strokeStyle = "rgba(45,35,22,0.55)"; ctx.lineWidth = 0.5;
+      ctx.strokeRect(-3, -2.5, 6, 5);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
 function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
-  ctx.fillStyle = "rgb(225,210,178)";
+  ctx.fillStyle = "rgb(210,195,148)";
   ctx.fillRect(0, 0, W, H);
 
   // Layer 1: Dense building grid (26×20 = 520 lots)
@@ -1010,12 +1072,21 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
       const buildings = subdivideBlock(lx + 2, ly + 2, lw - 4, lh - 4, idx);
       for (const b of buildings) {
         const rv = seededRand((b.x | 0) * 7 + (b.y | 0), seed + 40005) * 22 | 0;
+        const palette = Math.floor(seededRand((b.x | 0) + (b.y | 0) * 3, seed + 40006) * 4);
+        // 4 building palettes: terracotta, timber, slate, plaster
+        const wallColors: [string, string][] = [
+          [`rgb(${185 + rv},${115 + (rv >> 1)},${80 + (rv >> 1)})`, `rgb(${148 + rv},${85 + (rv >> 1)},${55 + (rv >> 1)})`],
+          [`rgb(${192 + rv},${162 + rv},${112 + rv})`, `rgb(${152 + rv},${122 + rv},${82 + rv})`],
+          [`rgb(${138 + (rv >> 1)},${130 + (rv >> 1)},${118 + (rv >> 1)})`, `rgb(${105 + (rv >> 1)},${98 + (rv >> 1)},${88 + (rv >> 1)})`],
+          [`rgb(${200 + rv},${185 + rv},${155 + rv})`, `rgb(${160 + rv},${145 + rv},${115 + rv})`],
+        ];
+        const [wallColor, roofColor] = wallColors[palette];
         // Base fill
-        ctx.fillStyle = `rgb(${198 + rv},${180 + rv},${148 + rv})`;
+        ctx.fillStyle = wallColor;
         ctx.fillRect(b.x, b.y, b.w, b.h);
         // Roof stripe (darker top edge)
         const roofH = Math.max(3, Math.min(b.h * 0.28, 7));
-        ctx.fillStyle = `rgb(${158 + rv},${140 + rv},${110 + rv})`;
+        ctx.fillStyle = roofColor;
         ctx.fillRect(b.x, b.y, b.w, roofH);
         // Diagonal tile texture
         ctx.save();
@@ -1081,39 +1152,16 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     }
   }
 
-  // Layer 3: Grey gravel paths + organic roads
+  // Layer 3: Cobblestone roads
   const townRoads = generateTownRoads(seed);
-  for (const road of townRoads) {
-    ctx.save();
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // Wide grey gravel base
-    ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(162,153,135,0.90)";
-    ctx.lineWidth = 26;
-    ctx.stroke();
-    // Lighter worn-earth centre lane
-    ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(180,168,138,0.82)";
-    ctx.lineWidth = 16;
-    ctx.stroke();
-    // Faint highlight
-    ctx.beginPath();
-    ctx.moveTo(road.p0.x, road.p0.y);
-    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-    ctx.strokeStyle = "rgba(200,188,158,0.30)";
-    ctx.lineWidth = 7;
-    ctx.stroke();
-    ctx.restore();
+  for (let i = 0; i < townRoads.length; i++) {
+    drawCobblestoneRoad(ctx, townRoads[i], seed, i);
   }
 
   // Layer 4: Open town center plaza
   const plazaW = 80 + seededRand(213, seed) * 30;
   const plazaH = 60 + seededRand(214, seed) * 28;
-  ctx.fillStyle = "rgba(210,196,160,0.95)";
+  ctx.fillStyle = "rgba(222,205,158,0.95)";
   ctx.fillRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
   ctx.strokeStyle = "rgba(80,60,30,0.5)"; ctx.lineWidth = 1;
   ctx.strokeRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
