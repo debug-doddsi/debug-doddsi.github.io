@@ -1786,7 +1786,23 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const rectOnRoad = (rx: number, ry: number, rw: number, rh: number): boolean =>
     isOnRoad(rx + rw/2, ry + rh/2) || isOnRoad(rx, ry) || isOnRoad(rx+rw, ry) || isOnRoad(rx, ry+rh) || isOnRoad(rx+rw, ry+rh);
 
-  // ── Pre-compute farm areas (so pond/dock can check against them) ──────────
+  // ── Pre-compute market positions (add market roads to civPaths) ──────────
+  const marketPositions: Array<{ x: number; y: number; idx: number }> = [];
+  if (size !== "village") {
+    const mCount = size === "town" ? 1 : 1 + (seededRand(701, seed) < 0.50 ? 1 : 0);
+    for (let m = 0; m < mCount; m++) {
+      const mAngle = seededRand(m * 37 + 702, seed) * Math.PI * 2;
+      const mDist = 80 + seededRand(m * 37 + 703, seed) * 80;
+      const mcx = Math.max(90, Math.min(W - 90, hx + Math.cos(mAngle) * mDist));
+      const mcy = Math.max(75, Math.min(H - 75, hy + Math.sin(mAngle) * mDist));
+      marketPositions.push({ x: mcx, y: mcy, idx: m });
+      const mCpX = (mcx + hx) / 2 + (seededRand(m * 37 + 704, seed) - 0.5) * 55;
+      const mCpY = (mcy + hy) / 2 + (seededRand(m * 37 + 705, seed) - 0.5) * 55;
+      civPaths.push({ p0: { x: mcx, y: mcy }, cp: { x: mCpX, y: mCpY }, p1: { x: hx, y: hy } });
+    }
+  }
+
+  // ── Pre-compute farm areas (filter out road-overlapping farms) ───────────
   const farmAreas: FarmArea[] = [];
   if (size !== "city") {
     const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
@@ -1801,31 +1817,42 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       farmAreas.push({ fx, fy, fw, fh, f });
     }
   }
-  const isOnFarmPt = (px2: number, py2: number): boolean =>
-    farmAreas.some(f => px2 >= f.fx && px2 <= f.fx + f.fw && py2 >= f.fy && py2 <= f.fy + f.fh);
+  const isOnFarm = (bx: number, by2: number, bw: number, bh: number): boolean =>
+    farmAreas.some(fa => bx < fa.fx + fa.fw + 8 && bx + bw > fa.fx - 8 && by2 < fa.fy + fa.fh + 8 && by2 + bh > fa.fy - 8);
 
-  // ── Layer 1a: River (flows through civ, 38% chance) ──────────────────────
+  // ── Pond: compute position, skip if inside a farm ────────────────────────
+  const rawHasPond = seededRand(751, seed) < (size === "city" ? 0.18 : 0.30);
+  const pondCx = (0.12 + seededRand(760, seed) * 0.76) * W;
+  const pondCy = (0.12 + seededRand(761, seed) * 0.76) * H;
+  const pondRx = 28 + seededRand(762, seed) * 44;
+  const pondRy = 22 + seededRand(763, seed) * 35;
+  const hasPond = rawHasPond && !farmAreas.some(fa => pondCx > fa.fx && pondCx < fa.fx + fa.fw && pondCy > fa.fy && pondCy < fa.fy + fa.fh);
+
+  // ── Layer 0: Terrain ──────────────────────────────────────────────────────
+  renderCivTerrain(ctx, seed, size);
+  if (hasPond) renderPond(ctx, seed);
+
+  // ── River (occasional) ───────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
+  const riverExR = 18;
   const isOnRiver = (px2: number, py2: number): boolean =>
-    riverPts.some(pt => Math.hypot(px2 - pt.x, py2 - pt.y) < 14);
+    riverPts.some(p => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
 
-  // ── Layer 1b: Pond + dock (town/city only, not inside a farm) ────────────
-  const pondCxC = (0.12 + seededRand(760, seed) * 0.76) * W;
-  const pondCyC = (0.12 + seededRand(761, seed) * 0.76) * H;
-  let pondData: { cx: number; cy: number; rx: number; ry: number } | null = null;
-  let dockData: { cx: number; cy: number; r: number } | null = null;
-  const pondInFarm = isOnFarmPt(pondCxC, pondCyC);
-  if (size !== "village" && !pondInFarm) {
-    pondData = renderPond(ctx, seed);
-    dockData = renderDocksOnPond(ctx, pondData.cx, pondData.cy, pondData.rx, pondData.ry, seed);
+  // ── Layer 1: Docks — only if pond exists ─────────────────────────────────
+  let dockExcl: { cx: number; cy: number; r: number } | null = null;
+  if (hasPond && size !== "village" && seededRand(710, seed) < 0.80) {
+    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed);
   }
-  const isOnPond = (px2: number, py2: number): boolean =>
-    pondData !== null && Math.hypot(px2 - pondData.cx, py2 - pondData.cy) < Math.max(pondData.rx, pondData.ry) + 8;
   const isOnDock = (px2: number, py2: number): boolean =>
-    dockData !== null && Math.hypot(px2 - dockData.cx, py2 - dockData.cy) < dockData.r;
+    dockExcl !== null && Math.hypot(px2 - dockExcl.cx, py2 - dockExcl.cy) < dockExcl.r;
+  const isOnPond = (px2: number, py2: number): boolean =>
+    hasPond && Math.hypot((px2-pondCx)/pondRx, (py2-pondCy)/pondRy) < 1.0;
 
-  // ── Layer 2: Paths ───────────────────────────────────────────────────────
-  for (let i = 0; i < civPaths.length; i++) drawPath(ctx, civPaths[i], seed, i, pathStyle, pathWidth);
+  // ── Layer 2: Paths (includes market roads) ───────────────────────────────
+  for (let i = 0; i < civPaths.length; i++) {
+    const w = i >= civPaths.length - marketPositions.length ? Math.max(12, pathWidth * 0.7) : pathWidth;
+    drawPath(ctx, civPaths[i], seed, i, pathStyle, w);
+  }
 
   // Hub plaza
   const hubR = size === "village" ? 30 + seededRand(217, seed) * 15 :
@@ -1912,78 +1939,81 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
-  // farmAreas pre-computed above (before pond/river rendering)
-  const isOnFarm = (bx: number, by2: number, bw: number, bh: number): boolean =>
-    farmAreas.some(f => bx < f.fx + f.fw + 8 && bx + bw > f.fx - 8 && by2 < f.fy + f.fh + 8 && by2 + bh > f.fy - 8);
-
-  // ── Layer 4: Organic path-following building placement ───────────────────
+  // ── Layer 4: Buildings — organic path-following, corners checked ─────────
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
   const sideOffset = pathWidth / 2 + 6;
   const bSteps = size === "village" ? 32 : size === "town" ? 42 : 55;
-  const density = size === "village" ? 0.38 : size === "town" ? 0.58 : 0.72;
+  const density = size === "village" ? 0.38 : size === "town" ? 0.55 : 0.68;
   const minBSize = size === "village" ? 22 : size === "town" ? 26 : 30;
   const maxBSize = size === "village" ? 38 : size === "town" ? 48 : 58;
+  // Only use spoke/loop civPaths for building placement (not castle driveway or market roads)
+  const buildingPaths = civPaths.slice(0, civPaths.length - marketPositions.length);
 
-  for (let pi = 0; pi < civPaths.length; pi++) {
-    const road = civPaths[pi];
+  for (let pi = 0; pi < buildingPaths.length; pi++) {
+    const road = buildingPaths[pi];
     for (let si = 1; si < bSteps; si++) {
       const t = si / bSteps;
-      const px = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
-      const py = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
+      const ppx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
+      const ppy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
       const dxt = 2*(1-t)*(road.cp.x-road.p0.x) + 2*t*(road.p1.x-road.cp.x);
       const dyt = 2*(1-t)*(road.cp.y-road.p0.y) + 2*t*(road.p1.y-road.cp.y);
       const dtlen = Math.sqrt(dxt*dxt + dyt*dyt) || 1;
-      const nx = -dyt/dtlen, ny = dxt/dtlen; // perpendicular to tangent
+      const nnx = -dyt/dtlen, nny = dxt/dtlen;
 
       for (const side of [1, -1] as const) {
         const placeSeed = pi * 10000 + si * 20 + (side === 1 ? 0 : 1);
         if (seededRand(placeSeed, seed + 41000) > density) continue;
 
-        // 65% square, 35% modest rectangle
         const isSquare = seededRand(placeSeed + 1, seed + 41001) < 0.65;
         const baseSize = minBSize + seededRand(placeSeed + 2, seed + 41002) * (maxBSize - minBSize);
         const bw = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 3, seed + 41003) * 0.5)) | 0;
         const bh = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 4, seed + 41004) * 0.5)) | 0;
 
         const offsetDist = sideOffset + seededRand(placeSeed + 5, seed + 41005) * 14;
-        const bcx = px + nx * side * offsetDist;
-        const bcy = py + ny * side * offsetDist;
+        const bcx = ppx + nnx * side * offsetDist;
+        const bcy = ppy + nny * side * offsetDist;
         const bx = (bcx - bw / 2) | 0;
         const by2 = (bcy - bh / 2) | 0;
 
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
-        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 12 && Math.abs(bcy - castleCy) < castleH/2 + 12) continue;
+        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 14 && Math.abs(bcy - castleCy) < castleH/2 + 14) continue;
+        // Check ALL corners/center against road mask
         if (rectOnRoad(bx, by2, bw, bh)) continue;
         if (isOnFarm(bx, by2, bw, bh)) continue;
+        if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
         if (allBuildings.some(({ b }) => bx < b.x + b.w + 5 && bx + bw > b.x - 5 && by2 < b.y + b.h + 5 && by2 + bh > b.y - 5)) continue;
 
-        // Draw short access path from door edge to road for buildings set far back
-        if (offsetDist > pathWidth / 2 + 18) {
-          const roadEdgeX = px + nx * side * (pathWidth / 2 + 3);
-          const roadEdgeY = py + ny * side * (pathWidth / 2 + 3);
+        const doorSide = getDoorSide(ppx - bcx, ppy - bcy);
+        const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
+
+        // Access path from door to road (drawn before building so building sits on top)
+        if (offsetDist > pathWidth + 4) {
+          const roadEdgeX = ppx + nnx * side * (pathWidth / 2 + 2);
+          const roadEdgeY = ppy + nny * side * (pathWidth / 2 + 2);
+          const doorX = doorSide === "E" ? bx + bw : doorSide === "W" ? bx : bx + bw/2;
+          const doorY = doorSide === "S" ? by2 + bh : doorSide === "N" ? by2 : by2 + bh/2;
           ctx.save();
-          ctx.beginPath(); ctx.moveTo(roadEdgeX, roadEdgeY); ctx.lineTo(bcx, bcy);
-          ctx.strokeStyle = "rgba(148,122,82,0.72)"; ctx.lineWidth = 5;
-          ctx.lineCap = "round"; ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(doorX, doorY); ctx.lineTo(roadEdgeX, roadEdgeY);
+          ctx.strokeStyle = pathStyle === "dirt" ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
+          ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
           ctx.restore();
         }
 
-        // Door faces the road (direction from building center toward path point)
-        const doorSide = getDoorSide(px - bcx, py - bcy);
-        const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
         drawHouseTopDown(ctx, b, seed, pi * 200 + si * 2 + (side === 1 ? 0 : 1), size === "village");
         allBuildings.push({ b, lotCx: bcx, lotCy: bcy });
       }
     }
   }
 
-  // ── Layer 4.5: Farms (village/town only) ────────────────────────────────
-  renderFarms(ctx, seed, farmAreas, allBuildings.map(e => ({ b: e.b })));
+  // ── Layer 4.5: Farms ──────────────────────────────────────────────────────
+  renderFarms(ctx, seed, farmAreas, allBuildings);
 
-  // ── Layer 5: Trees + bushes — denser on outskirts ────────────────────────
+  // ── Layer 5: Trees + bushes — avoid roads, buildings, water, farms, river ─
   const isOnBuilding = (tx: number, ty: number): boolean =>
     allBuildings.some(({ b }) => tx >= b.x - 5 && tx <= b.x + b.w + 5 && ty >= b.y - 5 && ty <= b.y + b.h + 5);
+  const isOnFarmPt = (tx: number, ty: number): boolean =>
+    farmAreas.some(fa => tx >= fa.fx - 4 && tx <= fa.fx + fa.fw + 4 && ty >= fa.fy - 4 && ty <= fa.fy + fa.fh + 4);
   const treeNoise = makeNoise(seed + 77551);
   let plantIdx = 0;
   for (let py2 = 4; py2 < H - 4; py2 += 8) {
@@ -2013,19 +2043,10 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
-  // ── Layer 5.5: Market square — always present for town/city, connected to hub by road
-  if (size !== "village") {
-    const mAngle = seededRand(702, seed) * Math.PI * 2;
-    const mDist = hubR + 70 + seededRand(703, seed) * 80;
-    const mcx = Math.max(80, Math.min(W - 80, hx + Math.cos(mAngle) * mDist));
-    const mcy = Math.max(65, Math.min(H - 65, hy + Math.sin(mAngle) * mDist));
-    if (!(size === "city" && Math.abs(mcx - castleCx) < castleW/2 + 55 && Math.abs(mcy - castleCy) < castleH/2 + 55)) {
-      // Road from hub to market square
-      const mRoadCpX = (hx + mcx) / 2 + (seededRand(704, seed) - 0.5) * 60;
-      const mRoadCpY = (hy + mcy) / 2 + (seededRand(705, seed) - 0.5) * 60;
-      drawPath(ctx, { p0: { x: hx, y: hy }, cp: { x: mRoadCpX, y: mRoadCpY }, p1: { x: mcx, y: mcy } }, seed, 997, "cobble", pathWidth);
-      renderMarketPlaza(ctx, mcx, mcy, seed, 20);
-    }
+  // ── Layer 5.5: Market plazas ──────────────────────────────────────────────
+  for (const mp of marketPositions) {
+    if (size === "city" && Math.abs(mp.x - castleCx) < castleW/2 + 55 && Math.abs(mp.y - castleCy) < castleH/2 + 55) continue;
+    renderMarketPlaza(ctx, mp.x, mp.y, seed, mp.idx + 20);
   }
 
   // ── Layer 7: Special building icons ──────────────────────────────────────
