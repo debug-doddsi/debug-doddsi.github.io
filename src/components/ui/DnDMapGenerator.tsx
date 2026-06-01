@@ -19,7 +19,7 @@ interface RiverPoint { gx: number; gy: number; }
 
 type MapScale = "small" | "medium" | "large";
 type CivSize = "village" | "town" | "city";
-type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "shop";
+type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "potions" | "armoury";
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; }
 
 type RGB = [number, number, number];
@@ -556,18 +556,21 @@ function drawInnIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): voi
 
 function drawTavernIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.fillStyle = "rgba(148,118,82,0.9)";
-  ctx.strokeStyle = "rgba(38,28,14,0.82)";
-  ctx.lineWidth = 0.78;
-  ctx.beginPath(); ctx.ellipse(cx, cy - 11, 7, 2.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.fillRect(cx - 6, cy - 11, 12, 10); ctx.strokeRect(cx - 6, cy - 11, 12, 10);
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(cx - 6, cy - 8.5 + i * 3); ctx.lineTo(cx + 6, cy - 8.5 + i * 3);
-    ctx.strokeStyle = "rgba(90,68,42,0.45)"; ctx.lineWidth = 0.6; ctx.stroke();
-  }
-  ctx.beginPath(); ctx.ellipse(cx, cy - 1, 7, 2.5, 0, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78; ctx.stroke();
+  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.85;
+  // Pint glass — wider at top, narrower at base
+  ctx.beginPath();
+  ctx.moveTo(cx - 5.5, cy - 10); ctx.lineTo(cx + 5.5, cy - 10); // top rim
+  ctx.lineTo(cx + 4, cy + 4);   ctx.lineTo(cx - 4, cy + 4);   // base
+  ctx.closePath();
+  // Beer fill (amber)
+  ctx.fillStyle = "rgba(195,148,38,0.88)"; ctx.fill(); ctx.stroke();
+  // Foam at top
+  ctx.fillStyle = "rgba(242,238,225,0.95)";
+  ctx.fillRect(cx - 5.5, cy - 10, 11, 3.5); ctx.strokeRect(cx - 5.5, cy - 10, 11, 3.5);
+  // Handle
+  ctx.beginPath();
+  ctx.arc(cx + 7, cy - 5, 3, -Math.PI*0.5, Math.PI*0.5);
+  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 1.2; ctx.stroke();
   ctx.restore();
 }
 
@@ -604,33 +607,56 @@ function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): 
 
 function drawBlacksmithIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.fillStyle = "rgba(100,90,80,0.88)";
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78;
-  ctx.beginPath();
-  ctx.moveTo(cx - 7, cy - 5);
-  ctx.bezierCurveTo(cx - 7, cy - 12, cx + 7, cy - 12, cx + 7, cy - 5);
-  ctx.lineTo(cx + 4, cy - 5); ctx.lineTo(cx + 4, cy - 3);
-  ctx.lineTo(cx - 4, cy - 3); ctx.lineTo(cx - 4, cy - 5);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.fillRect(cx - 5, cy - 3, 10, 4); ctx.strokeRect(cx - 5, cy - 3, 10, 4);
+  ctx.fillStyle = "rgba(85,78,68,0.92)";
+  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  // Hammer head (horizontal, at top)
+  ctx.fillRect(cx - 7, cy - 12, 14, 6); ctx.strokeRect(cx - 7, cy - 12, 14, 6);
+  // Handle (vertical, angled slightly)
+  ctx.save();
+  ctx.translate(cx, cy); ctx.rotate(0.18);
+  ctx.fillStyle = "rgba(130,98,58,0.92)";
+  ctx.fillRect(-1.8, -6, 3.6, 14); ctx.strokeRect(-1.8, -6, 3.6, 14);
+  ctx.restore();
   ctx.restore();
 }
 
-function drawShopIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+
+function drawPotionIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.fillStyle = "rgba(175,138,88,0.9)";
-  ctx.strokeStyle = "rgba(38,28,14,0.82)";
-  ctx.lineWidth = 0.8;
-  // Awning arc
-  ctx.beginPath(); ctx.arc(cx, cy - 10, 8, Math.PI, 0); ctx.fill(); ctx.stroke();
-  // Body
-  ctx.fillStyle = "rgba(155,125,88,0.9)";
-  ctx.fillRect(cx - 7, cy - 10, 14, 10); ctx.strokeRect(cx - 7, cy - 10, 14, 10);
-  // Door
-  ctx.fillStyle = "rgba(80,58,32,0.85)"; ctx.fillRect(cx - 2.5, cy - 7, 5, 7);
-  // Windows
-  ctx.fillStyle = "rgba(200,185,140,0.7)"; ctx.fillRect(cx - 6, cy - 9, 3, 3);
+  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  // Bottle body (round)
+  ctx.beginPath(); ctx.arc(cx, cy - 1, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(138,48,188,0.82)"; ctx.fill(); ctx.stroke();
+  // Neck
+  ctx.fillStyle = "rgba(118,38,158,0.88)";
+  ctx.fillRect(cx - 2.2, cy - 11, 4.4, 6); ctx.strokeRect(cx - 2.2, cy - 11, 4.4, 6);
+  // Cork
+  ctx.fillStyle = "rgba(162,118,72,0.92)";
+  ctx.fillRect(cx - 2.8, cy - 14, 5.6, 3.5); ctx.strokeRect(cx - 2.8, cy - 14, 5.6, 3.5);
+  // Shine on bottle
+  ctx.fillStyle = "rgba(255,255,255,0.28)";
+  ctx.beginPath(); ctx.arc(cx - 2, cy - 3, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawSwordIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  ctx.save();
+  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  // Blade (vertical)
+  ctx.fillStyle = "rgba(188,192,198,0.92)";
+  ctx.fillRect(cx - 1.5, cy - 13, 3, 16); ctx.strokeRect(cx - 1.5, cy - 13, 3, 16);
+  // Guard (horizontal crosspiece)
+  ctx.fillStyle = "rgba(155,135,80,0.92)";
+  ctx.fillRect(cx - 7, cy + 2, 14, 2.5); ctx.strokeRect(cx - 7, cy + 2, 14, 2.5);
+  // Handle
+  ctx.fillStyle = "rgba(118,82,42,0.92)";
+  ctx.fillRect(cx - 1.8, cy + 4, 3.6, 6); ctx.strokeRect(cx - 1.8, cy + 4, 3.6, 6);
+  // Pommel
+  ctx.beginPath(); ctx.arc(cx, cy + 10, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(155,135,80,0.92)"; ctx.fill(); ctx.stroke();
+  // Blade tip
+  ctx.beginPath(); ctx.moveTo(cx - 1.5, cy - 13); ctx.lineTo(cx, cy - 17); ctx.lineTo(cx + 1.5, cy - 13);
+  ctx.fillStyle = "rgba(188,192,198,0.92)"; ctx.fill(); ctx.stroke();
   ctx.restore();
 }
 
@@ -840,10 +866,11 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "civilisa
       { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
       { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
       { label: "Tavern",     draw: (x, y) => drawTavernIcon(ctx, x, y) },
-      { label: "Market",     draw: (x, y) => drawMarketIcon(ctx, x, y) },
       { label: "Church",     draw: (x, y) => drawChurchIcon(ctx, x, y) },
       { label: "Blacksmith", draw: (x, y) => drawBlacksmithIcon(ctx, x, y) },
-      { label: "Shop",       draw: (x, y) => drawShopIcon(ctx, x, y) },
+      { label: "Armoury",    draw: (x, y) => drawSwordIcon(ctx, x, y) },
+      { label: "Potions",    draw: (x, y) => drawPotionIcon(ctx, x, y) },
+      { label: "Market",     draw: (x, y) => drawMarketIcon(ctx, x, y) },
       { label: "Dock",       draw: (x, y) => drawDockIcon(ctx, x, y) },
     ];
     const rowH = 26, lw = 134;
@@ -1027,28 +1054,35 @@ function generateCivPaths(seed: number, size: CivSize): TownRoad[] {
 
 
 function subdivideBlock(bx: number, by: number, bw: number, bh: number, idx: number): TownBuilding[] {
-  const n = 2 + Math.floor(seededRand(idx, 999) * 4);
-  const gap = 2;
+  const n = 1 + Math.floor(seededRand(idx, 999) * 2); // 1 or 2 buildings per lot
+  const gap = 3;
   const buildings: TownBuilding[] = [];
+  // Enforce reasonable aspect ratio — subdivide along the longer axis
   if (bw >= bh) {
     const avgW = (bw - gap * (n - 1)) / n;
     let x = bx;
     for (let i = 0; i < n; i++) {
-      const w = Math.max(14, avgW + (seededRand(idx * 10 + i, 888) - 0.5) * avgW * 0.35);
+      const w = Math.max(22, avgW + (seededRand(idx * 10 + i, 888) - 0.5) * avgW * 0.28);
       const actual = Math.min(w, bx + bw - x - gap * (n - 1 - i));
-      if (actual > 14) buildings.push({ x, y: by, w: actual, h: bh, type: "normal" });
+      // Skip if result would be too skinny (aspect ratio > 2.2)
+      if (actual >= 22 && bh >= 18 && actual / bh <= 2.2 && bh / actual <= 2.2)
+        buildings.push({ x, y: by, w: actual, h: bh, type: "normal" });
       x += actual + gap;
     }
   } else {
     const avgH = (bh - gap * (n - 1)) / n;
     let y = by;
     for (let i = 0; i < n; i++) {
-      const h = Math.max(14, avgH + (seededRand(idx * 10 + i + 500, 777) - 0.5) * avgH * 0.35);
+      const h = Math.max(22, avgH + (seededRand(idx * 10 + i + 500, 777) - 0.5) * avgH * 0.28);
       const actual = Math.min(h, by + bh - y - gap * (n - 1 - i));
-      if (actual > 14) buildings.push({ x: bx, y, w: bw, h: actual, type: "normal" });
+      if (actual >= 22 && bw >= 18 && bw / actual <= 2.2 && actual / bw <= 2.2)
+        buildings.push({ x: bx, y, w: bw, h: actual, type: "normal" });
       y += actual + gap;
     }
   }
+  // Fallback: if nothing passed the ratio check, yield the single full-lot building
+  if (buildings.length === 0 && bw >= 22 && bh >= 18)
+    buildings.push({ x: bx, y: by, w: bw, h: bh, type: "normal" });
   return buildings;
 }
 
@@ -1183,71 +1217,142 @@ function drawPath(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, i
   ctx.restore();
 }
 
+function drawBuildingRect(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number,
+  p: { wr: number; wg: number; wb: number; rr: number; rg: number; rb: number },
+  wt: number, seed: number, idx: number
+): void {
+  // Wall base
+  ctx.fillStyle = `rgb(${Math.min(255,p.wr)},${Math.min(255,p.wg)},${Math.min(255,p.wb)})`;
+  ctx.fillRect(x, y, w, h);
+  // Roof fill
+  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
+  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
+  // Roof gradient (NW bright → SE dark)
+  const grd = ctx.createLinearGradient(x + wt, y + wt, x + w - wt, y + h - wt);
+  grd.addColorStop(0,    "rgba(255,255,255,0.16)");
+  grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
+  grd.addColorStop(1,    "rgba(0,0,0,0.22)");
+  ctx.fillStyle = grd;
+  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
+  // Tile texture — rows of semicircular arcs
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x + wt, y + wt, w - wt * 2, h - wt * 2); ctx.clip();
+  const tr = (p.rr * 0.58) | 0, tg = (p.rg * 0.52) | 0, tb = (p.rb * 0.48) | 0;
+  ctx.strokeStyle = `rgba(${tr},${tg},${tb},0.32)`; ctx.lineWidth = 0.7;
+  const tileH = 5, tileW = 9;
+  for (let ty2 = y + wt + tileH; ty2 < y + h - wt; ty2 += tileH) {
+    const rowNum = Math.round((ty2 - y - wt) / tileH);
+    const offset = (rowNum % 2 === 0) ? 0 : tileW / 2;
+    for (let tx2 = x + wt - offset; tx2 < x + w - wt + tileW; tx2 += tileW) {
+      ctx.beginPath();
+      ctx.arc(tx2 + tileW / 2, ty2, tileW / 2, Math.PI, 0, true);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  // Ridge line along long axis
+  ctx.strokeStyle = `rgba(${(p.rr * 0.48) | 0},${(p.rg * 0.44) | 0},${(p.rb * 0.40) | 0},0.85)`;
+  ctx.lineWidth = 1.5; ctx.lineCap = "round";
+  ctx.beginPath();
+  if (w >= h) { ctx.moveTo(x + wt + 5, y + h / 2); ctx.lineTo(x + w - wt - 5, y + h / 2); }
+  else        { ctx.moveTo(x + w / 2, y + wt + 5); ctx.lineTo(x + w / 2, y + h - wt - 5); }
+  ctx.stroke();
+  // Chimney (35%)
+  if (w > 24 && h > 20 && seededRand(idx + 2, seed + 40012) < 0.36) {
+    const cs = Math.max(4, (Math.min(w, h) * 0.12) | 0);
+    const cpx2 = w >= h ? x + w * 0.38 - cs / 2 : x + wt + 4;
+    const cpy2 = w >= h ? y + wt + 4 : y + h * 0.38 - cs / 2;
+    ctx.fillStyle = `rgb(${Math.min(255,p.wr-30)},${Math.min(255,p.wg-24)},${Math.min(255,p.wb-20)})`;
+    ctx.fillRect(cpx2, cpy2, cs, cs);
+    ctx.strokeStyle = "rgba(42,28,12,0.85)"; ctx.lineWidth = 0.7; ctx.strokeRect(cpx2, cpy2, cs, cs);
+  }
+  // South & east wall shadow for depth
+  ctx.fillStyle = "rgba(28,16,4,0.22)";
+  ctx.fillRect(x, y + h - wt, w, wt);
+  ctx.fillRect(x + w - wt, y, wt, h);
+  // Door on south wall
+  if (h > 16 && wt >= 3) {
+    const dw = Math.max(4, (w * 0.22) | 0);
+    ctx.fillStyle = "rgba(52,32,14,0.92)";
+    ctx.fillRect(x + w / 2 - dw / 2, y + h - wt, dw, wt);
+  }
+  // Windows
+  if (w > 28 && wt >= 3) {
+    const ws = Math.max(2, (wt * 0.7) | 0);
+    ctx.fillStyle = "rgba(218,198,148,0.60)";
+    ctx.fillRect(x + wt / 2 - ws / 2, y + h * 0.38, ws, ws);
+    if (w > 38) ctx.fillRect(x + w - wt / 2 - ws / 2, y + h * 0.38, ws, ws);
+  }
+  ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9;
+  ctx.strokeRect(x, y, w, h);
+}
+
 function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: number, idx: number): void {
   const { x, y, w, h } = b;
   const pi = (seededRand(idx, seed + 40006) * 4) | 0;
   const rv = (seededRand(idx + 1, seed + 40015) * 18) | 0;
   const palettes = [
-    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,168+rv), rg: 105, rb: 65 },
+    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,168+rv), rg: 105,             rb: 65 },
     { wr: 188+rv, wg: 175+rv, wb: 150+rv, rr: Math.min(255,128+rv), rg: Math.min(255,118+rv), rb: Math.min(255,105+rv) },
-    { wr: 190+rv, wg: 178+rv, wb: 152+rv, rr: Math.min(255,148+rv), rg: 115, rb: 72 },
+    { wr: 190+rv, wg: 178+rv, wb: 152+rv, rr: Math.min(255,148+rv), rg: 115,             rb: 72 },
     { wr: 205+rv, wg: 194+rv, wb: 170+rv, rr: Math.min(255,168+rv), rg: Math.min(255,148+rv), rb: Math.min(255,118+rv) },
   ];
   const p = palettes[pi];
-  const wt = Math.max(3, Math.min(6, (Math.min(w, h) * 0.13) | 0));
+  const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
+
   // Drop shadow
-  ctx.fillStyle = "rgba(28,16,4,0.28)";
-  ctx.fillRect(x + 4, y + 3, w, h);
-  // Wall base
-  ctx.fillStyle = `rgb(${Math.min(255,p.wr)},${Math.min(255,p.wg)},${Math.min(255,p.wb)})`;
-  ctx.fillRect(x, y, w, h);
-  // Roof
-  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
-  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
-  // Roof gradient highlight
-  const grd = ctx.createLinearGradient(x + wt, y + wt, x + w - wt, y + h - wt);
-  grd.addColorStop(0, "rgba(255,255,255,0.14)");
-  grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
-  grd.addColorStop(1, "rgba(0,0,0,0.20)");
-  ctx.fillStyle = grd;
-  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
-  // Ridge line along long axis
-  ctx.strokeStyle = `rgba(${(p.rr * 0.52) | 0},${(p.rg * 0.48) | 0},${(p.rb * 0.44) | 0},0.82)`;
-  ctx.lineWidth = 1.4; ctx.lineCap = "round";
-  ctx.beginPath();
-  if (w >= h) { ctx.moveTo(x + wt + 4, y + h / 2); ctx.lineTo(x + w - wt - 4, y + h / 2); }
-  else        { ctx.moveTo(x + w / 2, y + wt + 4); ctx.lineTo(x + w / 2, y + h - wt - 4); }
-  ctx.stroke();
-  // Chimney (35% of buildings large enough)
-  if (w > 22 && h > 18 && seededRand(idx + 2, seed + 40012) < 0.36) {
-    const cs = Math.max(3, (Math.min(w, h) * 0.11) | 0);
-    const cpx2 = w >= h ? x + w / 2 - cs / 2 : x + wt + 3;
-    const cpy2 = w >= h ? y + wt + 3 : y + h / 2 - cs / 2;
-    ctx.fillStyle = `rgb(${Math.min(255,p.wr-28)},${Math.min(255,p.wg-22)},${Math.min(255,p.wb-18)})`;
-    ctx.fillRect(cpx2, cpy2, cs, cs);
-    ctx.strokeStyle = "rgba(42,28,12,0.82)"; ctx.lineWidth = 0.7;
-    ctx.strokeRect(cpx2, cpy2, cs, cs);
+  ctx.fillStyle = "rgba(28,16,4,0.26)"; ctx.fillRect(x + 4, y + 3, w, h);
+
+  // L-shape variant for ~18% of large buildings
+  const isL = w > 34 && h > 28 && seededRand(idx + 3, seed + 40017) < 0.18;
+  if (isL) {
+    // Cut one corner, choosing the side randomly
+    const corner = (seededRand(idx + 4, seed + 40018) * 4) | 0; // 0=NE 1=SE 2=SW 3=NW
+    const cutW = ((w * (0.28 + seededRand(idx + 5, seed + 40019) * 0.22)) | 0);
+    const cutH = ((h * (0.28 + seededRand(idx + 6, seed + 40020) * 0.22)) | 0);
+    ctx.save();
+    ctx.beginPath();
+    if (corner === 0) { // NE cut
+      ctx.moveTo(x, y); ctx.lineTo(x + w - cutW, y); ctx.lineTo(x + w - cutW, y + cutH);
+      ctx.lineTo(x + w, y + cutH); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+    } else if (corner === 1) { // SE cut
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h - cutH); ctx.lineTo(x + w - cutW, y + h); ctx.lineTo(x, y + h);
+    } else if (corner === 2) { // SW cut
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + cutW, y + h); ctx.lineTo(x + cutW, y + h - cutH); ctx.lineTo(x, y + h - cutH);
+    } else { // NW cut
+      ctx.moveTo(x + cutW, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h); ctx.lineTo(x, y + cutH); ctx.lineTo(x + cutW, y + cutH);
+    }
+    ctx.closePath();
+    ctx.clip();
+    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx);
+    ctx.restore();
+    // Outline the L-shape
+    ctx.save();
+    ctx.beginPath();
+    if (corner === 0) {
+      ctx.moveTo(x, y); ctx.lineTo(x + w - cutW, y); ctx.lineTo(x + w - cutW, y + cutH);
+      ctx.lineTo(x + w, y + cutH); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+    } else if (corner === 1) {
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h - cutH); ctx.lineTo(x + w - cutW, y + h); ctx.lineTo(x, y + h);
+    } else if (corner === 2) {
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + cutW, y + h); ctx.lineTo(x + cutW, y + h - cutH); ctx.lineTo(x, y + h - cutH);
+    } else {
+      ctx.moveTo(x + cutW, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h); ctx.lineTo(x, y + cutH); ctx.lineTo(x + cutW, y + cutH);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.restore();
+  } else {
+    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx);
   }
-  // South & east wall darker (depth)
-  ctx.fillStyle = "rgba(28,16,4,0.20)";
-  ctx.fillRect(x, y + h - wt, w, wt);
-  ctx.fillRect(x + w - wt, y, wt, h);
-  // Door on south wall
-  if (h > 14 && wt >= 3) {
-    const dw = Math.max(3, (w * 0.22) | 0);
-    ctx.fillStyle = "rgba(52,32,14,0.90)";
-    ctx.fillRect(x + w / 2 - dw / 2, y + h - wt, dw, wt);
-  }
-  // Windows in wall band
-  if (w > 24 && wt >= 3) {
-    const ws = Math.max(2, (wt * 0.68) | 0);
-    ctx.fillStyle = "rgba(215,195,145,0.58)";
-    ctx.fillRect(x + wt / 2 - ws / 2, y + h * 0.38, ws, ws);
-    if (w > 32) ctx.fillRect(x + w - wt / 2 - ws / 2, y + h * 0.38, ws, ws);
-  }
-  // Strong outline
-  ctx.strokeStyle = "rgba(42,26,8,0.88)"; ctx.lineWidth = 0.9;
-  ctx.strokeRect(x, y, w, h);
 }
 
 function renderMarketStalls(ctx: CanvasRenderingContext2D, cx: number, cy: number, seed: number, idx: number): void {
@@ -1428,9 +1533,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Layer 4: Buildings ───────────────────────────────────────────────────
-  const COLS = size === "village" ? 8  : size === "town" ? 11 : 14;
-  const ROWS = size === "village" ? 6  : size === "town" ? 8  : 10;
-  const skipRate = size === "village" ? 0.35 : size === "town" ? 0.18 : 0.12;
+  const COLS = size === "village" ? 6  : size === "town" ? 10 : 15;
+  const ROWS = size === "village" ? 4  : size === "town" ? 7  : 11;
+  const skipRate = size === "village" ? 0.52 : size === "town" ? 0.22 : 0.10;
   const lotW = W / COLS, lotH = H / ROWS;
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
 
@@ -1448,7 +1553,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       if (isOnRoad(lcx, lcy)) continue;
       if (seededRand(idx, seed + 45001) < skipRate) continue;
 
-      const maxSubdivide = size === "village" ? 2 : size === "town" ? 3 : 4;
+      const maxSubdivide = size === "village" ? 1 : size === "town" ? 2 : 3;
       const buildings = subdivideBlock(lx + 2, ly + 2, lw - 4, lh - 4, idx);
       const usedBuildings = buildings.slice(0, maxSubdivide);
       for (let bi = 0; bi < usedBuildings.length; bi++) {
@@ -1459,7 +1564,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
 
-  // ── Layer 5: Trees (noise-based, not on roads) ───────────────────────────
+  // ── Layer 5: Trees (noise-based, not on roads, not on buildings) ────────
+  const isOnBuilding = (tx: number, ty: number): boolean =>
+    allBuildings.some(({ b }) => tx >= b.x - 5 && tx <= b.x + b.w + 5 && ty >= b.y - 5 && ty <= b.y + b.h + 5);
   const treeNoise = makeNoise(seed + 77551);
   for (let py2 = 4; py2 < H - 4; py2 += 9) {
     for (let px2 = 4; px2 < W - 4; px2 += 9) {
@@ -1469,6 +1576,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       if (Math.hypot(px2 - hx, py2 - hy) < hubR + 10) continue;
       if (size === "city" && Math.abs(px2 - castleCx) < castleW/2 + 8 && Math.abs(py2 - castleCy) < castleH/2 + 8) continue;
       if (isOnRoad(px2, py2)) continue;
+      if (isOnBuilding(px2, py2)) continue;
       drawTree(ctx, px2, py2, 5 + seededRand(py2 * W / 9 + px2 / 9, seed + 33111) * 5);
     }
   }
@@ -1503,10 +1611,10 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
     .sort((a, b) => a.d - b.d);
   const specialOrder: BuildingType[] = size === "village"
-    ? ["inn", "tavern", "blacksmith", "shop"]
+    ? ["inn", "tavern", "blacksmith", "potions"]
     : size === "town"
-    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "blacksmith", "shop", "shop"]
-    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "shop", "shop", "shop"];
+    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "armoury", "potions", "potions"]
+    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "armoury", "potions", "potions"];
   const usedLots = new Set<string>();
   let si = 0;
   for (const { i } of sorted) {
@@ -1515,16 +1623,23 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const lotKey = `${lotCx | 0},${lotCy | 0}`;
     if (usedLots.has(lotKey)) continue;
     usedLots.add(lotKey);
-    const cx = b.x + b.w / 2, cy = b.y + b.h / 2 + 4;
-    const iconScale = Math.max(1.4, Math.min(b.w, b.h) / 16);
+    const icx = b.x + b.w / 2, icy = b.y + b.h / 2;
+    // Badge circle on roof
+    const badgeR = Math.max(7, Math.min(b.w, b.h) * 0.28);
     ctx.save();
-    ctx.translate(cx, cy); ctx.scale(iconScale, iconScale); ctx.translate(-cx, -cy);
+    ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(248,242,225,0.82)"; ctx.fill();
+    ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.8; ctx.stroke();
+    // Scale icon to fit badge (icons draw ±10px at 1:1)
+    const iconS = badgeR / 11;
+    ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
     switch (specialOrder[si]) {
-      case "inn":        drawInnIcon(ctx, cx, cy); break;
-      case "tavern":     drawTavernIcon(ctx, cx, cy); break;
-      case "church":     drawChurchIcon(ctx, cx, cy); break;
-      case "blacksmith": drawBlacksmithIcon(ctx, cx, cy); break;
-      case "shop":       drawShopIcon(ctx, cx, cy); break;
+      case "inn":        drawInnIcon(ctx, icx, icy); break;
+      case "tavern":     drawTavernIcon(ctx, icx, icy); break;
+      case "church":     drawChurchIcon(ctx, icx, icy); break;
+      case "blacksmith": drawBlacksmithIcon(ctx, icx, icy); break;
+      case "armoury":    drawSwordIcon(ctx, icx, icy); break;
+      case "potions":    drawPotionIcon(ctx, icx, icy); break;
     }
     ctx.restore();
     si++;
