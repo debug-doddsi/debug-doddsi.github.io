@@ -330,6 +330,24 @@ function drawTree(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: n
   ctx.restore();
 }
 
+function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, seed: number, idx: number): void {
+  ctx.save();
+  const rv = (seededRand(idx, seed + 33500) * 14) | 0;
+  const outlineColor = "rgba(28,48,16,0.55)";
+  ctx.strokeStyle = outlineColor; ctx.lineWidth = 0.55;
+  // 2-3 overlapping lobes
+  for (let l = 0; l < 3; l++) {
+    const la = (l / 3) * Math.PI * 2 + seededRand(idx * 3 + l, seed + 33501) * 1.2;
+    const ld = r * (0.22 + seededRand(idx * 3 + l, seed + 33502) * 0.18);
+    const lr = r * (0.62 + seededRand(idx * 3 + l, seed + 33503) * 0.28);
+    const lv = (seededRand(idx * 3 + l, seed + 33504) * 12) | 0;
+    ctx.fillStyle = `rgba(${52+rv+lv},${84+rv+lv},${36+rv+lv},0.80)`;
+    ctx.beginPath(); ctx.arc(cx + Math.cos(la) * ld, cy + Math.sin(la) * ld, lr, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function placeForests(hm: Float32Array, am: Float32Array, seed: number): ForestCluster[] {
   const clusters: ForestCluster[] = [];
   const occ = new Set<string>();
@@ -542,15 +560,20 @@ function drawTownCastleIcon(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
 
 function drawInnIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.fillStyle = "rgba(145,115,80,0.9)";
-  ctx.strokeStyle = "rgba(35,25,12,0.82)";
-  ctx.lineWidth = 0.78;
-  ctx.fillRect(cx - 7, cy - 11, 14, 11); ctx.strokeRect(cx - 7, cy - 11, 14, 11);
-  ctx.beginPath();
-  ctx.moveTo(cx + 7, cy - 9); ctx.lineTo(cx + 12, cy - 9); ctx.lineTo(cx + 12, cy - 4);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(185,155,108,0.9)";
-  ctx.fillRect(cx + 10, cy - 7, 5, 4); ctx.strokeRect(cx + 10, cy - 7, 5, 4);
+  ctx.strokeStyle = "rgba(35,25,12,0.85)"; ctx.lineWidth = 0.85;
+  // Headboard
+  ctx.fillStyle = "rgba(108,78,48,0.95)";
+  ctx.fillRect(cx - 8, cy - 9, 16, 5); ctx.strokeRect(cx - 8, cy - 9, 16, 5);
+  // Bed frame
+  ctx.fillStyle = "rgba(145,112,72,0.92)";
+  ctx.fillRect(cx - 8, cy - 4, 16, 10); ctx.strokeRect(cx - 8, cy - 4, 16, 10);
+  // Footboard
+  ctx.fillStyle = "rgba(108,78,48,0.95)";
+  ctx.fillRect(cx - 8, cy + 6, 16, 3); ctx.strokeRect(cx - 8, cy + 6, 16, 3);
+  // Pillow (offset left, oval)
+  ctx.fillStyle = "rgba(232,222,202,0.92)";
+  ctx.beginPath(); ctx.ellipse(cx - 1, cy - 1, 5, 3, 0, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
   ctx.restore();
 }
 
@@ -592,16 +615,25 @@ function drawMarketIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): 
 
 function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.fillStyle = "rgba(155,135,105,0.9)";
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78;
-  ctx.fillRect(cx - 6, cy - 10, 12, 10); ctx.strokeRect(cx - 6, cy - 10, 12, 10);
+  ctx.strokeStyle = "rgba(38,28,14,0.85)"; ctx.lineWidth = 0.85;
+  // Bell body — rounded top, flared bottom
   ctx.beginPath();
-  ctx.moveTo(cx - 7, cy - 10); ctx.lineTo(cx, cy - 16); ctx.lineTo(cx + 7, cy - 10); ctx.closePath();
-  ctx.fillStyle = "rgba(118,95,68,0.9)"; ctx.fill(); ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - 18); ctx.lineTo(cx, cy - 24);
-  ctx.moveTo(cx - 3, cy - 21); ctx.lineTo(cx + 3, cy - 21);
-  ctx.strokeStyle = "rgba(38,28,14,0.88)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.moveTo(cx - 2, cy - 14);
+  ctx.bezierCurveTo(cx - 9, cy - 13, cx - 9, cy - 2, cx - 8, cy + 1);
+  ctx.lineTo(cx + 8, cy + 1);
+  ctx.bezierCurveTo(cx + 9, cy - 2, cx + 9, cy - 13, cx + 2, cy - 14);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(198,172,82,0.95)"; ctx.fill(); ctx.stroke();
+  // Clapper
+  ctx.beginPath(); ctx.arc(cx, cy + 2, 2.2, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(80,60,30,0.92)"; ctx.fill(); ctx.stroke();
+  // Hanging bracket at top
+  ctx.beginPath(); ctx.moveTo(cx - 3, cy - 14); ctx.lineTo(cx + 3, cy - 14);
+  ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy - 17);
+  ctx.strokeStyle = "rgba(80,60,30,0.88)"; ctx.lineWidth = 1.5; ctx.stroke();
+  // Shine
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy - 10); ctx.lineTo(cx - 5, cy - 5);
+  ctx.strokeStyle = "rgba(255,240,180,0.35)"; ctx.lineWidth = 1.2; ctx.stroke();
   ctx.restore();
 }
 
@@ -1033,8 +1065,8 @@ function generateCivPaths(seed: number, size: CivSize): TownRoad[] {
     roads.push({ p0: { x: hx, y: hy }, cp: { x: cpx, y: cpy }, p1: { x: ex, y: ey } });
   }
   const ringCount = size === "village" ? 0 :
-                    size === "town" ? 1 + Math.floor(seededRand(206, seed) * 2) :
-                    2 + Math.floor(seededRand(206, seed) * 2);
+                    size === "town" ? 0 :
+                    Math.floor(seededRand(206, seed) * 2); // city: 0 or 1
   for (let r = 0; r < ringCount; r++) {
     const i1 = r % spokeCount;
     const i2 = (i1 + Math.max(1, Math.floor(spokeCount / 2.2)) + r) % spokeCount;
@@ -1128,25 +1160,77 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
   ctx.save();
   const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
   const ks = Math.min(b.w, b.h) * 0.88;
-  // Courtyard fill
-  ctx.fillStyle = "rgba(185,170,140,0.85)";
-  ctx.fillRect(cx - ks / 2, cy - ks / 2, ks, ks);
-  // Curtain wall
-  ctx.strokeStyle = "rgba(45,32,15,0.90)"; ctx.lineWidth = 3.5;
-  ctx.strokeRect(cx - ks / 2, cy - ks / 2, ks, ks);
-  // Inner keep
-  const ki = ks * 0.44;
-  ctx.fillStyle = "rgba(88,72,50,0.92)"; ctx.fillRect(cx - ki / 2, cy - ki / 2, ki, ki);
-  ctx.strokeStyle = "rgba(35,25,10,0.92)"; ctx.lineWidth = 1.4; ctx.strokeRect(cx - ki / 2, cy - ki / 2, ki, ki);
-  // Corner turrets (circles at outer wall corners)
-  const turretR = Math.max(5, ks * 0.12);
-  for (const [tx, ty] of [[cx - ks / 2, cy - ks / 2], [cx + ks / 2, cy - ks / 2], [cx + ks / 2, cy + ks / 2], [cx - ks / 2, cy + ks / 2]] as [number, number][]) {
-    ctx.beginPath(); ctx.arc(tx, ty, turretR, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(78,62,42,0.95)"; ctx.fill();
-    ctx.strokeStyle = "rgba(35,25,10,0.90)"; ctx.lineWidth = 1; ctx.stroke();
+  const cseed = ((b.x * 17 + b.y * 11) | 0) + 95000;
+  const wallT = ks * 0.11;
+
+  // Outer wall fill — fully opaque stone
+  ctx.fillStyle = "rgb(142,132,112)";
+  ctx.fillRect(cx - ks/2, cy - ks/2, ks, ks);
+
+  // Stone block texture on walls (random lighter/darker rects)
+  for (let s = 0; s < 90; s++) {
+    const sx = cx - ks/2 + seededRand(s, cseed + 1) * ks;
+    const sy = cy - ks/2 + seededRand(s, cseed + 2) * ks;
+    const sw = 5 + seededRand(s, cseed + 3) * 12;
+    const sh = 3 + seededRand(s, cseed + 4) * 5;
+    const rv = (seededRand(s, cseed + 5) * 30 - 15) | 0;
+    ctx.fillStyle = `rgb(${142+rv},${132+rv},${112+rv})`;
+    ctx.strokeStyle = "rgba(28,20,10,0.18)"; ctx.lineWidth = 0.4;
+    ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh);
   }
-  // Gatehouse (south side centre)
-  ctx.fillStyle = "rgba(35,25,10,0.88)"; ctx.fillRect(cx - 5, cy + ks / 2 - 10, 10, 11);
+
+  // Courtyard (inner open area within walls)
+  ctx.fillStyle = "rgb(178,165,135)";
+  ctx.fillRect(cx - ks/2 + wallT, cy - ks/2 + wallT, ks - wallT*2, ks - wallT*2);
+
+  // Inner keep — solid dark stone
+  const ki = ks * 0.42;
+  ctx.fillStyle = "rgb(78,65,46)";
+  ctx.fillRect(cx - ki/2, cy - ki/2, ki, ki);
+  for (let s = 0; s < 40; s++) {
+    const sx = cx - ki/2 + seededRand(s, cseed + 10) * ki;
+    const sy = cy - ki/2 + seededRand(s, cseed + 11) * ki;
+    const rv = (seededRand(s, cseed + 12) * 22 - 11) | 0;
+    ctx.fillStyle = `rgb(${78+rv},${65+rv},${46+rv})`;
+    ctx.fillRect(sx, sy, 5 + seededRand(s, cseed+13)*8, 3 + seededRand(s, cseed+14)*4);
+  }
+  ctx.strokeStyle = "rgba(20,12,4,0.95)"; ctx.lineWidth = 2;
+  ctx.strokeRect(cx - ki/2, cy - ki/2, ki, ki);
+
+  // Battlements — merlons along curtain wall edges
+  const mw = 6, mh = 5, mg = 8;
+  ctx.fillStyle = "rgb(148,138,118)";
+  ctx.strokeStyle = "rgba(28,20,10,0.75)"; ctx.lineWidth = 0.7;
+  for (let mx = cx - ks/2 + 2; mx < cx + ks/2 - mw - 2; mx += mw + mg) {
+    ctx.fillRect(mx, cy - ks/2 - mh, mw, mh); ctx.strokeRect(mx, cy - ks/2 - mh, mw, mh);
+    ctx.fillRect(mx, cy + ks/2,      mw, mh); ctx.strokeRect(mx, cy + ks/2,      mw, mh);
+  }
+  for (let my = cy - ks/2 + 2; my < cy + ks/2 - mw - 2; my += mw + mg) {
+    ctx.fillRect(cx - ks/2 - mh, my, mh, mw); ctx.strokeRect(cx - ks/2 - mh, my, mh, mw);
+    ctx.fillRect(cx + ks/2,      my, mh, mw); ctx.strokeRect(cx + ks/2,      my, mh, mw);
+  }
+
+  // Curtain wall outline
+  ctx.strokeStyle = "rgba(18,12,4,0.96)"; ctx.lineWidth = 4;
+  ctx.strokeRect(cx - ks/2, cy - ks/2, ks, ks);
+
+  // Corner turrets
+  const turretR = Math.max(6, ks * 0.13);
+  for (const [tx, ty] of [[cx-ks/2, cy-ks/2],[cx+ks/2, cy-ks/2],[cx+ks/2, cy+ks/2],[cx-ks/2, cy+ks/2]] as [number,number][]) {
+    ctx.beginPath(); ctx.arc(tx, ty, turretR, 0, Math.PI * 2);
+    ctx.fillStyle = "rgb(112,98,78)"; ctx.fill();
+    ctx.strokeStyle = "rgba(18,12,4,0.95)"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(tx, ty, turretR * 0.52, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(28,20,10,0.50)"; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+
+  // Gatehouse — solid dark gate arch
+  ctx.fillStyle = "rgb(38,28,14)";
+  ctx.fillRect(cx - 7, cy + ks/2 - 14, 14, 14);
+  ctx.strokeStyle = "rgba(18,12,4,0.95)"; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 7, cy + ks/2 - 14, 14, 14);
+  ctx.beginPath(); ctx.arc(cx, cy + ks/2 - 8, 5, Math.PI, 0);
+  ctx.fillStyle = "rgb(18,12,6)"; ctx.fill();
   ctx.restore();
 }
 
@@ -1221,13 +1305,18 @@ function drawBuildingRect(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number,
   p: { wr: number; wg: number; wb: number; rr: number; rg: number; rb: number },
-  wt: number, seed: number, idx: number
+  wt: number, seed: number, idx: number,
+  thatch = false
 ): void {
   // Wall base
   ctx.fillStyle = `rgb(${Math.min(255,p.wr)},${Math.min(255,p.wg)},${Math.min(255,p.wb)})`;
   ctx.fillRect(x, y, w, h);
   // Roof fill
-  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
+  if (thatch) {
+    ctx.fillStyle = "rgb(192,162,72)"; // golden straw
+  } else {
+    ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
+  }
   ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
   // Roof gradient (NW bright → SE dark)
   const grd = ctx.createLinearGradient(x + wt, y + wt, x + w - wt, y + h - wt);
@@ -1236,19 +1325,28 @@ function drawBuildingRect(
   grd.addColorStop(1,    "rgba(0,0,0,0.22)");
   ctx.fillStyle = grd;
   ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
-  // Tile texture — rows of semicircular arcs
+  // Roof texture
   ctx.save();
   ctx.beginPath(); ctx.rect(x + wt, y + wt, w - wt * 2, h - wt * 2); ctx.clip();
-  const tr = (p.rr * 0.58) | 0, tg = (p.rg * 0.52) | 0, tb = (p.rb * 0.48) | 0;
-  ctx.strokeStyle = `rgba(${tr},${tg},${tb},0.32)`; ctx.lineWidth = 0.7;
-  const tileH = 5, tileW = 9;
-  for (let ty2 = y + wt + tileH; ty2 < y + h - wt; ty2 += tileH) {
-    const rowNum = Math.round((ty2 - y - wt) / tileH);
-    const offset = (rowNum % 2 === 0) ? 0 : tileW / 2;
-    for (let tx2 = x + wt - offset; tx2 < x + w - wt + tileW; tx2 += tileW) {
-      ctx.beginPath();
-      ctx.arc(tx2 + tileW / 2, ty2, tileW / 2, Math.PI, 0, true);
-      ctx.stroke();
+  if (thatch) {
+    // Diagonal hatching for straw/thatch
+    ctx.strokeStyle = "rgba(148,112,32,0.38)"; ctx.lineWidth = 0.75;
+    for (let tx2 = x + wt - h; tx2 < x + w - wt + h; tx2 += 5) {
+      ctx.beginPath(); ctx.moveTo(tx2, y + wt); ctx.lineTo(tx2 + h, y + h - wt); ctx.stroke();
+    }
+  } else {
+    // Tile texture — rows of semicircular arcs
+    const tr = (p.rr * 0.58) | 0, tg = (p.rg * 0.52) | 0, tb = (p.rb * 0.48) | 0;
+    ctx.strokeStyle = `rgba(${tr},${tg},${tb},0.32)`; ctx.lineWidth = 0.7;
+    const tileH = 5, tileW = 9;
+    for (let ty2 = y + wt + tileH; ty2 < y + h - wt; ty2 += tileH) {
+      const rowNum = Math.round((ty2 - y - wt) / tileH);
+      const offset = (rowNum % 2 === 0) ? 0 : tileW / 2;
+      for (let tx2 = x + wt - offset; tx2 < x + w - wt + tileW; tx2 += tileW) {
+        ctx.beginPath();
+        ctx.arc(tx2 + tileW / 2, ty2, tileW / 2, Math.PI, 0, true);
+        ctx.stroke();
+      }
     }
   }
   ctx.restore();
@@ -1289,8 +1387,9 @@ function drawBuildingRect(
   ctx.strokeRect(x, y, w, h);
 }
 
-function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: number, idx: number): void {
+function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: number, idx: number, isVillage = false): void {
   const { x, y, w, h } = b;
+  const thatch = isVillage && seededRand(idx + 9, seed + 40025) < 0.45;
   const pi = (seededRand(idx, seed + 40006) * 4) | 0;
   const rv = (seededRand(idx + 1, seed + 40015) * 18) | 0;
   const palettes = [
@@ -1329,7 +1428,7 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
     }
     ctx.closePath();
     ctx.clip();
-    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx);
+    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx, thatch);
     ctx.restore();
     // Outline the L-shape
     ctx.save();
@@ -1351,7 +1450,7 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
     ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9; ctx.stroke();
     ctx.restore();
   } else {
-    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx);
+    drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx, thatch);
   }
 }
 
@@ -1450,6 +1549,63 @@ function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.restore();
 }
 
+function renderFarms(ctx: CanvasRenderingContext2D, seed: number, size: CivSize, hx: number, hy: number): void {
+  if (size === "city") return;
+  const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
+  for (let f = 0; f < farmCount; f++) {
+    const fa = (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
+    const fd = 200 + seededRand(f, seed + 82002) * 200;
+    const fx = Math.max(25, Math.min(W - 135, hx + Math.cos(fa) * fd));
+    const fy = Math.max(25, Math.min(H - 110, hy + Math.sin(fa) * fd));
+    const fw = 75 + seededRand(f, seed + 82003) * 85;
+    const fh = 55 + seededRand(f, seed + 82004) * 60;
+    const farmType = seededRand(f, seed + 82005) < 0.55 ? "crops" : "animal";
+    // Ground
+    ctx.fillStyle = farmType === "crops" ? "rgba(158,175,98,0.70)" : "rgba(185,168,122,0.65)";
+    ctx.fillRect(fx, fy, fw, fh);
+    // Fence posts
+    ctx.fillStyle = "rgba(142,105,55,0.92)";
+    for (let fp = fx; fp <= fx + fw + 2; fp += 13)
+      ctx.fillRect(fp - 1.5, fy - 3, 3, fh + 6);
+    // Fence rails
+    ctx.strokeStyle = "rgba(142,105,55,0.88)"; ctx.lineWidth = 1.5;
+    ctx.strokeRect(fx, fy, fw, fh);
+    ctx.beginPath();
+    ctx.moveTo(fx, fy + fh * 0.42); ctx.lineTo(fx + fw, fy + fh * 0.42);
+    ctx.stroke();
+    if (farmType === "crops") {
+      // Vegetable rows
+      ctx.strokeStyle = "rgba(55,92,32,0.48)"; ctx.lineWidth = 0.8;
+      for (let row = fy + 10; row < fy + fh - 5; row += 9) {
+        ctx.beginPath(); ctx.moveTo(fx + 6, row); ctx.lineTo(fx + fw - 6, row); ctx.stroke();
+        for (let pc = fx + 11; pc < fx + fw - 6; pc += 12) {
+          const pv = (seededRand((pc | 0) + (row | 0) * 77 + f * 300, seed + 82010) * 16) | 0;
+          ctx.fillStyle = `rgba(${48+pv},${94+pv},${32+pv},0.78)`;
+          ctx.beginPath(); ctx.arc(pc, row, 2.2, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    } else {
+      // Animal pen — sheep/cows
+      const animalCount = 2 + (seededRand(f, seed + 82011) * 5 | 0);
+      for (let a = 0; a < animalCount; a++) {
+        const ax = fx + 12 + seededRand(a + f * 10, seed + 82012) * (fw - 24);
+        const ay = fy + 10 + seededRand(a + f * 10, seed + 82013) * (fh - 20);
+        const aAngle = seededRand(a + f * 10, seed + 82015) * Math.PI;
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(ax, ay, 7, 5, aAngle, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(228,218,200,0.92)"; ctx.fill();
+        ctx.strokeStyle = "rgba(82,65,38,0.70)"; ctx.lineWidth = 0.8; ctx.stroke();
+        // Head
+        ctx.beginPath();
+        ctx.arc(ax + Math.cos(aAngle) * 7, ay + Math.sin(aAngle) * 5, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(185,172,148,0.92)"; ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+}
+
 function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
@@ -1532,6 +1688,27 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     renderCastleFootprint(ctx, { x: castleCx - castleW/2, y: castleCy - castleH/2, w: castleW, h: castleH, type: "castle" });
   }
 
+  // Build "near road" inclusion mask — buildings only placed within ~55px of a path
+  const nearR = Math.ceil((55 / W) * MASK_W);
+  const nearRoadMask = new Uint8Array(MASK_W * MASK_H);
+  for (let my = 0; my < MASK_H; my++) {
+    for (let mx = 0; mx < MASK_W; mx++) {
+      if (!roadMask[my * MASK_W + mx]) continue;
+      for (let dy2 = -nearR; dy2 <= nearR; dy2++) {
+        for (let dx2 = -nearR; dx2 <= nearR; dx2++) {
+          const nx2 = mx + dx2, ny2 = my + dy2;
+          if (nx2 >= 0 && nx2 < MASK_W && ny2 >= 0 && ny2 < MASK_H)
+            nearRoadMask[ny2 * MASK_W + nx2] = 1;
+        }
+      }
+    }
+  }
+  const isNearRoad = (cpx: number, cpy: number): boolean => {
+    const mgx = ((cpx / W) * MASK_W) | 0;
+    const mgy = ((cpy / H) * MASK_H) | 0;
+    return mgx >= 0 && mgx < MASK_W && mgy >= 0 && mgy < MASK_H && nearRoadMask[mgy * MASK_W + mgx] === 1;
+  };
+
   // ── Layer 4: Buildings ───────────────────────────────────────────────────
   const COLS = size === "village" ? 6  : size === "town" ? 10 : 15;
   const ROWS = size === "village" ? 4  : size === "town" ? 7  : 11;
@@ -1551,6 +1728,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       if (Math.hypot(lcx - hx, lcy - hy) < hubR + 14) continue;
       if (size === "city" && Math.abs(lcx - castleCx) < castleW/2 + 14 && Math.abs(lcy - castleCy) < castleH/2 + 14) continue;
       if (isOnRoad(lcx, lcy)) continue;
+      if (!isNearRoad(lcx, lcy)) continue; // only place buildings accessible from a path
       if (seededRand(idx, seed + 45001) < skipRate) continue;
 
       const maxSubdivide = size === "village" ? 1 : size === "town" ? 2 : 3;
@@ -1558,26 +1736,36 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       const usedBuildings = buildings.slice(0, maxSubdivide);
       for (let bi = 0; bi < usedBuildings.length; bi++) {
         const b = usedBuildings[bi];
-        drawHouseTopDown(ctx, b, seed, idx * 10 + bi);
+        drawHouseTopDown(ctx, b, seed, idx * 10 + bi, size === "village");
         allBuildings.push({ b, lotCx: lcx, lotCy: lcy });
       }
     }
   }
 
-  // ── Layer 5: Trees (noise-based, not on roads, not on buildings) ────────
+  // ── Layer 4.5: Farms (village/town only) ────────────────────────────────
+  renderFarms(ctx, seed, size, hx, hy);
+
+  // ── Layer 5: Trees + bushes (noise-based, not on roads/buildings) ────────
   const isOnBuilding = (tx: number, ty: number): boolean =>
     allBuildings.some(({ b }) => tx >= b.x - 5 && tx <= b.x + b.w + 5 && ty >= b.y - 5 && ty <= b.y + b.h + 5);
   const treeNoise = makeNoise(seed + 77551);
-  for (let py2 = 4; py2 < H - 4; py2 += 9) {
-    for (let px2 = 4; px2 < W - 4; px2 += 9) {
+  let plantIdx = 0;
+  for (let py2 = 4; py2 < H - 4; py2 += 8) {
+    for (let px2 = 4; px2 < W - 4; px2 += 8) {
       const nv = fbm(treeNoise, px2 / W * 14, py2 / H * 14, 3);
-      if (nv < 0.54) continue;
-      if (seededRand(py2 * W / 9 + px2 / 9, seed + 22111) > 0.22) continue;
+      if (nv < 0.49) continue;
+      if (seededRand(py2 * W / 8 + px2 / 8, seed + 22111) > 0.30) continue;
       if (Math.hypot(px2 - hx, py2 - hy) < hubR + 10) continue;
       if (size === "city" && Math.abs(px2 - castleCx) < castleW/2 + 8 && Math.abs(py2 - castleCy) < castleH/2 + 8) continue;
       if (isOnRoad(px2, py2)) continue;
       if (isOnBuilding(px2, py2)) continue;
-      drawTree(ctx, px2, py2, 5 + seededRand(py2 * W / 9 + px2 / 9, seed + 33111) * 5);
+      // Mix trees and bushes: bushes appear at lower noise, trees at higher
+      if (nv < 0.56 && seededRand(plantIdx, seed + 44211) < 0.55) {
+        drawBush(ctx, px2, py2, 4 + seededRand(plantIdx, seed + 44212) * 4, seed, plantIdx);
+      } else {
+        drawTree(ctx, px2, py2, 5 + seededRand(py2 * W / 8 + px2 / 8, seed + 33111) * 5);
+      }
+      plantIdx++;
     }
   }
 
@@ -1645,15 +1833,50 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     si++;
   }
 
-  // ── Town perimeter wall ───────────────────────────────────────────────────
+  // ── Perimeter border ─────────────────────────────────────────────────────
   ctx.save();
-  ctx.strokeStyle = "rgba(55,40,20,0.88)"; ctx.lineWidth = 6;
-  ctx.strokeRect(8, 8, W - 16, H - 16);
-  ctx.strokeStyle = "rgba(75,55,28,0.55)"; ctx.lineWidth = 1;
-  ctx.strokeRect(20, 20, W - 40, H - 40);
-  for (const [tx, ty] of [[8,8],[W-8,8],[W-8,H-8],[8,H-8]] as [number,number][]) {
-    ctx.fillStyle = "rgba(55,40,20,0.9)"; ctx.fillRect(tx-8, ty-8, 16, 16);
-    ctx.strokeStyle = "rgba(28,18,8,0.88)"; ctx.lineWidth = 0.8; ctx.strokeRect(tx-8, ty-8, 16, 16);
+  if (size === "village") {
+    // Hedgerow border — thick dark green line with bush-bump texture
+    const mg = 14;
+    ctx.strokeStyle = "rgba(38,68,22,0.88)"; ctx.lineWidth = 9;
+    ctx.strokeRect(mg, mg, W - mg * 2, H - mg * 2);
+    ctx.strokeStyle = "rgba(58,95,34,0.50)"; ctx.lineWidth = 4;
+    ctx.strokeRect(mg, mg, W - mg * 2, H - mg * 2);
+    // Hedge bumps along perimeter
+    ctx.fillStyle = "rgba(48,82,28,0.62)";
+    const bumps = 88;
+    for (let hb = 0; hb < bumps; hb++) {
+      const side = hb % 4;
+      const frac = (Math.floor(hb / 4)) / (bumps / 4);
+      let hbx: number, hby: number;
+      if      (side === 0) { hbx = mg + frac * (W - mg*2); hby = mg; }
+      else if (side === 1) { hbx = W - mg; hby = mg + frac * (H - mg*2); }
+      else if (side === 2) { hbx = (W - mg) - frac * (W - mg*2); hby = H - mg; }
+      else                 { hbx = mg; hby = (H - mg) - frac * (H - mg*2); }
+      const br = 5 + seededRand(hb, seed + 97001) * 5;
+      ctx.beginPath(); ctx.arc(hbx, hby, br, 0, Math.PI * 2); ctx.fill();
+    }
+    // Wooden fence posts
+    ctx.fillStyle = "rgba(120,88,48,0.80)";
+    for (let fp = mg; fp <= W - mg; fp += 22) {
+      ctx.fillRect(fp - 2, mg - 5, 4, 10);
+      ctx.fillRect(fp - 2, H - mg - 5, 4, 10);
+    }
+    for (let fp = mg; fp <= H - mg; fp += 22) {
+      ctx.fillRect(mg - 5, fp - 2, 10, 4);
+      ctx.fillRect(W - mg - 5, fp - 2, 10, 4);
+    }
+  } else {
+    // Stone curtain wall for town/city
+    ctx.strokeStyle = "rgba(45,35,18,0.94)"; ctx.lineWidth = 7;
+    ctx.strokeRect(8, 8, W - 16, H - 16);
+    ctx.strokeStyle = "rgba(88,75,55,0.38)"; ctx.lineWidth = 1;
+    ctx.strokeRect(22, 22, W - 44, H - 44);
+    // Corner towers
+    for (const [tx, ty] of [[8,8],[W-8,8],[W-8,H-8],[8,H-8]] as [number,number][]) {
+      ctx.fillStyle = "rgba(45,35,18,0.95)"; ctx.fillRect(tx - 10, ty - 10, 20, 20);
+      ctx.strokeStyle = "rgba(18,12,6,0.90)"; ctx.lineWidth = 1.0; ctx.strokeRect(tx - 10, ty - 10, 20, 20);
+    }
   }
   ctx.restore();
 
