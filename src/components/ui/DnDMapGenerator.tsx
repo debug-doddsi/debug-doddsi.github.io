@@ -94,6 +94,10 @@ function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array
   if (scale === "small") {
     for (let i = 0; i < hm.length; i++) hm[i] *= 0.72;
   }
+  // Large scale: more water for realistic land/ocean ratio
+  if (scale === "large") {
+    for (let i = 0; i < hm.length; i++) hm[i] *= 0.88;
+  }
 
   // Hillshade
   const sm = new Float32Array(HM_W * HM_H);
@@ -376,6 +380,28 @@ function renderRockTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, seed
       const r = 0.6 + seededRand(gx * 17 + gy, seed + 22244) * 1.5;
       ctx.beginPath();
       ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ─── Snow Caps ────────────────────────────────────────────────────────────────
+
+function renderSnow(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: number): void {
+  ctx.save();
+  for (let gy = 1; gy < HM_H - 1; gy++) {
+    for (let gx = 1; gx < HM_W - 1; gx++) {
+      const h = hm[gy * HM_W + gx];
+      if (h < 0.86) continue;
+      if (seededRand(gy * HM_W + gx, seed + 55566) > 0.28) continue;
+      const px = (gx / HM_W) * W;
+      const py = (gy / HM_H) * H;
+      const opacity = Math.min(0.90, 0.28 + (h - 0.86) * 5.5);
+      const r = 0.7 + seededRand(gx * 13 + gy, seed + 66677) * 2.8;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(248,246,244,${opacity.toFixed(2)})`;
       ctx.fill();
     }
   }
@@ -679,21 +705,24 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): 
   ctx.save();
 
   if (mode === "landscape") {
-    // Colour-swatch legend showing terrain bands
+    const iconEntries: Array<{ label: string; draw: (x: number, y: number) => void }> = [
+      { label: "City",  draw: (x, y) => drawCityIcon(ctx, x, y) },
+      { label: "Town",  draw: (x, y) => drawTownIcon(ctx, x, y) },
+    ];
     const swatches = [
       { color: "rgb(58,84,108)",   label: "Deep sea" },
       { color: "rgb(85,120,145)",  label: "Coastal water" },
       { color: "rgb(198,182,140)", label: "Shore / beach" },
       { color: "rgb(135,152,92)",  label: "Lowland grass" },
       { color: "rgb(90,120,62)",   label: "Forest" },
-      { color: "rgb(142,130,90)",  label: "Highland" },
-      { color: "rgb(168,158,138)", label: "Stone / rock" },
-      { color: "rgb(205,196,180)", label: "High peaks" },
-      { color: "rgb(238,234,226)", label: "Snow" },
+      { color: "rgb(148,138,118)", label: "Highland" },
+      { color: "rgb(182,174,162)", label: "Stone / rock" },
+      { color: "rgb(218,212,205)", label: "High peaks" },
+      { color: "rgb(242,240,238)", label: "Snow" },
       { color: "rgb(210,188,122)", label: "Desert sand" },
     ];
-    const sw = 14, rh = 17, pad = 7, lw = 148;
-    const lh = swatches.length * rh + pad * 2 + 14;
+    const sw = 14, rh = 16, pad = 7, lw = 148, iconRowH = 22;
+    const lh = iconEntries.length * iconRowH + swatches.length * rh + pad * 2 + 18;
     const lx = W - lw - 20, ly = 20;
     ctx.fillStyle = "rgba(228,210,175,0.90)";
     roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
@@ -705,8 +734,22 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): 
     ctx.fillText("LEGEND", lx + lw / 2, ly + pad);
     ctx.beginPath(); ctx.moveTo(lx + 5, ly + pad + 12); ctx.lineTo(lx + lw - 5, ly + pad + 12);
     ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.6; ctx.stroke();
+    // Icon rows (city + town)
+    for (let i = 0; i < iconEntries.length; i++) {
+      const rowY = ly + pad + 14 + i * iconRowH + iconRowH / 2;
+      iconEntries[i].draw(lx + 18, rowY);
+      ctx.font = "9px 'Cinzel', serif";
+      ctx.fillStyle = "rgba(32,20,6,0.88)";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(iconEntries[i].label, lx + pad + 24, rowY - 1);
+    }
+    // Divider between icons and terrain swatches
+    const divY = ly + pad + 14 + iconEntries.length * iconRowH + 2;
+    ctx.beginPath(); ctx.moveTo(lx + 5, divY); ctx.lineTo(lx + lw - 5, divY);
+    ctx.strokeStyle = "rgba(55,38,18,0.20)"; ctx.lineWidth = 0.6; ctx.stroke();
+    // Terrain colour swatches
     for (let i = 0; i < swatches.length; i++) {
-      const ey = ly + pad + 14 + i * rh;
+      const ey = divY + 3 + i * rh;
       ctx.fillStyle = swatches[i].color;
       ctx.fillRect(lx + pad, ey + 2, sw, rh - 5);
       ctx.strokeStyle = "rgba(40,26,10,0.35)"; ctx.lineWidth = 0.5;
@@ -845,6 +888,7 @@ function renderLandscape(ctx: CanvasRenderingContext2D, seed: number, scale: Map
   const forests = placeForests(hm, am, seed);
   renderForests(ctx, forests, seed);
   renderRockTexture(ctx, hm, seed);
+  renderSnow(ctx, hm, seed);
   renderDesertTexture(ctx, hm, am, seed);
   const locs = placeLandscapeLocations(hm, rivers, seed);
   for (const loc of locs) {
@@ -998,33 +1042,18 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
 function drawCobblestoneRoad(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, idx: number): void {
   ctx.save();
   ctx.lineCap = "round"; ctx.lineJoin = "round";
-  // Wide base
+  // Dark edge then lighter fill for depth
   ctx.beginPath();
   ctx.moveTo(road.p0.x, road.p0.y);
   ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.strokeStyle = "rgba(120,112,98,0.95)"; ctx.lineWidth = 28; ctx.stroke();
-  // Edge definition
+  ctx.strokeStyle = "rgba(72,58,38,0.60)"; ctx.lineWidth = 46; ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(road.p0.x, road.p0.y);
   ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.strokeStyle = "rgba(72,58,38,0.55)"; ctx.lineWidth = 30; ctx.stroke();
-  // Wide base again on top
-  ctx.beginPath();
-  ctx.moveTo(road.p0.x, road.p0.y);
-  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.strokeStyle = "rgba(120,112,98,0.95)"; ctx.lineWidth = 28; ctx.stroke();
-  // Clip to road strip so stones don't overflow
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(road.p0.x, road.p0.y);
-  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.lineWidth = 27;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "rgba(0,0,0,0)";
-  // Use the stroke as a clip path trick — stamp stones without clip since canvas path clip is complex; just stamp within road width
-  ctx.restore();
+  ctx.strokeStyle = "rgba(118,110,96,0.96)"; ctx.lineWidth = 42; ctx.stroke();
 
-  const steps = 90;
+  // Stamp individual cobblestones along the curve — 6 rows × 7px = 42px total width
+  const steps = 100;
   for (let s = 0; s <= steps; s++) {
     const t = s / steps;
     const px = (1 - t) ** 2 * road.p0.x + 2 * (1 - t) * t * road.cp.x + t ** 2 * road.p1.x;
@@ -1034,15 +1063,15 @@ function drawCobblestoneRoad(ctx: CanvasRenderingContext2D, road: TownRoad, seed
     const dlen = Math.sqrt(dx * dx + dy * dy) || 1;
     const nx = -dy / dlen, ny = dx / dlen;
 
-    for (let row = -2; row <= 1; row++) {
-      const jx = (seededRand(s * 4 + row + idx * 500, seed + 60001) - 0.5) * 2.5;
-      const jy = (seededRand(s * 4 + row + idx * 500 + 100, seed + 60002) - 0.5) * 2.5;
+    for (let row = -3; row <= 2; row++) {
+      const jx = (seededRand(s * 6 + row + idx * 600, seed + 60001) - 0.5) * 2.5;
+      const jy = (seededRand(s * 6 + row + idx * 600 + 100, seed + 60002) - 0.5) * 2.5;
       const cx2 = px + nx * (row * 7 + 3.5) + jx;
       const cy2 = py + ny * (row * 7 + 3.5) + jy;
-      const rv = (seededRand(s * 4 + row + idx * 500 + 200, seed + 60003) * 26) | 0;
+      const rv = (seededRand(s * 6 + row + idx * 600 + 200, seed + 60003) * 28) | 0;
       ctx.save();
       ctx.translate(cx2, cy2);
-      ctx.fillStyle = `rgb(${108 + rv},${100 + rv},${90 + rv})`;
+      ctx.fillStyle = `rgb(${106 + rv},${98 + rv},${88 + rv})`;
       ctx.fillRect(-3, -2.5, 6, 5);
       ctx.strokeStyle = "rgba(45,35,22,0.55)"; ctx.lineWidth = 0.5;
       ctx.strokeRect(-3, -2.5, 6, 5);
@@ -1055,6 +1084,23 @@ function drawCobblestoneRoad(ctx: CanvasRenderingContext2D, road: TownRoad, seed
 function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.fillStyle = "rgb(210,195,148)";
   ctx.fillRect(0, 0, W, H);
+
+  // Layer 0: Organic grass base zones — fills ~60% of canvas before buildings/roads
+  const grassZones = 22 + Math.floor(seededRand(501, seed) * 10);
+  for (let g = 0; g < grassZones; g++) {
+    const gcx = seededRand(g, seed + 80001) * W;
+    const gcy = seededRand(g, seed + 80002) * H;
+    const rx = 65 + seededRand(g, seed + 80003) * 130;
+    const ry = 52 + seededRand(g, seed + 80004) * 108;
+    const angle = seededRand(g, seed + 80005) * Math.PI;
+    const gv = (seededRand(g, seed + 80006) * 20) | 0;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(gcx, gcy, rx, ry, angle, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${68 + gv},${98 + gv},${44 + gv},0.72)`;
+    ctx.fill();
+    ctx.restore();
+  }
 
   // Layer 1: Dense building grid (26×20 = 520 lots)
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
@@ -1102,6 +1148,23 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
         }
         ctx.stroke();
         ctx.restore();
+        // Roof ridge line along the long axis
+        ctx.strokeStyle = `rgba(38,22,8,0.38)`; ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        if (b.w >= b.h) {
+          ctx.moveTo(b.x + 5, b.y + roofH / 2 + 1);
+          ctx.lineTo(b.x + b.w - 5, b.y + roofH / 2 + 1);
+        } else {
+          ctx.moveTo(b.x + b.w / 2, b.y + 3);
+          ctx.lineTo(b.x + b.w / 2, b.y + b.h - 3);
+        }
+        ctx.stroke();
+        // Windows — small dark squares in body
+        if (b.w > 13 && b.h > roofH + 7) {
+          ctx.fillStyle = "rgba(28,18,8,0.52)";
+          ctx.fillRect(b.x + 3, b.y + roofH + 3, 3, 3);
+          if (b.w > 20) ctx.fillRect(b.x + b.w - 6, b.y + roofH + 3, 3, 3);
+        }
         // Shadow south/east edges
         ctx.fillStyle = "rgba(110,85,55,0.30)";
         ctx.fillRect(b.x, b.y + b.h - 3, b.w, 3);
@@ -1119,51 +1182,76 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
-  // Layer 2a: Dense border trees lining the town wall (inside + outside)
-  const borderTreeCount = 140 + Math.floor(seededRand(400, seed) * 60);
-  for (let t = 0; t < borderTreeCount; t++) {
-    const side = Math.floor(seededRand(t, seed + 50001) * 4);
-    const inset = 10 + seededRand(t, seed + 50002) * 42;
-    let btx: number, bty: number;
-    if (side === 0) { btx = seededRand(t, seed + 50003) * W; bty = inset; }
-    else if (side === 1) { btx = seededRand(t, seed + 50004) * W; bty = H - inset; }
-    else if (side === 2) { btx = inset; bty = seededRand(t, seed + 50005) * H; }
-    else { btx = W - inset; bty = seededRand(t, seed + 50006) * H; }
-    drawTree(ctx, btx, bty, 5 + seededRand(t, seed + 50007) * 5);
-  }
-
-  // Layer 2b: Green zones — dense organic clusters throughout the town
-  const greenCount = 7 + Math.floor(seededRand(300, seed) * 5);
-  for (let i = 0; i < greenCount; i++) {
-    const gcx = 55 + seededRand(i, seed + 31001) * (W - 110);
-    const gcy = 45 + seededRand(i, seed + 31002) * (H - 90);
-    if (Math.hypot(gcx - hx, gcy - hy) < 75) continue;
-    const gr = 38 + seededRand(i, seed + 31003) * 68;
-    const treeCount = 22 + Math.floor(seededRand(i, seed + 31004) * 22);
-    // Vary tree density: more at centre, sparse at edges (Poisson-like)
-    for (let t = 0; t < treeCount; t++) {
-      const a = seededRand(i * 40 + t, seed + 31005) * Math.PI * 2;
-      // sqrt distribution — more uniform; bias towards edges for organic look
-      const dr = Math.pow(seededRand(i * 40 + t + 100, seed + 31006), 0.7) * gr;
-      drawTree(ctx,
-        gcx + Math.cos(a) * dr + (seededRand(i * 40 + t + 300, seed + 31008) - 0.5) * 8,
-        gcy + Math.sin(a) * dr + (seededRand(i * 40 + t + 400, seed + 31009) - 0.5) * 8,
-        4 + seededRand(i * 40 + t + 200, seed + 31007) * 6);
-    }
-  }
-
-  // Layer 3: Cobblestone roads
+  // Layer 2: Cobblestone roads (drawn before trees so trees sit on top of roads)
   const townRoads = generateTownRoads(seed);
   for (let i = 0; i < townRoads.length; i++) {
     drawCobblestoneRoad(ctx, townRoads[i], seed, i);
   }
 
-  // Layer 4: Open town center plaza
+  // Hub junction: large circular cobblestone area where roads converge
+  const hubR = 58 + seededRand(217, seed) * 28;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(hx, hy, hubR, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(112,105,92,0.98)"; ctx.fill();
+  ctx.strokeStyle = "rgba(68,55,35,0.65)"; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.restore();
+  for (let s = 0; s < 260; s++) {
+    const angle = seededRand(s, seed + 90001) * Math.PI * 2;
+    const dist = Math.sqrt(seededRand(s + 260, seed + 90002)) * (hubR - 5);
+    const hcx = hx + Math.cos(angle) * dist;
+    const hcy = hy + Math.sin(angle) * dist;
+    const rv = (seededRand(s, seed + 90003) * 28) | 0;
+    ctx.fillStyle = `rgb(${102 + rv},${94 + rv},${84 + rv})`;
+    ctx.fillRect(hcx - 3, hcy - 2.5, 6, 5);
+    ctx.strokeStyle = "rgba(45,35,22,0.50)"; ctx.lineWidth = 0.5;
+    ctx.strokeRect(hcx - 3, hcy - 2.5, 6, 5);
+  }
+
+  // Layer 3: Trees on top of roads — border ring + interior green clusters
+  const borderTreeCount = 170 + Math.floor(seededRand(400, seed) * 70);
+  for (let t = 0; t < borderTreeCount; t++) {
+    const side = Math.floor(seededRand(t, seed + 50001) * 4);
+    const inset = 10 + seededRand(t, seed + 50002) * 50;
+    let btx: number, bty: number;
+    if (side === 0) { btx = seededRand(t, seed + 50003) * W; bty = inset; }
+    else if (side === 1) { btx = seededRand(t, seed + 50004) * W; bty = H - inset; }
+    else if (side === 2) { btx = inset; bty = seededRand(t, seed + 50005) * H; }
+    else { btx = W - inset; bty = seededRand(t, seed + 50006) * H; }
+    drawTree(ctx, btx, bty, 5 + seededRand(t, seed + 50007) * 6);
+  }
+  const greenCount = 16 + Math.floor(seededRand(300, seed) * 8);
+  for (let i = 0; i < greenCount; i++) {
+    const gcx = 55 + seededRand(i, seed + 31001) * (W - 110);
+    const gcy = 45 + seededRand(i, seed + 31002) * (H - 90);
+    if (Math.hypot(gcx - hx, gcy - hy) < 65) continue;
+    const gr = 52 + seededRand(i, seed + 31003) * 88;
+    const treeCount = 32 + Math.floor(seededRand(i, seed + 31004) * 28);
+    for (let t = 0; t < treeCount; t++) {
+      const a = seededRand(i * 40 + t, seed + 31005) * Math.PI * 2;
+      const dr = Math.pow(seededRand(i * 40 + t + 100, seed + 31006), 0.65) * gr;
+      drawTree(ctx,
+        gcx + Math.cos(a) * dr + (seededRand(i * 40 + t + 300, seed + 31008) - 0.5) * 10,
+        gcy + Math.sin(a) * dr + (seededRand(i * 40 + t + 400, seed + 31009) - 0.5) * 10,
+        5 + seededRand(i * 40 + t + 200, seed + 31007) * 7);
+    }
+  }
+
+  // Layer 4: Open town center plaza with cobblestone texture
   const plazaW = 80 + seededRand(213, seed) * 30;
   const plazaH = 60 + seededRand(214, seed) * 28;
-  ctx.fillStyle = "rgba(222,205,158,0.95)";
+  ctx.fillStyle = "rgba(125,117,104,0.96)";
   ctx.fillRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
-  ctx.strokeStyle = "rgba(80,60,30,0.5)"; ctx.lineWidth = 1;
+  // Cobblestone stones in plaza
+  for (let ps = 0; ps < 280; ps++) {
+    const px2 = hx - plazaW / 2 + 5 + seededRand(ps, seed + 92001) * (plazaW - 10);
+    const py2 = hy - plazaH / 2 + 5 + seededRand(ps, seed + 92002) * (plazaH - 10);
+    const rv = (seededRand(ps, seed + 92003) * 26) | 0;
+    ctx.fillStyle = `rgb(${100 + rv},${92 + rv},${82 + rv})`;
+    ctx.fillRect(px2 - 3, py2 - 2.5, 6, 5);
+    ctx.strokeStyle = "rgba(45,35,22,0.45)"; ctx.lineWidth = 0.5;
+    ctx.strokeRect(px2 - 3, py2 - 2.5, 6, 5);
+  }
+  ctx.strokeStyle = "rgba(55,40,20,0.65)"; ctx.lineWidth = 1.5;
   ctx.strokeRect(hx - plazaW / 2, hy - plazaH / 2, plazaW, plazaH);
 
   // Layer 4.5: Environmental props (wagons + produce near roads)
@@ -1192,16 +1280,26 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     const lotKey = `${lotCx | 0},${lotCy | 0}`;
     if (usedLots.has(lotKey)) continue;
     usedLots.add(lotKey);
-    if (specialOrder[si] === "castle") renderCastleFootprint(ctx, b);
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2 + 4;
-    switch (specialOrder[si]) {
-      case "castle": drawTownCastleIcon(ctx, cx, cy); break;
-      case "inn": drawInnIcon(ctx, cx, cy); break;
-      case "tavern": drawTavernIcon(ctx, cx, cy); break;
-      case "market": drawMarketIcon(ctx, cx, cy); break;
-      case "church": drawChurchIcon(ctx, cx, cy); break;
-      case "blacksmith": drawBlacksmithIcon(ctx, cx, cy); break;
-      case "shop": drawShopIcon(ctx, cx, cy); break;
+    if (specialOrder[si] === "castle") {
+      // Castle uses full top-down footprint — no small icon on top
+      renderCastleFootprint(ctx, b);
+    } else {
+      // Scale other icons proportionally to their building size
+      const iconScale = Math.max(1.2, Math.min(b.w, b.h) / 18);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(iconScale, iconScale);
+      ctx.translate(-cx, -cy);
+      switch (specialOrder[si]) {
+        case "inn": drawInnIcon(ctx, cx, cy); break;
+        case "tavern": drawTavernIcon(ctx, cx, cy); break;
+        case "market": drawMarketIcon(ctx, cx, cy); break;
+        case "church": drawChurchIcon(ctx, cx, cy); break;
+        case "blacksmith": drawBlacksmithIcon(ctx, cx, cy); break;
+        case "shop": drawShopIcon(ctx, cx, cy); break;
+      }
+      ctx.restore();
     }
     si++;
   }
