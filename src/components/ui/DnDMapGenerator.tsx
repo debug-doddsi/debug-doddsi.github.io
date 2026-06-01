@@ -18,6 +18,7 @@ interface LandscapeLocation { type: "city" | "town"; cx: number; cy: number; }
 interface RiverPoint { gx: number; gy: number; }
 
 type MapScale = "small" | "medium" | "large";
+type CivSize = "village" | "town" | "city";
 type BuildingType = "normal" | "castle" | "inn" | "tavern" | "market" | "church" | "blacksmith" | "shop";
 interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; }
 
@@ -408,6 +409,59 @@ function renderSnow(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: numbe
   ctx.restore();
 }
 
+// ─── Civ Terrain ──────────────────────────────────────────────────────────────
+
+// Flat grass terrain for civilisation mode (no mountains, no deep ocean)
+function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
+  const gn = makeNoise(seed + 44321);
+  const dn = makeNoise(seed + 55432);
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const nx = px / W, ny = py / H;
+      const gv = fbm(gn, nx * 9, ny * 9, 4);
+      let r = (122 + gv * 44) | 0;
+      let g = (148 + gv * 42) | 0;
+      let b = (58 + gv * 24) | 0;
+      if (size === "village") {
+        const dv = fbm(dn, nx * 5, ny * 5, 3);
+        if (dv > 0.62) {
+          const t = Math.min(1, (dv - 0.62) / 0.18);
+          r = (r + t * (178 - r)) | 0;
+          g = (g + t * (152 - g)) | 0;
+          b = (b + t * (96 - b)) | 0;
+        }
+      }
+      const i = (py * W + px) * 4;
+      d[i] = Math.min(255, r); d[i+1] = Math.min(255, g); d[i+2] = Math.min(255, b); d[i+3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  if (seededRand(751, seed) < (size === "city" ? 0.18 : 0.30)) renderPond(ctx, seed);
+}
+
+function renderPond(ctx: CanvasRenderingContext2D, seed: number): void {
+  const pcx = (0.12 + seededRand(760, seed) * 0.76) * W;
+  const pcy = (0.12 + seededRand(761, seed) * 0.76) * H;
+  const rx = 28 + seededRand(762, seed) * 44;
+  const ry = 22 + seededRand(763, seed) * 35;
+  const angle = seededRand(764, seed) * Math.PI;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(pcx, pcy, rx, ry, angle, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(68,108,148,0.82)"; ctx.fill();
+  ctx.strokeStyle = "rgba(50,82,118,0.70)"; ctx.lineWidth = 1.8; ctx.stroke();
+  for (let w = 0; w < 5; w++) {
+    const wa = seededRand(w + 770, seed) * Math.PI * 2;
+    const wd = seededRand(w + 771, seed) * rx * 0.65;
+    ctx.beginPath();
+    ctx.arc(pcx + Math.cos(wa)*wd, pcy + Math.sin(wa)*wd*(ry/rx), 3 + seededRand(w+772,seed)*5, 0, Math.PI, true);
+    ctx.strokeStyle = "rgba(190,215,235,0.22)"; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
 
 function renderDesertTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, am: Float32Array, seed: number): void {
@@ -723,7 +777,7 @@ function drawBorder(ctx: CanvasRenderingContext2D, seed: number): void {
 
 // ─── Legend ───────────────────────────────────────────────────────────────────
 
-function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): void {
+function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "civilisation"): void {
   ctx.save();
 
   if (mode === "landscape") {
@@ -781,7 +835,7 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "town"): 
       ctx.fillText(swatches[i].label, lx + pad + sw + 5, ey + 3);
     }
   } else {
-    // Icon legend for town mode
+    // Icon legend for civilisation mode
     const iconItems: Array<{ label: string; draw: (x: number, y: number) => void }> = [
       { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
       { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
@@ -932,41 +986,42 @@ interface TownRoad {
 }
 
 
-function generateTownRoads(seed: number): TownRoad[] {
+function generateCivPaths(seed: number, size: CivSize): TownRoad[] {
   const roads: TownRoad[] = [];
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
-  const spokeCount = 5 + Math.floor(seededRand(202, seed) * 3);
-
+  const spokeCount = size === "village" ? 3 + Math.floor(seededRand(202, seed) * 2) :
+                     size === "town"    ? 4 + Math.floor(seededRand(202, seed) * 3) :
+                                         5 + Math.floor(seededRand(202, seed) * 3);
   for (let i = 0; i < spokeCount; i++) {
-    const baseAngle = (i / spokeCount) * Math.PI * 2 + (seededRand(i, seed + 20003) - 0.5) * (Math.PI / spokeCount * 0.7);
+    const baseAngle = (i / spokeCount) * Math.PI * 2 + (seededRand(i, seed + 20003) - 0.5) * (Math.PI / spokeCount * 0.75);
     const cos = Math.cos(baseAngle), sin = Math.sin(baseAngle);
     let t = 1e9;
     if (Math.abs(cos) > 0.001) t = Math.min(t, cos > 0 ? (W - hx) / cos : -hx / cos);
     if (Math.abs(sin) > 0.001) t = Math.min(t, sin > 0 ? (H - hy) / sin : -hy / sin);
     const ex = Math.max(0, Math.min(W, hx + cos * t));
     const ey = Math.max(0, Math.min(H, hy + sin * t));
-    const cpx = (hx + ex) / 2 + (-sin) * (seededRand(i, seed + 20004) - 0.5) * 160;
-    const cpy = (hy + ey) / 2 + cos * (seededRand(i, seed + 20005) - 0.5) * 120;
+    const cpx = (hx + ex) / 2 + (-sin) * (seededRand(i, seed + 20004) - 0.5) * 280;
+    const cpy = (hy + ey) / 2 + cos * (seededRand(i, seed + 20005) - 0.5) * 220;
     roads.push({ p0: { x: hx, y: hy }, cp: { x: cpx, y: cpy }, p1: { x: ex, y: ey } });
   }
-
-  const ringCount = 1 + Math.floor(seededRand(206, seed) * 2);
+  const ringCount = size === "village" ? 0 :
+                    size === "town" ? 1 + Math.floor(seededRand(206, seed) * 2) :
+                    2 + Math.floor(seededRand(206, seed) * 2);
   for (let r = 0; r < ringCount; r++) {
-    const i1 = (r * 2) % spokeCount;
-    const i2 = (i1 + 2) % spokeCount;
+    const i1 = r % spokeCount;
+    const i2 = (i1 + Math.max(1, Math.floor(spokeCount / 2.2)) + r) % spokeCount;
     const r1 = roads[i1], r2 = roads[i2];
-    const t1 = 0.4 + seededRand(r, seed + 20009) * 0.2;
-    const t2 = 0.4 + seededRand(r, seed + 20010) * 0.2;
+    const t1 = 0.30 + seededRand(r, seed + 20009) * 0.28;
+    const t2 = 0.30 + seededRand(r, seed + 20010) * 0.28;
     const p1x = (1-t1)**2*r1.p0.x + 2*(1-t1)*t1*r1.cp.x + t1**2*r1.p1.x;
     const p1y = (1-t1)**2*r1.p0.y + 2*(1-t1)*t1*r1.cp.y + t1**2*r1.p1.y;
     const p2x = (1-t2)**2*r2.p0.x + 2*(1-t2)*t2*r2.cp.x + t2**2*r2.p1.x;
     const p2y = (1-t2)**2*r2.p0.y + 2*(1-t2)*t2*r2.cp.y + t2**2*r2.p1.y;
-    const cpx = (p1x + p2x) / 2 + (seededRand(r, seed + 20011) - 0.5) * 80;
-    const cpy = (p1y + p2y) / 2 + (seededRand(r, seed + 20012) - 0.5) * 80;
+    const cpx = (p1x + p2x) / 2 + (seededRand(r, seed + 20011) - 0.5) * 160;
+    const cpy = (p1y + p2y) / 2 + (seededRand(r, seed + 20012) - 0.5) * 130;
     roads.push({ p0: { x: p1x, y: p1y }, cp: { x: cpx, y: cpy }, p1: { x: p2x, y: p2y } });
   }
-
   return roads;
 }
 
@@ -1061,47 +1116,140 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
   ctx.restore();
 }
 
-function drawCobblestoneRoad(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, idx: number): void {
+function drawPath(ctx: CanvasRenderingContext2D, road: TownRoad, seed: number, idx: number, style: "dirt" | "cobble", width: number): void {
   ctx.save();
   ctx.lineCap = "round"; ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.moveTo(road.p0.x, road.p0.y);
-  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.strokeStyle = "rgba(65,52,35,0.70)"; ctx.lineWidth = 26; ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(road.p0.x, road.p0.y);
-  ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
-  ctx.strokeStyle = "rgba(110,104,91,0.96)"; ctx.lineWidth = 22; ctx.stroke();
-
-  // 3 rows of cobblestones centred on the road (offsets -7, 0, +7 px)
-  const steps = 80;
-  for (let s = 0; s <= steps; s++) {
-    const t = s / steps;
-    const px = (1 - t) ** 2 * road.p0.x + 2 * (1 - t) * t * road.cp.x + t ** 2 * road.p1.x;
-    const py = (1 - t) ** 2 * road.p0.y + 2 * (1 - t) * t * road.cp.y + t ** 2 * road.p1.y;
-    const dx = 2 * (1 - t) * (road.cp.x - road.p0.x) + 2 * t * (road.p1.x - road.cp.x);
-    const dy = 2 * (1 - t) * (road.cp.y - road.p0.y) + 2 * t * (road.p1.y - road.cp.y);
-    const dlen = Math.sqrt(dx * dx + dy * dy) || 1;
-    const nx = -dy / dlen, ny = dx / dlen;
-    for (let row = -1; row <= 1; row++) {
-      const jx = (seededRand(s * 3 + row + idx * 300, seed + 60001) - 0.5) * 2.5;
-      const jy = (seededRand(s * 3 + row + idx * 300 + 100, seed + 60002) - 0.5) * 2.5;
-      const cx2 = px + nx * (row * 7) + jx;
-      const cy2 = py + ny * (row * 7) + jy;
-      const rv = (seededRand(s * 3 + row + idx * 300 + 200, seed + 60003) * 28) | 0;
-      ctx.save();
-      ctx.translate(cx2, cy2);
-      ctx.fillStyle = `rgb(${104+rv},${97+rv},${87+rv})`;
-      ctx.fillRect(-3, -2.5, 6, 5);
-      ctx.strokeStyle = "rgba(45,35,22,0.52)"; ctx.lineWidth = 0.5;
-      ctx.strokeRect(-3, -2.5, 6, 5);
-      ctx.restore();
+  if (style === "dirt") {
+    ctx.beginPath();
+    ctx.moveTo(road.p0.x, road.p0.y);
+    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+    ctx.strokeStyle = "rgba(82,62,36,0.55)"; ctx.lineWidth = width + 4; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(road.p0.x, road.p0.y);
+    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+    ctx.strokeStyle = "rgba(175,150,100,0.90)"; ctx.lineWidth = width; ctx.stroke();
+    const steps = 55;
+    for (let s = 0; s <= steps; s++) {
+      if (seededRand(s + idx * 100, seed + 60010) > 0.20) continue;
+      const t = s / steps;
+      const px = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
+      const py = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
+      const dx = 2*(1-t)*(road.cp.x-road.p0.x)+2*t*(road.p1.x-road.cp.x);
+      const dy = 2*(1-t)*(road.cp.y-road.p0.y)+2*t*(road.p1.y-road.cp.y);
+      const dlen = Math.sqrt(dx*dx+dy*dy)||1;
+      const nx2 = -dy/dlen, ny2 = dx/dlen;
+      const off = (seededRand(s + idx*100+1, seed+60011)-0.5)*width*0.65;
+      const tlen = 3 + seededRand(s + idx*100+2, seed+60012)*7;
+      ctx.beginPath();
+      ctx.moveTo(px+nx2*off, py+ny2*off);
+      ctx.lineTo(px+nx2*off+dx/dlen*tlen, py+ny2*off+dy/dlen*tlen);
+      ctx.strokeStyle = "rgba(128,102,62,0.26)"; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(road.p0.x, road.p0.y);
+    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+    ctx.strokeStyle = "rgba(65,52,35,0.70)"; ctx.lineWidth = width + 4; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(road.p0.x, road.p0.y);
+    ctx.quadraticCurveTo(road.cp.x, road.cp.y, road.p1.x, road.p1.y);
+    ctx.strokeStyle = "rgba(110,104,91,0.96)"; ctx.lineWidth = width; ctx.stroke();
+    const rowCount = Math.max(2, Math.floor(width / 8));
+    const steps = Math.max(60, width * 2.2 | 0);
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const px = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
+      const py = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
+      const dx = 2*(1-t)*(road.cp.x-road.p0.x)+2*t*(road.p1.x-road.cp.x);
+      const dy = (2*(1-t)*(road.cp.y-road.p0.y)+2*t*(road.p1.y-road.cp.y));
+      const dlen = Math.sqrt(dx*dx+dy*dy)||1;
+      const nx2 = -dy/dlen, ny2 = dx/dlen;
+      for (let row = 0; row < rowCount; row++) {
+        const off = (row - rowCount/2 + 0.5) * 7;
+        const jx = (seededRand(s*rowCount+row+idx*600, seed+60001)-0.5)*2.5;
+        const jy = (seededRand(s*rowCount+row+idx*600+100, seed+60002)-0.5)*2.5;
+        const cx2 = px + nx2*off + jx;
+        const cy2 = py + ny2*off + jy;
+        const rv = (seededRand(s*rowCount+row+idx*600+200, seed+60003)*28)|0;
+        ctx.save(); ctx.translate(cx2, cy2);
+        ctx.fillStyle = `rgb(${104+rv},${97+rv},${87+rv})`;
+        ctx.fillRect(-3, -2.5, 6, 5);
+        ctx.strokeStyle = "rgba(45,35,22,0.52)"; ctx.lineWidth = 0.5;
+        ctx.strokeRect(-3, -2.5, 6, 5);
+        ctx.restore();
+      }
     }
   }
   ctx.restore();
 }
 
-// Open-air market: packed dirt base + stall canopies + goods
+function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: number, idx: number): void {
+  const { x, y, w, h } = b;
+  const pi = (seededRand(idx, seed + 40006) * 4) | 0;
+  const rv = (seededRand(idx + 1, seed + 40015) * 18) | 0;
+  const palettes = [
+    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,168+rv), rg: 105, rb: 65 },
+    { wr: 188+rv, wg: 175+rv, wb: 150+rv, rr: Math.min(255,128+rv), rg: Math.min(255,118+rv), rb: Math.min(255,105+rv) },
+    { wr: 190+rv, wg: 178+rv, wb: 152+rv, rr: Math.min(255,148+rv), rg: 115, rb: 72 },
+    { wr: 205+rv, wg: 194+rv, wb: 170+rv, rr: Math.min(255,168+rv), rg: Math.min(255,148+rv), rb: Math.min(255,118+rv) },
+  ];
+  const p = palettes[pi];
+  const wt = Math.max(3, Math.min(6, (Math.min(w, h) * 0.13) | 0));
+  // Drop shadow
+  ctx.fillStyle = "rgba(28,16,4,0.28)";
+  ctx.fillRect(x + 4, y + 3, w, h);
+  // Wall base
+  ctx.fillStyle = `rgb(${Math.min(255,p.wr)},${Math.min(255,p.wg)},${Math.min(255,p.wb)})`;
+  ctx.fillRect(x, y, w, h);
+  // Roof
+  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
+  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
+  // Roof gradient highlight
+  const grd = ctx.createLinearGradient(x + wt, y + wt, x + w - wt, y + h - wt);
+  grd.addColorStop(0, "rgba(255,255,255,0.14)");
+  grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
+  grd.addColorStop(1, "rgba(0,0,0,0.20)");
+  ctx.fillStyle = grd;
+  ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
+  // Ridge line along long axis
+  ctx.strokeStyle = `rgba(${(p.rr * 0.52) | 0},${(p.rg * 0.48) | 0},${(p.rb * 0.44) | 0},0.82)`;
+  ctx.lineWidth = 1.4; ctx.lineCap = "round";
+  ctx.beginPath();
+  if (w >= h) { ctx.moveTo(x + wt + 4, y + h / 2); ctx.lineTo(x + w - wt - 4, y + h / 2); }
+  else        { ctx.moveTo(x + w / 2, y + wt + 4); ctx.lineTo(x + w / 2, y + h - wt - 4); }
+  ctx.stroke();
+  // Chimney (35% of buildings large enough)
+  if (w > 22 && h > 18 && seededRand(idx + 2, seed + 40012) < 0.36) {
+    const cs = Math.max(3, (Math.min(w, h) * 0.11) | 0);
+    const cpx2 = w >= h ? x + w / 2 - cs / 2 : x + wt + 3;
+    const cpy2 = w >= h ? y + wt + 3 : y + h / 2 - cs / 2;
+    ctx.fillStyle = `rgb(${Math.min(255,p.wr-28)},${Math.min(255,p.wg-22)},${Math.min(255,p.wb-18)})`;
+    ctx.fillRect(cpx2, cpy2, cs, cs);
+    ctx.strokeStyle = "rgba(42,28,12,0.82)"; ctx.lineWidth = 0.7;
+    ctx.strokeRect(cpx2, cpy2, cs, cs);
+  }
+  // South & east wall darker (depth)
+  ctx.fillStyle = "rgba(28,16,4,0.20)";
+  ctx.fillRect(x, y + h - wt, w, wt);
+  ctx.fillRect(x + w - wt, y, wt, h);
+  // Door on south wall
+  if (h > 14 && wt >= 3) {
+    const dw = Math.max(3, (w * 0.22) | 0);
+    ctx.fillStyle = "rgba(52,32,14,0.90)";
+    ctx.fillRect(x + w / 2 - dw / 2, y + h - wt, dw, wt);
+  }
+  // Windows in wall band
+  if (w > 24 && wt >= 3) {
+    const ws = Math.max(2, (wt * 0.68) | 0);
+    ctx.fillStyle = "rgba(215,195,145,0.58)";
+    ctx.fillRect(x + wt / 2 - ws / 2, y + h * 0.38, ws, ws);
+    if (w > 32) ctx.fillRect(x + w - wt / 2 - ws / 2, y + h * 0.38, ws, ws);
+  }
+  // Strong outline
+  ctx.strokeStyle = "rgba(42,26,8,0.88)"; ctx.lineWidth = 0.9;
+  ctx.strokeRect(x, y, w, h);
+}
+
 function renderMarketStalls(ctx: CanvasRenderingContext2D, cx: number, cy: number, seed: number, idx: number): void {
   ctx.save();
   ctx.beginPath();
@@ -1115,79 +1263,56 @@ function renderMarketStalls(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
     const scy = cy + Math.sin(a) * d;
     const sw = 18 + seededRand(s + idx * 10, seed + 85004) * 14;
     const rv = (seededRand(s + idx * 10, seed + 85006) * 44) | 0;
-    // Canopy
     ctx.fillStyle = `rgb(${168 + rv},${120 + (rv >> 1)},${52})`;
     ctx.beginPath();
-    ctx.moveTo(scx - sw / 2 - 3, scy - 13);
-    ctx.lineTo(scx + sw / 2 + 3, scy - 13);
-    ctx.lineTo(scx + sw / 2, scy - 7);
-    ctx.lineTo(scx - sw / 2, scy - 7);
+    ctx.moveTo(scx - sw / 2 - 3, scy - 13); ctx.lineTo(scx + sw / 2 + 3, scy - 13);
+    ctx.lineTo(scx + sw / 2, scy - 7);      ctx.lineTo(scx - sw / 2, scy - 7);
     ctx.closePath(); ctx.fill();
     ctx.strokeStyle = "rgba(55,38,18,0.72)"; ctx.lineWidth = 0.8; ctx.stroke();
-    // Counter
     ctx.fillStyle = "rgba(148,118,78,0.92)";
     ctx.fillRect(scx - sw / 2, scy - 7, sw, 10);
     ctx.strokeStyle = "rgba(55,38,18,0.72)"; ctx.lineWidth = 0.8;
     ctx.strokeRect(scx - sw / 2, scy - 7, sw, 10);
-    // Goods on counter
     for (let g = 0; g < 3; g++) {
       const gx2 = scx - sw / 2 + 3 + g * ((sw - 6) / 3);
       const gv = (seededRand(s * 10 + g + idx * 100, seed + 85007) * 32) | 0;
       ctx.fillStyle = `rgb(${148 + gv},${98 + (gv >> 1)},42)`;
       ctx.fillRect(gx2, scy - 6, 5, 4);
     }
-    // Support post
     ctx.strokeStyle = "rgba(88,62,32,0.88)"; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(scx, scy - 7); ctx.lineTo(scx, scy + 6); ctx.stroke();
   }
   ctx.restore();
 }
 
-// Riverside docks: plank platform + boat + water
 function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.save();
-  // side: 0=top, 1=right, 2=bottom, 3=left
   const side = Math.floor(seededRand(800, seed) * 4);
-  const pos  = 0.25 + seededRand(801, seed) * 0.50; // fraction along edge
+  const pos  = 0.25 + seededRand(801, seed) * 0.50;
   const dockLen = 95 + seededRand(802, seed) * 65;
   const dockW   = 42 + seededRand(803, seed) * 28;
   const piers   = 2 + Math.floor(seededRand(804, seed) * 3);
-
-  // Direction vectors: perp = into canvas, para = along edge
   let bx: number, by: number, px: number, py: number, qx: number, qy: number;
-  if      (side === 0) { bx = pos*W;  by = 0;    px =  0; py =  1; qx = 1; qy = 0; }
-  else if (side === 1) { bx = W;      by = pos*H; px = -1; py =  0; qx = 0; qy = 1; }
-  else if (side === 2) { bx = pos*W;  by = H;     px =  0; py = -1; qx = 1; qy = 0; }
-  else                 { bx = 0;      by = pos*H; px =  1; py =  0; qx = 0; qy = 1; }
-
-  // Water patch before the dock
+  if      (side === 0) { bx = pos*W; by = 0;    px =  0; py =  1; qx = 1; qy = 0; }
+  else if (side === 1) { bx = W;     by = pos*H; px = -1; py =  0; qx = 0; qy = 1; }
+  else if (side === 2) { bx = pos*W; by = H;     px =  0; py = -1; qx = 1; qy = 0; }
+  else                 { bx = 0;     by = pos*H; px =  1; py =  0; qx = 0; qy = 1; }
   const wl = dockLen * 0.42;
   ctx.fillStyle = "rgba(68,105,140,0.80)";
   ctx.beginPath();
-  ctx.moveTo(bx - qx*dockW/2,        by - qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2,        by + qy*dockW/2);
+  ctx.moveTo(bx - qx*dockW/2,         by - qy*dockW/2);
+  ctx.lineTo(bx + qx*dockW/2,         by + qy*dockW/2);
   ctx.lineTo(bx + qx*dockW/2 - px*wl, by + qy*dockW/2 - py*wl);
   ctx.lineTo(bx - qx*dockW/2 - px*wl, by - qy*dockW/2 - py*wl);
   ctx.closePath(); ctx.fill();
-  // Water waves
-  for (let w = 0; w < 7; w++) {
-    const wt = seededRand(w + 810, seed);
-    const wpx2 = bx + qx*(wt*dockW - dockW/2) - px*(6 + seededRand(w+811,seed)*wl*0.85);
-    const wpy2 = by + qy*(wt*dockW - dockW/2) - py*(6 + seededRand(w+811,seed)*wl*0.85);
-    ctx.beginPath();
-    ctx.arc(wpx2, wpy2, 4 + seededRand(w+812,seed)*5, 0, Math.PI, true);
-    ctx.strokeStyle = "rgba(200,220,235,0.22)"; ctx.lineWidth = 0.7; ctx.stroke();
-  }
-  // Dock platform
   ctx.fillStyle = "rgba(148,118,78,0.94)";
   ctx.beginPath();
-  ctx.moveTo(bx - qx*dockW/2,             by - qy*dockW/2);
-  ctx.lineTo(bx + qx*dockW/2,             by + qy*dockW/2);
+  ctx.moveTo(bx - qx*dockW/2,              by - qy*dockW/2);
+  ctx.lineTo(bx + qx*dockW/2,              by + qy*dockW/2);
   ctx.lineTo(bx + qx*dockW/2 + px*dockLen, by + qy*dockW/2 + py*dockLen);
   ctx.lineTo(bx - qx*dockW/2 + px*dockLen, by - qy*dockW/2 + py*dockLen);
   ctx.closePath(); ctx.fill();
   ctx.strokeStyle = "rgba(55,38,18,0.82)"; ctx.lineWidth = 1.2; ctx.stroke();
-  // Plank lines
   ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.7;
   for (let pl = 0; pl <= dockLen; pl += 9) {
     ctx.beginPath();
@@ -1195,16 +1320,8 @@ function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
     ctx.lineTo(bx + qx*dockW/2 + px*pl, by + qy*dockW/2 + py*pl);
     ctx.stroke();
   }
-  ctx.strokeStyle = "rgba(55,38,18,0.14)"; ctx.lineWidth = 0.5;
-  for (let off = -Math.floor(dockW/2); off <= Math.floor(dockW/2); off += 11) {
-    ctx.beginPath();
-    ctx.moveTo(bx + qx*off,             by + qy*off);
-    ctx.lineTo(bx + qx*off + px*dockLen, by + qy*off + py*dockLen);
-    ctx.stroke();
-  }
-  // Pier posts
-  for (let p = 0; p < piers; p++) {
-    const t = (p + 1) / (piers + 1);
+  for (let p2 = 0; p2 < piers; p2++) {
+    const t = (p2 + 1) / (piers + 1);
     const ppx = bx + qx*(t*dockW - dockW/2);
     const ppy = by + qy*(t*dockW - dockW/2);
     ctx.fillStyle = "rgba(90,65,38,0.92)";
@@ -1212,12 +1329,10 @@ function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
     ctx.strokeStyle = "rgba(45,30,12,0.88)"; ctx.lineWidth = 0.8;
     ctx.strokeRect(ppx - 3, ppy - 4, 6, 8);
   }
-  // Boat
   const boatCx = bx - qx*(dockW/2 + 22) + px*dockLen*0.55;
   const boatCy = by - qy*(dockW/2 + 22) + py*dockLen*0.55;
   const boatAngle = Math.atan2(-py, -px);
-  ctx.save();
-  ctx.translate(boatCx, boatCy); ctx.rotate(boatAngle);
+  ctx.save(); ctx.translate(boatCx, boatCy); ctx.rotate(boatAngle);
   ctx.fillStyle = "rgba(105,80,52,0.90)";
   ctx.beginPath();
   ctx.moveTo(-18, 0); ctx.quadraticCurveTo(0, 10, 18, 0);
@@ -1230,31 +1345,31 @@ function renderDocks(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.restore();
 }
 
-function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
+function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
-  // ── Layer 0: Hillshaded terrain (same technique as landscape mode) ────────
-  const { hm: townHM, am: townAM, sm: townSM } = buildMaps(seed + 13337, "large");
-  renderTerrain(ctx, townHM, townAM, townSM);
-  renderRockTexture(ctx, townHM, seed + 13337);
+  // ── Layer 0: Flat grass terrain (no mountains, no ocean) ─────────────────
+  renderCivTerrain(ctx, seed, size);
 
-  // ── Generate roads first — build a proximity bitmap for collision checks ─
-  const townRoads = generateTownRoads(seed);
-  // Bitmap at ¼ canvas resolution; roadMaskR covers the road half-width
+  // ── Generate paths first — build proximity bitmap for collision checks ───
+  const civPaths = generateCivPaths(seed, size);
+  const pathStyle: "dirt" | "cobble" = size === "village" ? "dirt" : "cobble";
+  const pathWidth = size === "village" ? 26 : size === "town" ? 36 : 48;
   const MASK_W = 200, MASK_H = 134;
   const roadMask = new Uint8Array(MASK_W * MASK_H);
-  const roadMaskR = 4; // ≈ 20px on canvas (22/2 × MASK_W/W ≈ 2.2, round up to 4 for safety)
-  for (const road of townRoads) {
+  const maskMarginPx = pathWidth / 2 + 10;
+  const maskR = Math.ceil((maskMarginPx / W) * MASK_W);
+  for (const road of civPaths) {
     for (let s = 0; s <= 120; s++) {
       const t = s / 120;
       const spx = (1-t)**2*road.p0.x + 2*(1-t)*t*road.cp.x + t**2*road.p1.x;
       const spy = (1-t)**2*road.p0.y + 2*(1-t)*t*road.cp.y + t**2*road.p1.y;
       const mgx = ((spx / W) * MASK_W) | 0;
       const mgy = ((spy / H) * MASK_H) | 0;
-      for (let dy = -roadMaskR; dy <= roadMaskR; dy++) {
-        for (let dx = -roadMaskR; dx <= roadMaskR; dx++) {
-          if (dx*dx + dy*dy > roadMaskR*roadMaskR) continue;
+      for (let dy = -maskR; dy <= maskR; dy++) {
+        for (let dx = -maskR; dx <= maskR; dx++) {
+          if (dx*dx + dy*dy > maskR*maskR) continue;
           const mx = mgx + dx, my = mgy + dy;
           if (mx >= 0 && mx < MASK_W && my >= 0 && my < MASK_H)
             roadMask[my * MASK_W + mx] = 1;
@@ -1265,52 +1380,59 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   const isOnRoad = (cpx: number, cpy: number): boolean => {
     const mgx = ((cpx / W) * MASK_W) | 0;
     const mgy = ((cpy / H) * MASK_H) | 0;
-    return mgx >= 0 && mgx < MASK_W && mgy >= 0 && mgy < MASK_H &&
-           roadMask[mgy * MASK_W + mgx] === 1;
+    return mgx >= 0 && mgx < MASK_W && mgy >= 0 && mgy < MASK_H && roadMask[mgy * MASK_W + mgx] === 1;
   };
 
-  // ── Layer 1: Docks (40 % chance) — drawn behind buildings ────────────────
-  if (seededRand(710, seed) < 0.40) renderDocks(ctx, seed);
+  // ── Layer 1: Docks (town/city only, 38% chance) ──────────────────────────
+  if (size !== "village" && seededRand(710, seed) < 0.38) renderDocks(ctx, seed);
 
-  // ── Layer 2: Roads ───────────────────────────────────────────────────────
-  for (let i = 0; i < townRoads.length; i++) drawCobblestoneRoad(ctx, townRoads[i], seed, i);
+  // ── Layer 2: Paths ───────────────────────────────────────────────────────
+  for (let i = 0; i < civPaths.length; i++) drawPath(ctx, civPaths[i], seed, i, pathStyle, pathWidth);
 
-  // Hub cobblestone plaza
-  const hubR = 48 + seededRand(217, seed) * 20;
+  // Hub plaza
+  const hubR = size === "village" ? 30 + seededRand(217, seed) * 15 :
+               size === "town"    ? 42 + seededRand(217, seed) * 18 :
+                                    55 + seededRand(217, seed) * 22;
   ctx.save();
   ctx.beginPath(); ctx.arc(hx, hy, hubR, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(108,102,90,0.97)"; ctx.fill();
-  ctx.strokeStyle = "rgba(62,50,32,0.68)"; ctx.lineWidth = 2; ctx.stroke();
+  if (size === "village") {
+    ctx.fillStyle = "rgba(172,148,100,0.92)"; ctx.fill();
+    ctx.strokeStyle = "rgba(72,52,28,0.58)"; ctx.lineWidth = 1.5; ctx.stroke();
+  } else {
+    ctx.fillStyle = "rgba(108,102,90,0.97)"; ctx.fill();
+    ctx.strokeStyle = "rgba(62,50,32,0.68)"; ctx.lineWidth = 2; ctx.stroke();
+    const hubStones = size === "city" ? 200 : 140;
+    for (let s = 0; s < hubStones; s++) {
+      const angle = seededRand(s, seed + 90001) * Math.PI * 2;
+      const dist = Math.sqrt(seededRand(s + hubStones, seed + 90002)) * (hubR - 4);
+      const hcx2 = hx + Math.cos(angle) * dist;
+      const hcy2 = hy + Math.sin(angle) * dist;
+      const rv = (seededRand(s, seed + 90003) * 24) | 0;
+      ctx.fillStyle = `rgb(${100+rv},${93+rv},${83+rv})`;
+      ctx.fillRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
+      ctx.strokeStyle = "rgba(45,35,22,0.45)"; ctx.lineWidth = 0.5;
+      ctx.strokeRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
+    }
+  }
   ctx.restore();
-  for (let s = 0; s < 180; s++) {
-    const angle = seededRand(s, seed + 90001) * Math.PI * 2;
-    const dist = Math.sqrt(seededRand(s + 180, seed + 90002)) * (hubR - 4);
-    const hcx2 = hx + Math.cos(angle) * dist;
-    const hcy2 = hy + Math.sin(angle) * dist;
-    const rv = (seededRand(s, seed + 90003) * 24) | 0;
-    ctx.fillStyle = `rgb(${100+rv},${93+rv},${83+rv})`;
-    ctx.fillRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
-    ctx.strokeStyle = "rgba(45,35,22,0.45)"; ctx.lineWidth = 0.5;
-    ctx.strokeRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
+
+  // ── Layer 3: Castle (city only) ──────────────────────────────────────────
+  let castleCx = -9999, castleCy = -9999;
+  const castleW = 188, castleH = 168;
+  if (size === "city") {
+    const castleAngle = seededRand(220, seed) * Math.PI * 2;
+    const castleDist = hubR + 95;
+    castleCx = Math.max(castleW/2 + 28, Math.min(W - castleW/2 - 28, hx + Math.cos(castleAngle) * castleDist));
+    castleCy = Math.max(castleH/2 + 28, Math.min(H - castleH/2 - 28, hy + Math.sin(castleAngle) * castleDist));
+    renderCastleFootprint(ctx, { x: castleCx - castleW/2, y: castleCy - castleH/2, w: castleW, h: castleH, type: "castle" });
   }
 
-  // ── Layer 3: Castle — dedicated large footprint, placed near hub ─────────
-  const castleAngle = seededRand(220, seed) * Math.PI * 2;
-  const castleW = 188, castleH = 168;
-  const castleDist = hubR + 95;
-  const castleCx = Math.max(castleW/2 + 28, Math.min(W - castleW/2 - 28,
-    hx + Math.cos(castleAngle) * castleDist));
-  const castleCy = Math.max(castleH/2 + 28, Math.min(H - castleH/2 - 28,
-    hy + Math.sin(castleAngle) * castleDist));
-  renderCastleFootprint(ctx, {
-    x: castleCx - castleW/2, y: castleCy - castleH/2,
-    w: castleW, h: castleH, type: "castle",
-  });
-
-  // ── Layer 4: Buildings (larger lots, skip if overlapping road) ───────────
-  const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
-  const COLS = 14, ROWS = 10;
+  // ── Layer 4: Buildings ───────────────────────────────────────────────────
+  const COLS = size === "village" ? 8  : size === "town" ? 11 : 14;
+  const ROWS = size === "village" ? 6  : size === "town" ? 8  : 10;
+  const skipRate = size === "village" ? 0.35 : size === "town" ? 0.18 : 0.12;
   const lotW = W / COLS, lotH = H / ROWS;
+  const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
 
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
@@ -1322,101 +1444,37 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
       if (lw < 22 || lh < 22) continue;
       const lcx = lx + lw / 2, lcy = ly + lh / 2;
       if (Math.hypot(lcx - hx, lcy - hy) < hubR + 14) continue;
-      if (Math.abs(lcx - castleCx) < castleW/2 + 14 && Math.abs(lcy - castleCy) < castleH/2 + 14) continue;
+      if (size === "city" && Math.abs(lcx - castleCx) < castleW/2 + 14 && Math.abs(lcy - castleCy) < castleH/2 + 14) continue;
       if (isOnRoad(lcx, lcy)) continue;
-      if (seededRand(idx, seed + 45001) < 0.15) continue; // sparse ~15% skip
+      if (seededRand(idx, seed + 45001) < skipRate) continue;
 
+      const maxSubdivide = size === "village" ? 2 : size === "town" ? 3 : 4;
       const buildings = subdivideBlock(lx + 2, ly + 2, lw - 4, lh - 4, idx);
-      for (const b of buildings) {
-        const rv = seededRand((b.x | 0) * 7 + (b.y | 0), seed + 40005) * 22 | 0;
-        const palette = Math.floor(seededRand((b.x | 0) + (b.y | 0) * 3, seed + 40006) * 4);
-        const wallColors: [string, string][] = [
-          [`rgb(${185+rv},${115+(rv>>1)},${80+(rv>>1)})`, `rgb(${148+rv},${85+(rv>>1)},${55+(rv>>1)})`],
-          [`rgb(${192+rv},${162+rv},${112+rv})`,           `rgb(${152+rv},${122+rv},${82+rv})`],
-          [`rgb(${138+(rv>>1)},${130+(rv>>1)},${118+(rv>>1)})`, `rgb(${105+(rv>>1)},${98+(rv>>1)},${88+(rv>>1)})`],
-          [`rgb(${200+rv},${185+rv},${155+rv})`,           `rgb(${160+rv},${145+rv},${115+rv})`],
-        ];
-        const [wallColor, roofColor] = wallColors[palette];
-        const roofH = Math.max(4, Math.min(b.h * 0.28, 9));
-        const shapeR = seededRand((b.x | 0) * 5 + (b.y | 0) * 11, seed + 40007);
-
-        ctx.fillStyle = wallColor; ctx.fillRect(b.x, b.y, b.w, b.h);
-        ctx.fillStyle = roofColor; ctx.fillRect(b.x, b.y, b.w, roofH);
-
-        if (shapeR > 0.85 && b.w > 24 && b.h > 20) {
-          const ins = 4;
-          ctx.fillStyle = "rgba(22,14,5,0.40)";
-          ctx.fillRect(b.x + ins, b.y + roofH + 1, b.w - ins * 2, b.h - roofH - ins);
-        }
-
-        if (shapeR > 0.65 && shapeR <= 0.85 && b.w > 22 && b.h > 18) {
-          const wingSide = ((seededRand((b.x | 0) * 3 + (b.y | 0), seed + 40008) * 4) | 0) % 4;
-          const wingW = Math.max(8, (b.w * (0.32 + seededRand((b.x | 0), seed + 40009) * 0.18)) | 0);
-          const wingH = Math.max(7, (b.h * (0.28 + seededRand((b.y | 0), seed + 40010) * 0.18)) | 0);
-          let wx = b.x, wy = b.y + b.h;
-          if (wingSide === 0) { wx = b.x + b.w - wingW; wy = b.y + b.h; }
-          else if (wingSide === 1) { wx = b.x; wy = b.y + b.h; }
-          else if (wingSide === 2) { wx = b.x + b.w; wy = b.y + b.h - wingH; }
-          else { wx = b.x - wingW; wy = b.y + b.h - wingH; }
-          ctx.fillStyle = wallColor; ctx.fillRect(wx, wy, wingW, wingH);
-          ctx.fillStyle = roofColor; ctx.fillRect(wx, wy, wingW, Math.max(2, (wingH * 0.26) | 0));
-          ctx.strokeStyle = "rgba(38,28,12,0.62)"; ctx.lineWidth = 0.6; ctx.strokeRect(wx, wy, wingW, wingH);
-        }
-
-        ctx.save();
-        ctx.strokeStyle = "rgba(88,68,42,0.09)"; ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        for (let hx2 = b.x - b.h; hx2 < b.x + b.w + b.h; hx2 += 7) {
-          const x1 = Math.max(b.x, hx2), y1 = b.y + Math.max(0, b.x - hx2);
-          const x2 = Math.min(b.x + b.w, hx2 + b.h), y2 = b.y + b.h - Math.max(0, b.x + b.w - (hx2 + b.h));
-          if (x1 < x2 && y1 !== y2) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
-        }
-        ctx.stroke(); ctx.restore();
-
-        ctx.strokeStyle = "rgba(38,22,8,0.40)"; ctx.lineWidth = 0.9;
-        ctx.beginPath();
-        if (b.w >= b.h) {
-          ctx.moveTo(b.x + 5, b.y + roofH / 2 + 1); ctx.lineTo(b.x + b.w - 5, b.y + roofH / 2 + 1);
-        } else {
-          ctx.moveTo(b.x + b.w / 2, b.y + 3); ctx.lineTo(b.x + b.w / 2, b.y + b.h - 3);
-        }
-        ctx.stroke();
-
-        if (b.w > 16 && b.h > roofH + 8) {
-          ctx.fillStyle = "rgba(28,18,8,0.52)";
-          ctx.fillRect(b.x + 3, b.y + roofH + 3, 3, 3);
-          if (b.w > 24) ctx.fillRect(b.x + b.w - 6, b.y + roofH + 3, 3, 3);
-        }
-
-        ctx.fillStyle = "rgba(110,85,55,0.30)";
-        ctx.fillRect(b.x, b.y + b.h - 3, b.w, 3);
-        ctx.fillRect(b.x + b.w - 3, b.y, 3, b.h);
-        ctx.strokeStyle = "rgba(38,28,12,0.60)"; ctx.lineWidth = 0.6;
-        ctx.strokeRect(b.x, b.y, b.w, b.h);
+      const usedBuildings = buildings.slice(0, maxSubdivide);
+      for (let bi = 0; bi < usedBuildings.length; bi++) {
+        const b = usedBuildings[bi];
+        drawHouseTopDown(ctx, b, seed, idx * 10 + bi);
         allBuildings.push({ b, lotCx: lcx, lotCy: lcy });
       }
     }
   }
 
-  // ── Layer 5: Trees — only on grass terrain, never on roads ───────────────
-  // Build per-cell grass mask from the town heightmap
-  for (let gy = 2; gy < HM_H - 2; gy++) {
-    for (let gx = 2; gx < HM_W - 2; gx++) {
-      const h = townHM[gy * HM_W + gx];
-      if (h < 0.50 || h > 0.73) continue;
-      if (townAM[gy * HM_W + gx] > 0.58) continue;
-      if (seededRand(gy * HM_W + gx + 1, seed + 22111) > 0.13) continue;
-      const tpx = (gx / HM_W) * W;
-      const tpy = (gy / HM_H) * H;
-      if (Math.hypot(tpx - hx, tpy - hy) < hubR + 12) continue;
-      if (Math.abs(tpx - castleCx) < castleW/2 + 10 && Math.abs(tpy - castleCy) < castleH/2 + 10) continue;
-      if (isOnRoad(tpx, tpy)) continue;
-      drawTree(ctx, tpx, tpy, 5 + seededRand(gy * HM_W + gx, seed + 33111) * 5);
+  // ── Layer 5: Trees (noise-based, not on roads) ───────────────────────────
+  const treeNoise = makeNoise(seed + 77551);
+  for (let py2 = 4; py2 < H - 4; py2 += 9) {
+    for (let px2 = 4; px2 < W - 4; px2 += 9) {
+      const nv = fbm(treeNoise, px2 / W * 14, py2 / H * 14, 3);
+      if (nv < 0.54) continue;
+      if (seededRand(py2 * W / 9 + px2 / 9, seed + 22111) > 0.22) continue;
+      if (Math.hypot(px2 - hx, py2 - hy) < hubR + 10) continue;
+      if (size === "city" && Math.abs(px2 - castleCx) < castleW/2 + 8 && Math.abs(py2 - castleCy) < castleH/2 + 8) continue;
+      if (isOnRoad(px2, py2)) continue;
+      drawTree(ctx, px2, py2, 5 + seededRand(py2 * W / 9 + px2 / 9, seed + 33111) * 5);
     }
   }
 
-  // ── Layer 5.5: Market stalls (35 % chance, 1-2 markets) ──────────────────
-  if (seededRand(700, seed) < 0.35) {
+  // ── Layer 5.5: Market stalls (town/city 35% chance) ─────────────────────
+  if (size !== "village" && seededRand(700, seed) < 0.35) {
     const mCount = 1 + (seededRand(701, seed) < 0.45 ? 1 : 0);
     for (let m = 0; m < mCount; m++) {
       const mAngle = seededRand(m * 37 + 702, seed) * Math.PI * 2;
@@ -1428,10 +1486,10 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
   }
 
   // ── Layer 6: Environmental props ─────────────────────────────────────────
-  const propCount = 6 + Math.floor(seededRand(215, seed) * 6);
+  const propCount = 5 + Math.floor(seededRand(215, seed) * 6);
   for (let w = 0; w < propCount; w++) {
     const t = seededRand(w + 500, seed + 50001);
-    const road = townRoads[Math.floor(t * townRoads.length)];
+    const road = civPaths[Math.floor(t * civPaths.length)];
     const bt = 0.25 + seededRand(w + 501, seed + 50002) * 0.5;
     const wx = (1-bt)**2*road.p0.x + 2*(1-bt)*bt*road.cp.x + bt**2*road.p1.x + (seededRand(w+502,seed+50003)-0.5)*24;
     const wy = (1-bt)**2*road.p0.y + 2*(1-bt)*bt*road.cp.y + bt**2*road.p1.y + (seededRand(w+503,seed+50004)-0.5)*18;
@@ -1440,11 +1498,15 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
     else drawProduce(ctx, wx, wy, seed, w);
   }
 
-  // ── Layer 7: Special building icons (no castle — rendered separately) ─────
+  // ── Layer 7: Special building icons ──────────────────────────────────────
   const sorted = allBuildings
     .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
     .sort((a, b) => a.d - b.d);
-  const specialOrder: BuildingType[] = ["church","inn","inn","tavern","tavern","tavern","blacksmith","blacksmith","shop","shop","shop"];
+  const specialOrder: BuildingType[] = size === "village"
+    ? ["inn", "tavern", "blacksmith", "shop"]
+    : size === "town"
+    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "blacksmith", "shop", "shop"]
+    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "shop", "shop", "shop"];
   const usedLots = new Set<string>();
   let si = 0;
   for (const { i } of sorted) {
@@ -1482,7 +1544,7 @@ function renderTown(ctx: CanvasRenderingContext2D, seed: number): void {
 
   drawCompassRose(ctx, W - 64, H - 64, 38);
   drawBorder(ctx, seed);
-  drawLegend(ctx, "town");
+  drawLegend(ctx, "civilisation");
   postProcess(ctx, seed);
 }
 
@@ -1525,13 +1587,14 @@ function drawPins(ctx: CanvasRenderingContext2D, pins: UserPin[]): void {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function DnDMapGenerator() {
-  const [mode, setMode] = useState<"landscape" | "town">("landscape");
+  const [mode, setMode] = useState<"landscape" | "civilisation">("landscape");
   const [scale, setScale] = useState<MapScale>("medium");
+  const [civSize, setCivSize] = useState<CivSize>("town");
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 999983));
   const [pinsLandscape, setPinsLandscape] = useState<UserPin[]>([]);
-  const [pinsTown, setPinsTown] = useState<UserPin[]>([]);
-  const pins = mode === "landscape" ? pinsLandscape : pinsTown;
-  const setPins = (mode === "landscape" ? setPinsLandscape : setPinsTown) as (v: UserPin[] | ((prev: UserPin[]) => UserPin[])) => void;
+  const [pinsCivilisation, setPinsCivilisation] = useState<UserPin[]>([]);
+  const pins = mode === "landscape" ? pinsLandscape : pinsCivilisation;
+  const setPins = (mode === "landscape" ? setPinsLandscape : setPinsCivilisation) as (v: UserPin[] | ((prev: UserPin[]) => UserPin[])) => void;
   const [isAddingPin, setIsAddingPin] = useState(false);
   const [pendingPin, setPendingPin] = useState<{ nx: number; ny: number } | null>(null);
   const [labelInput, setLabelInput] = useState("");
@@ -1569,11 +1632,11 @@ export function DnDMapGenerator() {
     const tid = setTimeout(() => {
       ctx.clearRect(0, 0, W, H);
       if (mode === "landscape") renderLandscape(ctx, seed, scale);
-      else renderTown(ctx, seed);
+      else renderCivilisation(ctx, seed, civSize);
       setIsGenerating(false);
     }, 0);
     return () => clearTimeout(tid);
-  }, [seed, mode, scale]);
+  }, [seed, mode, scale, civSize]);
 
   // Pin overlay
   useEffect(() => {
@@ -1641,7 +1704,7 @@ export function DnDMapGenerator() {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex rounded overflow-hidden border border-neutral-800 text-xs font-mono">
-          {(["landscape", "town"] as const).map((m, i) => (
+          {(["landscape", "civilisation"] as const).map((m, i) => (
             <button
               key={m}
               onClick={() => { setMode(m); setPendingPin(null); setIsAddingPin(false); }}
@@ -1666,6 +1729,24 @@ export function DnDMapGenerator() {
                   "px-2.5 py-1.5 transition-colors",
                   i > 0 && "border-l border-neutral-800",
                   scale === s ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === "civilisation" && (
+          <div className="flex rounded overflow-hidden border border-neutral-800 text-xs font-mono">
+            {(["village", "town", "city"] as const).map((s, i) => (
+              <button
+                key={s}
+                onClick={() => setCivSize(s)}
+                className={cn(
+                  "px-2.5 py-1.5 transition-colors",
+                  i > 0 && "border-l border-neutral-800",
+                  civSize === s ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
                 )}
               >
                 {s}
@@ -1743,7 +1824,9 @@ export function DnDMapGenerator() {
       <p className="font-mono text-[10px] text-neutral-600 text-center select-none">
         {isAddingPin
           ? "click the map to place a pin · click an existing pin to remove · esc to cancel"
-          : `${mode} map${mode === "landscape" ? ` · ${scale} scale` : ""} · seed ${seed}`}
+          : mode === "landscape"
+            ? `landscape map · ${scale} scale · seed ${seed}`
+            : `civilisation map · ${civSize} · seed ${seed}`}
       </p>
     </div>
   );
