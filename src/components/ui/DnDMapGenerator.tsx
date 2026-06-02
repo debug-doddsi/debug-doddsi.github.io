@@ -681,51 +681,45 @@ function drawTavernIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): 
 
 function drawMerchantIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.85;
-  // Shop awning — triangular canopy
+  ctx.strokeStyle = "rgba(105,72,18,0.92)"; ctx.lineWidth = 0.9;
+  // Back-left coin
   ctx.beginPath();
-  ctx.moveTo(cx - 11, cy - 4);
-  ctx.lineTo(cx + 11, cy - 4);
-  ctx.lineTo(cx + 9, cy + 1);
-  ctx.lineTo(cx - 9, cy + 1);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(188,55,38,0.88)"; ctx.fill(); ctx.stroke();
-  // Awning scalloped edge
-  ctx.fillStyle = "rgba(165,42,28,0.88)";
-  for (let xi = -9; xi <= 9; xi += 6) {
-    ctx.beginPath(); ctx.arc(cx + xi, cy + 1, 3, 0, Math.PI); ctx.fill();
-  }
-  // Shop counter / table
-  ctx.fillStyle = "rgba(178,148,98,0.92)";
-  ctx.fillRect(cx - 9, cy + 1, 18, 6); ctx.strokeRect(cx - 9, cy + 1, 18, 6);
-  // Items on counter: 3 small circles (goods)
-  ctx.fillStyle = "rgba(215,188,112,0.90)";
-  for (let xi = -5; xi <= 5; xi += 5) {
-    ctx.beginPath(); ctx.arc(cx + xi, cy + 4, 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  }
-  // Sign hanging above awning
-  ctx.fillStyle = "rgba(205,175,118,0.92)";
-  ctx.fillRect(cx - 5, cy - 12, 10, 7); ctx.strokeRect(cx - 5, cy - 12, 10, 7);
-  ctx.strokeStyle = "rgba(80,55,25,0.55)"; ctx.lineWidth = 0.6;
-  ctx.beginPath(); ctx.moveTo(cx - 2, cy - 9); ctx.lineTo(cx + 2, cy - 9);
-  ctx.moveTo(cx - 3, cy - 7); ctx.lineTo(cx + 3, cy - 7);
+  ctx.ellipse(cx - 5, cy - 4, 7, 4.5, -0.15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(190,152,52,0.88)"; ctx.fill(); ctx.stroke();
+  // Back-right coin
+  ctx.beginPath();
+  ctx.ellipse(cx + 3, cy - 6, 7, 4.5, 0.15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(200,163,58,0.90)"; ctx.fill(); ctx.stroke();
+  // Front coin — most prominent
+  ctx.beginPath();
+  ctx.ellipse(cx - 1, cy + 1, 8, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(218,180,68,0.96)"; ctx.fill(); ctx.stroke();
+  // Shine arc on front coin
+  ctx.beginPath();
+  ctx.arc(cx - 3, cy - 1, 3, -Math.PI * 0.55, -Math.PI * 0.1);
+  ctx.strokeStyle = "rgba(248,228,148,0.70)"; ctx.lineWidth = 0.8;
   ctx.stroke();
   ctx.restore();
 }
 
 function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(42,28,12,0.88)"; ctx.lineWidth = 0.85;
-  // Top-down cross shape: nave (vertical) + transept (horizontal)
-  // Nave: 10 wide × 18 tall, centred
-  ctx.fillStyle = "rgba(178,165,142,0.95)";
-  ctx.fillRect(cx - 5, cy - 9, 10, 18); ctx.strokeRect(cx - 5, cy - 9, 10, 18);
-  // Transept: 18 wide × 6 tall, crossing at 1/3 from top
-  ctx.fillRect(cx - 9, cy - 6, 18, 6); ctx.strokeRect(cx - 9, cy - 6, 18, 6);
-  // Roof tint on nave to unify overlap
-  ctx.fillStyle = "rgba(152,140,118,0.80)";
-  ctx.fillRect(cx - 4, cy - 8, 8, 16);
-  ctx.fillRect(cx - 8, cy - 5, 16, 4);
+  ctx.strokeStyle = "rgba(38,26,10,0.88)"; ctx.lineWidth = 0.85;
+  // Bell body — rounded dome
+  ctx.beginPath();
+  ctx.moveTo(cx - 8, cy + 4);
+  ctx.bezierCurveTo(cx - 10, cy, cx - 10, cy - 8, cx, cy - 11);
+  ctx.bezierCurveTo(cx + 10, cy - 8, cx + 10, cy, cx + 8, cy + 4);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(185,158,78,0.95)"; ctx.fill(); ctx.stroke();
+  // Rim bar
+  ctx.fillStyle = "rgba(165,135,58,0.95)";
+  ctx.fillRect(cx - 9, cy + 4, 18, 3); ctx.strokeRect(cx - 9, cy + 4, 18, 3);
+  // Clapper line + dot
+  ctx.beginPath(); ctx.moveTo(cx, cy + 7); ctx.lineTo(cx, cy + 11);
+  ctx.strokeStyle = "rgba(38,26,10,0.72)"; ctx.lineWidth = 0.8; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy + 12, 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(38,26,10,0.72)"; ctx.fill();
   ctx.restore();
 }
 
@@ -990,7 +984,7 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "civilisa
       { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
       { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
       { label: "Tavern",     draw: (x, y) => drawTavernIcon(ctx, x, y) },
-      { label: "Church",     draw: (x, y) => drawChurchIcon(ctx, x, y) },
+      { label: "Temple",      draw: (x, y) => drawChurchIcon(ctx, x, y) },
       { label: "Blacksmith", draw: (x, y) => drawBlacksmithIcon(ctx, x, y) },
       { label: "Armoury",    draw: (x, y) => drawSwordIcon(ctx, x, y) },
       { label: "Potions",    draw: (x, y) => drawPotionIcon(ctx, x, y) },
@@ -1994,32 +1988,6 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
   }
 }
 
-function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number, crossWidth = 24): void {
-  const bridgeLen = crossWidth + 12; // 6px overhang each bank
-  const bw = roadWidth;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
-  // Flat timber deck
-  ctx.fillStyle = "rgba(155,128,84,0.95)";
-  ctx.fillRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  // 1px border
-  ctx.strokeStyle = "rgba(65,44,18,0.88)"; ctx.lineWidth = 1;
-  ctx.strokeRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  // 4-6 plank lines running perpendicular to river (direction of travel)
-  const plankCount = Math.max(4, Math.min(6, Math.ceil(bridgeLen / 4)));
-  const plankStep = bridgeLen / (plankCount + 1);
-  ctx.strokeStyle = "rgba(65,44,18,0.25)"; ctx.lineWidth = 0.7;
-  for (let i = 1; i <= plankCount; i++) {
-    const py = -bridgeLen / 2 + i * plankStep;
-    ctx.beginPath(); ctx.moveTo(-bw / 2 + 1, py); ctx.lineTo(bw / 2 - 1, py); ctx.stroke();
-  }
-  // Two thin railing lines along the long edges
-  ctx.strokeStyle = "rgba(65,44,18,0.72)"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(-bw / 2, -bridgeLen / 2); ctx.lineTo(-bw / 2, bridgeLen / 2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bw / 2, -bridgeLen / 2); ctx.lineTo(bw / 2, bridgeLen / 2); ctx.stroke();
-  ctx.restore();
-}
 
 function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
@@ -2124,51 +2092,72 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     drawOrganicRoad(ctx, sortedForDraw[i], seed, i);
   }
 
-  // ── Layer 2.5: Bridges at river×road intersections ────────────────────────
+  // ── Layer 2.5: Bridges at river×road crossings ───────────────────────────
   if (riverPts.length > 0) {
+    const riverW = 10; // rendered river stroke width (px)
+    const detectR = riverW / 2 + 8;
     const bridgeDone = new Set<string>();
     for (const road of civRoads) {
       for (const pt of sampleCivRoad(road, 100)) {
+        // Find nearest river point
         let nearIdx = 0, nearDist = Infinity;
         for (let ri = 0; ri < riverPts.length; ri++) {
           const d = Math.hypot(pt.x - riverPts[ri].x, pt.y - riverPts[ri].y);
           if (d < nearDist) { nearDist = d; nearIdx = ri; }
         }
-        if (nearDist >= riverExR) continue;
+        if (nearDist >= detectR) continue;
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
-        // Two sample points 15px either side along the river polyline
-        let fwdIdx = nearIdx, bwdIdx = nearIdx, fwdDist = 0, bwdDist = 0;
-        while (fwdIdx + 1 < riverPts.length && fwdDist < 15) {
+
+        // Step 1: two river sample points 20px before and after the crossing
+        let fwdIdx = nearIdx, bwdIdx = nearIdx, fwdArc = 0, bwdArc = 0;
+        while (fwdIdx + 1 < riverPts.length && fwdArc < 20) {
           fwdIdx++;
-          fwdDist += Math.hypot(riverPts[fwdIdx].x - riverPts[fwdIdx-1].x, riverPts[fwdIdx].y - riverPts[fwdIdx-1].y);
+          fwdArc += Math.hypot(riverPts[fwdIdx].x - riverPts[fwdIdx-1].x,
+                                riverPts[fwdIdx].y - riverPts[fwdIdx-1].y);
         }
-        while (bwdIdx > 0 && bwdDist < 15) {
+        while (bwdIdx > 0 && bwdArc < 20) {
           bwdIdx--;
-          bwdDist += Math.hypot(riverPts[bwdIdx].x - riverPts[bwdIdx+1].x, riverPts[bwdIdx].y - riverPts[bwdIdx+1].y);
+          bwdArc += Math.hypot(riverPts[bwdIdx].x - riverPts[bwdIdx+1].x,
+                                riverPts[bwdIdx].y - riverPts[bwdIdx+1].y);
         }
         const fdx = riverPts[fwdIdx].x - riverPts[bwdIdx].x;
         const fdy = riverPts[fwdIdx].y - riverPts[bwdIdx].y;
-        const flen = Math.sqrt(fdx*fdx + fdy*fdy);
-        if (flen > 80) { console.warn("bridge: unexpectedly large river crossing at", pt.x, pt.y); continue; }
-        // Bridge angle = river flow angle; rectangle y-axis spans perpendicular to river
         const riverFlowAngle = Math.atan2(fdy, fdx);
-        drawBridge(ctx, pt.x, pt.y, riverFlowAngle, road.width, 10);
-      }
-    }
-  }
 
-  // ── Layer 2.6: Bridges at pond×road intersections ────────────────────────
-  if (hasPond) {
-    const pondBridgeDone = new Set<string>();
-    for (const road of civRoads) {
-      for (const pt of sampleCivRoad(road, 100)) {
-        if (!isOnPond(pt.x, pt.y)) continue;
-        const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
-        if (pondBridgeDone.has(key)) continue;
-        pondBridgeDone.add(key);
-        drawBridge(ctx, pt.x, pt.y, Math.atan2(pt.ty, pt.tx), road.width);
+        // Step 2: bridge orientation = 90° to river flow
+        let bridgeAngle = riverFlowAngle + Math.PI / 2;
+
+        // Steps 3-5: dimensions — R = river width, W = road width
+        const R = riverW;
+        const bw = road.width;
+        const bridgeLen = R + 16; // 8px overhang each bank
+
+        // Orientation self-check: if length > width, bridge runs along river — flip 90°
+        if (bridgeLen > bw) bridgeAngle += Math.PI / 2;
+
+        // Step 6: draw the bridge
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(bridgeAngle);
+        ctx.fillStyle = "rgba(148,136,112,0.96)"; // warm stone grey
+        ctx.fillRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
+        ctx.strokeStyle = "rgba(72,54,28,0.88)"; ctx.lineWidth = 1;
+        ctx.strokeRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
+        // 3-5 plank/course lines parallel to short axis (direction of travel)
+        const plankCount = Math.max(3, Math.min(5, Math.ceil(bridgeLen / 5)));
+        const plankStep = bridgeLen / (plankCount + 1);
+        ctx.strokeStyle = "rgba(72,54,28,0.22)"; ctx.lineWidth = 0.7;
+        for (let i = 1; i <= plankCount; i++) {
+          const py = -bridgeLen/2 + i * plankStep;
+          ctx.beginPath(); ctx.moveTo(-bw/2 + 1, py); ctx.lineTo(bw/2 - 1, py); ctx.stroke();
+        }
+        // One thin railing line along each long edge
+        ctx.strokeStyle = "rgba(72,54,28,0.65)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-bw/2, -bridgeLen/2); ctx.lineTo(-bw/2, bridgeLen/2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bw/2, -bridgeLen/2); ctx.lineTo(bw/2, bridgeLen/2); ctx.stroke();
+        ctx.restore();
       }
     }
   }
@@ -2396,8 +2385,17 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     usedLots.add(lotKey);
     const icx = b.x + b.w / 2, icy = b.y + b.h / 2;
     if (specialOrder[si] === "church") {
-      // Church renders as a fortified stone building, not just an icon badge
       renderChurchBuilding(ctx, b);
+      // Bell badge centred on roof
+      const badgeR = Math.max(5, Math.min(b.w, b.h) * 0.14);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(248,242,225,0.84)"; ctx.fill();
+      ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.7; ctx.stroke();
+      const iconS = badgeR / 11;
+      ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
+      drawChurchIcon(ctx, icx, icy);
+      ctx.restore();
     } else {
       // Small badge circle with scaled icon
       const badgeR = Math.max(6, Math.min(b.w, b.h) * 0.18);
