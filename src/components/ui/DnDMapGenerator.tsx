@@ -487,15 +487,61 @@ function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: Civ
   ctx.putImageData(img, 0, 0);
 }
 
-function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number } {
+function pointInPolygon(px: number, py: number, poly: Array<{x: number; y: number}>): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function organicPondPts(cx: number, cy: number, rx: number, ry: number, seed: number): Array<{x: number; y: number}> {
+  const n = 8 + (seededRand(790, seed) * 6 | 0);
+  const noise2D = makeNoise(seed + 76543);
+  const spans: number[] = [];
+  let total = 0;
+  for (let i = 0; i < n; i++) { const s = 0.5 + seededRand(791 + i, seed) * 1.0; spans.push(s); total += s; }
+  const norm = (2 * Math.PI) / total;
+  let ang = seededRand(799, seed) * Math.PI * 2;
+  const pts: Array<{x: number; y: number}> = [];
+  for (let i = 0; i < n; i++) {
+    ang += spans[i] * norm;
+    const rFrac = 0.62 + seededRand(800 + i, seed) * 0.36;
+    const noiseDisp = 0.08 + seededRand(810 + i, seed) * 0.12;
+    const nv = noise2D(Math.cos(ang) * 1.5, Math.sin(ang) * 1.5) * noiseDisp;
+    const r = Math.max(0.45, rFrac + nv);
+    pts.push({ x: cx + Math.cos(ang) * rx * r, y: cy + Math.sin(ang) * ry * r });
+  }
+  return pts;
+}
+
+function traceOrganicPond(ctx: CanvasRenderingContext2D, pts: Array<{x: number; y: number}>): void {
+  const n = pts.length;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i + n - 1) % n];
+    const curr = pts[i];
+    const next = pts[(i + 1) % n];
+    const next2 = pts[(i + 2) % n];
+    const cp1x = curr.x + (next.x - prev.x) / 6;
+    const cp1y = curr.y + (next.y - prev.y) / 6;
+    const cp2x = next.x - (next2.x - curr.x) / 6;
+    const cp2y = next.y - (next2.y - curr.y) / 6;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+  }
+  ctx.closePath();
+}
+
+function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number; poly: Array<{x: number; y: number}> } {
   const pcx = (0.12 + seededRand(760, seed) * 0.76) * W;
   const pcy = (0.12 + seededRand(761, seed) * 0.76) * H;
   const rx = 28 + seededRand(762, seed) * 44;
   const ry = 22 + seededRand(763, seed) * 35;
-  const angle = seededRand(764, seed) * Math.PI;
+  const poly = organicPondPts(pcx, pcy, rx, ry, seed);
   ctx.save();
-  ctx.beginPath();
-  ctx.ellipse(pcx, pcy, rx, ry, angle, 0, Math.PI * 2);
+  traceOrganicPond(ctx, poly);
   ctx.fillStyle = "rgba(68,108,148,0.82)"; ctx.fill();
   ctx.strokeStyle = "rgba(50,82,118,0.70)"; ctx.lineWidth = 1.8; ctx.stroke();
   for (let w = 0; w < 5; w++) {
@@ -506,7 +552,7 @@ function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; 
     ctx.strokeStyle = "rgba(190,215,235,0.22)"; ctx.lineWidth = 0.8; ctx.stroke();
   }
   ctx.restore();
-  return { cx: pcx, cy: pcy, rx, ry };
+  return { cx: pcx, cy: pcy, rx, ry, poly };
 }
 
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
@@ -669,25 +715,22 @@ function drawMerchantIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number)
 
 function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,28,14,0.85)"; ctx.lineWidth = 0.85;
-  // Bell body — rounded top, flared bottom
+  ctx.strokeStyle = "rgba(42,28,12,0.88)"; ctx.lineWidth = 0.85;
+  // Nave body
+  ctx.fillStyle = "rgba(178,165,142,0.95)";
+  ctx.fillRect(cx - 7, cy - 5, 14, 10); ctx.strokeRect(cx - 7, cy - 5, 14, 10);
+  // Tower
+  ctx.fillStyle = "rgba(158,148,128,0.95)";
+  ctx.fillRect(cx - 4, cy - 13, 8, 9); ctx.strokeRect(cx - 4, cy - 13, 8, 9);
+  // Steeple
   ctx.beginPath();
-  ctx.moveTo(cx - 2, cy - 14);
-  ctx.bezierCurveTo(cx - 9, cy - 13, cx - 9, cy - 2, cx - 8, cy + 1);
-  ctx.lineTo(cx + 8, cy + 1);
-  ctx.bezierCurveTo(cx + 9, cy - 2, cx + 9, cy - 13, cx + 2, cy - 14);
+  ctx.moveTo(cx, cy - 20); ctx.lineTo(cx - 4, cy - 13); ctx.lineTo(cx + 4, cy - 13);
   ctx.closePath();
-  ctx.fillStyle = "rgba(198,172,82,0.95)"; ctx.fill(); ctx.stroke();
-  // Clapper
-  ctx.beginPath(); ctx.arc(cx, cy + 2, 2.2, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(80,60,30,0.92)"; ctx.fill(); ctx.stroke();
-  // Hanging bracket at top
-  ctx.beginPath(); ctx.moveTo(cx - 3, cy - 14); ctx.lineTo(cx + 3, cy - 14);
-  ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy - 17);
-  ctx.strokeStyle = "rgba(80,60,30,0.88)"; ctx.lineWidth = 1.5; ctx.stroke();
-  // Shine
-  ctx.beginPath(); ctx.moveTo(cx - 6, cy - 10); ctx.lineTo(cx - 5, cy - 5);
-  ctx.strokeStyle = "rgba(255,240,180,0.35)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = "rgba(118,108,90,0.95)"; ctx.fill(); ctx.stroke();
+  // Cross on nave
+  ctx.fillStyle = "rgba(68,52,30,0.90)";
+  ctx.fillRect(cx - 1, cy - 3, 2, 7);
+  ctx.fillRect(cx - 4, cy - 0.5, 8, 2);
   ctx.restore();
 }
 
@@ -1600,15 +1643,14 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
   const { x, y, w, h } = b;
   const doorSide = b.doorSide ?? "S";
   const thatch = isVillage && seededRand(idx + 9, seed + 40025) < 0.45;
-  const pi = (seededRand(idx, seed + 40006) * 4) | 0;
+  const pi = (seededRand(idx, seed + 40006) * 3) | 0;
   const rv = (seededRand(idx + 1, seed + 40015) * 18) | 0;
   const palettes = [
-    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,168+rv), rg: 105,             rb: 65 },
-    { wr: 188+rv, wg: 175+rv, wb: 150+rv, rr: Math.min(255,128+rv), rg: Math.min(255,118+rv), rb: Math.min(255,105+rv) },
-    { wr: 190+rv, wg: 178+rv, wb: 152+rv, rr: Math.min(255,148+rv), rg: 115,             rb: 72 },
-    { wr: 205+rv, wg: 194+rv, wb: 170+rv, rr: Math.min(255,168+rv), rg: Math.min(255,148+rv), rb: Math.min(255,118+rv) },
+    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,165+rv), rg: 102,             rb: 62  }, // terracotta
+    { wr: 190+rv, wg: 178+rv, wb: 155+rv, rr: Math.min(255,126+rv), rg: Math.min(255,117+rv), rb: Math.min(255,104+rv) }, // slate
+    { wr: 204+rv, wg: 192+rv, wb: 166+rv, rr: Math.min(255,155+rv), rg: Math.min(255,128+rv), rb: Math.min(255,88+rv)  }, // warm ochre
   ];
-  const p = palettes[pi];
+  const p = palettes[pi % 3];
   const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
 
   // Drop shadow
@@ -1666,19 +1708,57 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
 
 
 function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
-  // Church is a regular tiled-roof building (larger than average), with a small bell badge
-  const idx = ((b.x * 13 + b.y * 7) | 0) + 72000;
-  // Use the standard house renderer with a warm stone palette
-  drawHouseTopDown(ctx, b, idx, 0, false);
-  // Small bell badge (no white circle background, just the icon directly)
-  const bix = b.x + b.w / 2, biy = b.y + b.h / 2;
-  const badgeR = Math.max(7, Math.min(b.w, b.h) * 0.18);
-  ctx.save();
-  ctx.translate(bix, biy);
-  ctx.scale(badgeR / 11, badgeR / 11);
-  ctx.translate(-bix, -biy);
-  drawChurchIcon(ctx, bix, biy);
-  ctx.restore();
+  const { x, y, w, h } = b;
+  const doorSide = b.doorSide ?? "S";
+  // Tower at the end away from door
+  const towerAtTop = (doorSide === "S" || doorSide === "W");
+  // Cool stone palette matching other buildings' slate option
+  const p = { wr: 194, wg: 186, wb: 170, rr: 132, rg: 126, rb: 116 };
+  const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
+
+  // Drop shadow
+  ctx.fillStyle = "rgba(28,16,4,0.26)"; ctx.fillRect(x + 4, y + 3, w, h);
+
+  // Nave (main body) — use drawBuildingRect for consistent style
+  drawBuildingRect(ctx, x, y, w, h, p, wt, 72001, 0, false, doorSide);
+
+  // Tower dimensions
+  const twW = Math.max(8, (w * 0.44) | 0);
+  const twExt = Math.max(8, (Math.min(w, h) * 0.35) | 0);
+  const twX = (x + (w - twW) / 2) | 0;
+  const twY = towerAtTop ? y - twExt : y + h - wt;
+  const twH = twExt + wt;
+
+  // Tower walls + roof
+  ctx.fillStyle = `rgb(${p.wr - 8},${p.wg - 8},${p.wb - 8})`;
+  ctx.fillRect(twX, twY, twW, twH);
+  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
+  ctx.fillRect(twX + wt, twY + wt, twW - wt * 2, twH - wt);
+  ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9;
+  ctx.strokeRect(twX, twY, twW, twH);
+
+  // Steeple (pointed triangle)
+  const spireH = Math.max(10, (Math.min(w, h) * 0.42) | 0);
+  const spireBaseY = towerAtTop ? twY : twY + twH;
+  const spireTipY  = towerAtTop ? spireBaseY - spireH : spireBaseY + spireH;
+  ctx.beginPath();
+  ctx.moveTo(twX + twW / 2, spireTipY);
+  ctx.lineTo(twX, spireBaseY);
+  ctx.lineTo(twX + twW, spireBaseY);
+  ctx.closePath();
+  ctx.fillStyle = `rgb(${p.rr - 10},${p.rg - 10},${p.rb - 10})`;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(42,26,8,0.88)"; ctx.lineWidth = 0.9; ctx.stroke();
+
+  // Cross on nave roof
+  const naveMidX = x + w / 2;
+  const naveMidY = towerAtTop ? y + h * 0.60 : y + h * 0.40;
+  const cVW = Math.max(2, (w * 0.11) | 0);
+  const cVH = Math.max(6, (h * 0.26) | 0);
+  const cHW = Math.max(5, (w * 0.20) | 0);
+  ctx.fillStyle = `rgba(${(p.rr * 0.52)|0},${(p.rg * 0.48)|0},${(p.rb * 0.44)|0},0.88)`;
+  ctx.fillRect(naveMidX - cVW / 2, naveMidY - cVH / 2, cVW, cVH);
+  ctx.fillRect(naveMidX - cHW / 2, naveMidY - cVH * 0.18, cHW, cVW);
 }
 
 function drawWell(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
@@ -1731,15 +1811,26 @@ function drawFountain(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.restore();
 }
 
-function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number): { cx: number; cy: number; r: number } {
+function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number, pondPoly: Array<{x: number; y: number}> = []): { cx: number; cy: number; r: number } {
   ctx.save();
   const dockAngle = seededRand(800, seed) * Math.PI * 2;
   const dockLen = 28 + seededRand(802, seed) * 22;
   const dockW = 16 + seededRand(803, seed) * 10;
   const rampLen = 18;
-  // Shore point (where dock meets pond edge)
-  const shoreX = pondCx + Math.cos(dockAngle) * pondRx;
-  const shoreY = pondCy + Math.sin(dockAngle) * pondRy;
+  // Shore point: binary search along dockAngle ray to find organic boundary
+  let shoreX: number, shoreY: number;
+  if (pondPoly.length > 0) {
+    let lo = 0, hi = Math.max(pondRx, pondRy) * 1.6;
+    for (let iter = 0; iter < 24; iter++) {
+      const mid = (lo + hi) / 2;
+      if (pointInPolygon(pondCx + Math.cos(dockAngle)*mid, pondCy + Math.sin(dockAngle)*mid, pondPoly)) lo = mid; else hi = mid;
+    }
+    shoreX = pondCx + Math.cos(dockAngle) * lo;
+    shoreY = pondCy + Math.sin(dockAngle) * lo;
+  } else {
+    shoreX = pondCx + Math.cos(dockAngle) * pondRx;
+    shoreY = pondCy + Math.sin(dockAngle) * pondRy;
+  }
   // Direction from shore toward pond center
   const ddx = pondCx - shoreX, ddy = pondCy - shoreY;
   const ddlen = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
@@ -1798,7 +1889,7 @@ function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy
   return { cx: shoreX + px*dockLen/2, cy: shoreY + py*dockLen/2, r: Math.max(dockLen, dockW) + 20 };
 }
 
-function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number }> {
+function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number; tx: number; ty: number }> {
   if (seededRand(908, seed) > 0.38) return [];
   ctx.save();
   const side1 = Math.floor(seededRand(901, seed) * 4);
@@ -1836,13 +1927,15 @@ function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x:
   ctx.stroke();
   ctx.restore();
   // Return sampled center-line points for exclusion
-  const pts: Array<{x: number; y: number}> = [];
+  const pts: Array<{x: number; y: number; tx: number; ty: number}> = [];
   for (let s = 0; s <= 60; s++) {
     const t = s / 60, mt = 1 - t;
-    pts.push({
-      x: mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX,
-      y: mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY,
-    });
+    const x = mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX;
+    const y = mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY;
+    const dtx = 3*mt**2*(cp1x-startX) + 6*mt*t*(cp2x-cp1x) + 3*t**2*(endX-cp2x);
+    const dty = 3*mt**2*(cp1y-startY) + 6*mt*t*(cp2y-cp1y) + 3*t**2*(endY-cp2y);
+    const tlen = Math.sqrt(dtx*dtx + dty*dty) || 1;
+    pts.push({ x, y, tx: dtx/tlen, ty: dty/tlen });
   }
   return pts;
 }
@@ -1866,16 +1959,24 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
     ctx.strokeStyle = "rgba(142,105,55,0.88)"; ctx.lineWidth = 1.5;
     ctx.strokeRect(fx, fy, fw, fh);
     if (farmType === "crops") {
-      ctx.strokeStyle = "rgba(55,92,32,0.48)"; ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(55,92,32,0.65)"; ctx.lineWidth = 0.8;
       for (let row = fy + 10; row < fy + fh - 5; row += 9) {
         ctx.beginPath(); ctx.moveTo(fx + 6, row); ctx.lineTo(fx + fw - 6, row); ctx.stroke();
         for (let pc = fx + 11; pc < fx + fw - 6; pc += 12) {
           const pv = (seededRand((pc | 0) + (row | 0) * 77 + f * 300, seed + 82010) * 16) | 0;
-          ctx.fillStyle = `rgba(${48+pv},${94+pv},${32+pv},0.78)`;
+          ctx.fillStyle = `rgba(${48+pv},${94+pv},${32+pv},0.82)`;
           ctx.beginPath(); ctx.arc(pc, row, 2.2, 0, Math.PI * 2); ctx.fill();
         }
       }
     } else {
+      // Subtle dirt crosshatch for animal pen
+      ctx.strokeStyle = "rgba(122,90,52,0.22)"; ctx.lineWidth = 0.6;
+      for (let row = fy + 8; row < fy + fh; row += 10) {
+        ctx.beginPath(); ctx.moveTo(fx + 4, row); ctx.lineTo(fx + fw - 4, row); ctx.stroke();
+      }
+      for (let col = fx + 10; col < fx + fw; col += 14) {
+        ctx.beginPath(); ctx.moveTo(col, fy + 4); ctx.lineTo(col, fy + fh - 4); ctx.stroke();
+      }
       const animalCount = 2 + (seededRand(f, seed + 82011) * 5 | 0);
       for (let a = 0; a < animalCount; a++) {
         const ax = fx + 12 + seededRand(a + f * 10, seed + 82012) * (fw - 24);
@@ -1895,37 +1996,30 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
   }
 }
 
-function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number): void {
-  const bridgeLen = 32;
-  const bw = roadWidth + 6;
+function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number, crossWidth = 24): void {
+  const bridgeLen = crossWidth + 20; // 10px overhang each bank
+  const bw = roadWidth;             // exactly matches road width
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(angle);
-  // Stone abutments on each end
-  ctx.fillStyle = "rgba(130,118,98,0.95)";
-  ctx.fillRect(-bw/2 - 3, -bridgeLen/2 - 6, bw + 6, 7);
-  ctx.fillRect(-bw/2 - 3, bridgeLen/2 - 1, bw + 6, 7);
-  ctx.strokeStyle = "rgba(70,58,38,0.80)"; ctx.lineWidth = 0.9;
-  ctx.strokeRect(-bw/2 - 3, -bridgeLen/2 - 6, bw + 6, 7);
-  ctx.strokeRect(-bw/2 - 3, bridgeLen/2 - 1, bw + 6, 7);
-  // Deck planks
-  ctx.fillStyle = "rgba(155,122,75,0.96)";
+  // Flat stone/timber deck
+  ctx.fillStyle = "rgba(160,130,88,0.94)";
   ctx.fillRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  ctx.strokeStyle = "rgba(80,58,28,0.72)"; ctx.lineWidth = 1.0;
+  // Border
+  ctx.strokeStyle = "rgba(75,52,24,0.82)"; ctx.lineWidth = 1.5;
   ctx.strokeRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  ctx.strokeStyle = "rgba(80,58,28,0.28)"; ctx.lineWidth = 0.8;
-  for (let y = -bridgeLen/2 + 5; y < bridgeLen/2; y += 6) {
-    ctx.beginPath(); ctx.moveTo(-bw/2, y); ctx.lineTo(bw/2, y); ctx.stroke();
+  // Plank/course lines across bridge (5–8 lines along direction of travel)
+  const plankCount = Math.max(5, Math.min(8, Math.ceil(bridgeLen / 5)));
+  const plankStep = bridgeLen / (plankCount + 1);
+  ctx.strokeStyle = "rgba(75,52,24,0.28)"; ctx.lineWidth = 0.8;
+  for (let i = 1; i <= plankCount; i++) {
+    const py = -bridgeLen / 2 + i * plankStep;
+    ctx.beginPath(); ctx.moveTo(-bw / 2 + 1, py); ctx.lineTo(bw / 2 - 1, py); ctx.stroke();
   }
-  // Railing posts
-  ctx.fillStyle = "rgba(108,78,42,0.92)";
-  for (let y = -bridgeLen/2 + 3; y <= bridgeLen/2 - 3; y += 9) {
-    ctx.fillRect(-bw/2 - 4, y - 2.5, 5, 5);
-    ctx.fillRect(bw/2 - 1, y - 2.5, 5, 5);
-    ctx.strokeStyle = "rgba(55,38,16,0.80)"; ctx.lineWidth = 0.6;
-    ctx.strokeRect(-bw/2 - 4, y - 2.5, 5, 5);
-    ctx.strokeRect(bw/2 - 1, y - 2.5, 5, 5);
-  }
+  // Thin railing lines along long edges
+  ctx.strokeStyle = "rgba(75,52,24,0.68)"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(-bw / 2, -bridgeLen / 2); ctx.lineTo(-bw / 2, bridgeLen / 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bw / 2, -bridgeLen / 2); ctx.lineTo(bw / 2, bridgeLen / 2); ctx.stroke();
   ctx.restore();
 }
 
@@ -1990,10 +2084,11 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const pondRx = 28 + seededRand(762, seed) * 44;
   const pondRy = 22 + seededRand(763, seed) * 35;
   const hasPond = rawHasPond && !farmAreas.some(fa => pondCx > fa.fx && pondCx < fa.fx + fa.fw && pondCy > fa.fy && pondCy < fa.fy + fa.fh);
+  let pondPoly: Array<{x: number; y: number}> = [];
 
   // ── Layer 0: Terrain + water ──────────────────────────────────────────────
   renderCivTerrain(ctx, seed, size);
-  if (hasPond) renderPond(ctx, seed);
+  if (hasPond) { const pr = renderPond(ctx, seed); pondPoly = pr.poly; }
 
   // ── River (occasional) ────────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
@@ -2005,12 +2100,12 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const isLake = hasPond && (pondRx > 56 || pondRy > 42);
   let dockExcl: { cx: number; cy: number; r: number } | null = null;
   if (isLake && size !== "village") {
-    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed);
+    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed, pondPoly);
   }
   const isOnDock = (px2: number, py2: number): boolean =>
     dockExcl !== null && Math.hypot(px2 - dockExcl.cx, py2 - dockExcl.cy) < dockExcl.r;
   const isOnPond = (px2: number, py2: number): boolean =>
-    hasPond && Math.hypot((px2-pondCx)/pondRx, (py2-pondCy)/pondRy) < 1.0;
+    hasPond && pointInPolygon(px2, py2, pondPoly);
 
   // ── Layer 2a: Junction blobs at multi-road anchor points ──────────────────
   for (let ai = 0; ai < anchorPts.length; ai++) {
@@ -2036,11 +2131,18 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const bridgeDone = new Set<string>();
     for (const road of civRoads) {
       for (const pt of sampleCivRoad(road, 100)) {
-        if (!riverPts.some(rp => Math.hypot(pt.x - rp.x, pt.y - rp.y) < riverExR)) continue;
+        let nearRiv = riverPts[0], nearDist = Infinity;
+        for (const rp of riverPts) {
+          const d = Math.hypot(pt.x - rp.x, pt.y - rp.y);
+          if (d < nearDist) { nearDist = d; nearRiv = rp; }
+        }
+        if (nearDist >= riverExR) continue;
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
-        drawBridge(ctx, pt.x, pt.y, Math.atan2(pt.ty, pt.tx), road.width);
+        // Use river flow angle so bridge spans perpendicular to flow (crossing direction)
+        const riverFlowAngle = Math.atan2(nearRiv.ty, nearRiv.tx);
+        drawBridge(ctx, pt.x, pt.y, riverFlowAngle, road.width, 10);
       }
     }
   }
@@ -2153,7 +2255,22 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         const bw = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 3, seed + 41003) * 0.5)) | 0;
         const bh = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 4, seed + 41004) * 0.5)) | 0;
 
-        const offsetDist = sideOffset + seededRand(placeSeed + 5, seed + 41005) * 14;
+        // Compute rotation first so we can guarantee rotated corners clear the road
+        const doorSide = getDoorSide(-nnx * side, -nny * side);
+        const facingAngle = Math.atan2(-nny * side, -nnx * side);
+        const doorDefaultAngles: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
+        const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI/2;
+        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.20;
+        const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
+
+        // Projected half-extent of rotated building along road normal — ensures corners clear road
+        const cosA = Math.cos(buildingAngle), sinA = Math.sin(buildingAngle);
+        const dotX = cosA * nnx * side + sinA * nny * side;
+        const dotY = -sinA * nnx * side + cosA * nny * side;
+        const halfExtNormal = Math.abs(bw / 2 * dotX) + Math.abs(bh / 2 * dotY);
+        const baseOff = sideOffset + seededRand(placeSeed + 5, seed + 41005) * 14;
+        const offsetDist = Math.max(baseOff, road.width / 2 + halfExtNormal + 4);
+
         const bcx = ppx + nnx * side * offsetDist;
         const bcy = ppy + nny * side * offsetDist;
         const bx = (bcx - bw / 2) | 0;
@@ -2162,19 +2279,22 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
         if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
+
+        // Check center + all 4 rotated corners against road mask
         if (isOnRoad(bcx, bcy)) continue;
+        const corners = [
+          { x: bcx + cosA*bw/2 - sinA*bh/2, y: bcy + sinA*bw/2 + cosA*bh/2 },
+          { x: bcx - cosA*bw/2 - sinA*bh/2, y: bcy - sinA*bw/2 + cosA*bh/2 },
+          { x: bcx - cosA*bw/2 + sinA*bh/2, y: bcy - sinA*bw/2 - cosA*bh/2 },
+          { x: bcx + cosA*bw/2 + sinA*bh/2, y: bcy + sinA*bw/2 - cosA*bh/2 },
+        ];
+        if (corners.some(c => isOnRoad(c.x, c.y))) continue;
+
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
-        if (allBuildings.some(({ b }) => bx < b.x + b.w + 5 && bx + bw > b.x - 5 && by2 < b.y + b.h + 5 && by2 + bh > b.y - 5)) continue;
+        if (allBuildings.some(({ b }) => bx < b.x + b.w + 6 && bx + bw > b.x - 6 && by2 < b.y + b.h + 6 && by2 + bh > b.y - 6)) continue;
 
-        const doorSide = getDoorSide(ppx - bcx, ppy - bcy);
         const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
-
-        const facingAngle = Math.atan2(-nny * side, -nnx * side);
-        const doorDefaultAngles: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
-        const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI/2;
-        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.30;
-        const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
 
         // Dirt access path from building to road edge when set back far enough
         if (offsetDist > road.width / 2 + 8) {
