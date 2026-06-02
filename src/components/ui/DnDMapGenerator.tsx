@@ -534,9 +534,9 @@ function traceOrganicPond(ctx: CanvasRenderingContext2D, pts: Array<{x: number; 
   ctx.closePath();
 }
 
-function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number; poly: Array<{x: number; y: number}> } {
-  const pcx = (0.12 + seededRand(760, seed) * 0.76) * W;
-  const pcy = (0.12 + seededRand(761, seed) * 0.76) * H;
+function renderPond(ctx: CanvasRenderingContext2D, seed: number, overrideCx?: number, overrideCy?: number): { cx: number; cy: number; rx: number; ry: number; poly: Array<{x: number; y: number}> } {
+  const pcx = overrideCx ?? (0.12 + seededRand(760, seed) * 0.76) * W;
+  const pcy = overrideCy ?? (0.12 + seededRand(761, seed) * 0.76) * H;
   const rx = 28 + seededRand(762, seed) * 44;
   const ry = 22 + seededRand(763, seed) * 35;
   const poly = organicPondPts(pcx, pcy, rx, ry, seed);
@@ -1696,63 +1696,6 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
 }
 
 
-function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
-  const { x, y, w, h } = b;
-  const doorSide = b.doorSide ?? "S";
-  // Cool stone palette — same as slate variant
-  const p = { wr: 194, wg: 186, wb: 170, rr: 132, rg: 126, rb: 116 };
-  const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
-
-  // Transept arm geometry
-  const naveVertical = h >= w;
-  const armExt = Math.max(6, (Math.min(w, h) * 0.38) | 0);
-  let tpx: number, tpy: number, tpw: number, tph: number;
-  if (naveVertical) {
-    const armThick = Math.max(8, (h * 0.28) | 0);
-    const distFromFar = (h / 3) | 0;
-    tpx = x - armExt;
-    tpw = w + armExt * 2;
-    tph = armThick;
-    if      (doorSide === "S") tpy = y + distFromFar - (armThick / 2) | 0;
-    else if (doorSide === "N") tpy = y + h - distFromFar - (armThick / 2) | 0;
-    else                       tpy = (y + h * 0.35 - armThick / 2) | 0;
-  } else {
-    const armThick = Math.max(8, (w * 0.28) | 0);
-    const distFromFar = (w / 3) | 0;
-    tpy = y - armExt;
-    tph = h + armExt * 2;
-    tpw = armThick;
-    if      (doorSide === "W") tpx = x + distFromFar - (armThick / 2) | 0;
-    else if (doorSide === "E") tpx = x + w - distFromFar - (armThick / 2) | 0;
-    else                       tpx = (x + w * 0.35 - armThick / 2) | 0;
-  }
-
-  // Shadows for both shapes
-  ctx.fillStyle = "rgba(28,16,4,0.26)";
-  ctx.fillRect(tpx + 4, tpy + 3, tpw, tph);
-  ctx.fillRect(x + 4, y + 3, w, h);
-
-  // Draw transept arms (will be partially covered by nave)
-  ctx.fillStyle = `rgb(${p.wr},${p.wg},${p.wb})`;
-  ctx.fillRect(tpx, tpy, tpw, tph);
-  ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
-  ctx.fillRect(tpx + wt, tpy + wt, tpw - wt*2, tph - wt*2);
-  const grd = ctx.createLinearGradient(tpx + wt, tpy + wt, tpx + tpw - wt, tpy + tph - wt);
-  grd.addColorStop(0, "rgba(255,255,255,0.16)");
-  grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
-  grd.addColorStop(1, "rgba(0,0,0,0.22)");
-  ctx.fillStyle = grd;
-  ctx.fillRect(tpx + wt, tpy + wt, tpw - wt*2, tph - wt*2);
-  ctx.fillStyle = "rgba(28,16,4,0.22)";
-  ctx.fillRect(tpx, tpy + tph - wt, tpw, wt);
-  ctx.fillRect(tpx + tpw - wt, tpy, wt, tph);
-  ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9;
-  ctx.strokeRect(tpx, tpy, tpw, tph);
-
-  // Draw nave on top — covers transept centre, consistent style
-  drawBuildingRect(ctx, x, y, w, h, p, wt, 72001, 0, false, doorSide);
-}
-
 function drawWell(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
   // Stone base ring
@@ -2044,17 +1987,47 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     farmAreas.some(fa => bx < fa.fx + fa.fw + 8 && bx + bw > fa.fx - 8 && by2 < fa.fy + fa.fh + 8 && by2 + bh > fa.fy - 8);
 
   // ── Pond: every settlement has a nearby water source ─────────────────────
-  const rawHasPond = true;
-  const pondCx = (0.12 + seededRand(760, seed) * 0.76) * W;
-  const pondCy = (0.12 + seededRand(761, seed) * 0.76) * H;
+  const pondCx0 = (0.12 + seededRand(760, seed) * 0.76) * W;
+  const pondCy0 = (0.12 + seededRand(761, seed) * 0.76) * H;
   const pondRx = 28 + seededRand(762, seed) * 44;
   const pondRy = 22 + seededRand(763, seed) * 35;
-  const hasPond = rawHasPond && !farmAreas.some(fa => pondCx > fa.fx && pondCx < fa.fx + fa.fw && pondCy > fa.fy && pondCy < fa.fy + fa.fh);
+  const pondMaxR = Math.max(pondRx, pondRy);
+  // Validate pond position — push away from roads (buildings cluster within ~80px of roads)
+  let adjustedPondCx = pondCx0;
+  let adjustedPondCy = pondCy0;
+  let hasPond = !farmAreas.some(fa => pondCx0 > fa.fx && pondCx0 < fa.fx + fa.fw && pondCy0 > fa.fy && pondCy0 < fa.fy + fa.fh);
+  if (hasPond) {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      let pushX = 0, pushY = 0;
+      for (const road of civRoads) {
+        const needed = pondMaxR + road.width / 2 + 60;
+        for (const pt of sampleCivRoad(road, 40)) {
+          const dx = adjustedPondCx - pt.x, dy = adjustedPondCy - pt.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < needed) {
+            const norm = dist || 1;
+            pushX += (dx / norm) * (needed - dist);
+            pushY += (dy / norm) * (needed - dist);
+          }
+        }
+      }
+      if (pushX === 0 && pushY === 0) break;
+      adjustedPondCx += pushX * 0.35;
+      adjustedPondCy += pushY * 0.35;
+      const mg = pondMaxR + 20;
+      if (adjustedPondCx < mg || adjustedPondCx > W - mg || adjustedPondCy < mg || adjustedPondCy > H - mg) {
+        hasPond = false;
+        break;
+      }
+    }
+  }
+  const pondCx = adjustedPondCx;
+  const pondCy = adjustedPondCy;
   let pondPoly: Array<{x: number; y: number}> = [];
 
   // ── Layer 0: Terrain + water ──────────────────────────────────────────────
   renderCivTerrain(ctx, seed, size);
-  if (hasPond) { const pr = renderPond(ctx, seed); pondPoly = pr.poly; }
+  if (hasPond) { const pr = renderPond(ctx, seed, pondCx, pondCy); pondPoly = pr.poly; }
 
   // ── River (occasional) ────────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
@@ -2086,77 +2059,72 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     drawJunctionBlob(ctx, ax, ay, maxW * 0.80, jStyle, seed, ai);
   }
 
-  // ── Layer 2b: Road fills — widest drawn first so narrower overlay cleanly ─
-  const sortedForDraw = [...civRoads].sort((a, b) => b.width - a.width);
+  // ── Layer 2b: Road fills — tracks first, secondary next, primary on top ──
+  const styleOrder = { track: 0, secondary: 1, primary: 2 } as Record<string, number>;
+  const sortedForDraw = [...civRoads].sort((a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1));
   for (let i = 0; i < sortedForDraw.length; i++) {
     drawOrganicRoad(ctx, sortedForDraw[i], seed, i);
   }
 
-  // ── Layer 2.5: Bridges at river×road crossings ───────────────────────────
+  // ── Layer 2.5: Wooden bridges at river×road crossings ────────────────────
   if (riverPts.length > 0) {
-    const riverW = 10; // rendered river stroke width (px)
+    const riverW = 10;
     const detectR = riverW / 2 + 8;
     const bridgeDone = new Set<string>();
-    for (const road of civRoads) {
-      for (const pt of sampleCivRoad(road, 100)) {
-        // Find nearest river point
-        let nearIdx = 0, nearDist = Infinity;
+    // Draw bridges for primary roads first so they appear on top of secondary/track
+    const bridgeRoadOrder = [...civRoads].sort((a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1));
+    for (const road of bridgeRoadOrder) {
+      for (const pt of sampleCivRoad(road, 120)) {
+        let nearDist = Infinity;
         for (let ri = 0; ri < riverPts.length; ri++) {
           const d = Math.hypot(pt.x - riverPts[ri].x, pt.y - riverPts[ri].y);
-          if (d < nearDist) { nearDist = d; nearIdx = ri; }
+          if (d < nearDist) nearDist = d;
         }
         if (nearDist >= detectR) continue;
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
 
-        // Step 1: two river sample points 20px before and after the crossing
-        let fwdIdx = nearIdx, bwdIdx = nearIdx, fwdArc = 0, bwdArc = 0;
-        while (fwdIdx + 1 < riverPts.length && fwdArc < 20) {
-          fwdIdx++;
-          fwdArc += Math.hypot(riverPts[fwdIdx].x - riverPts[fwdIdx-1].x,
-                                riverPts[fwdIdx].y - riverPts[fwdIdx-1].y);
-        }
-        while (bwdIdx > 0 && bwdArc < 20) {
-          bwdIdx--;
-          bwdArc += Math.hypot(riverPts[bwdIdx].x - riverPts[bwdIdx+1].x,
-                                riverPts[bwdIdx].y - riverPts[bwdIdx+1].y);
-        }
-        const fdx = riverPts[fwdIdx].x - riverPts[bwdIdx].x;
-        const fdy = riverPts[fwdIdx].y - riverPts[bwdIdx].y;
-        const riverFlowAngle = Math.atan2(fdy, fdx);
+        // Bridge spans river in road direction; planks run perpendicular (across road width)
+        const bridgeLen = riverW + 16; // 8px overhang each bank
+        const bw = road.width + 2;
+        const roadAngle = Math.atan2(pt.ty, pt.tx);
 
-        // Step 2: bridge orientation = 90° to river flow
-        let bridgeAngle = riverFlowAngle + Math.PI / 2;
-
-        // Steps 3-5: dimensions — R = river width, W = road width
-        const R = riverW;
-        const bw = road.width;
-        const bridgeLen = R + 16; // 8px overhang each bank
-
-        // Orientation self-check: if length > width, bridge runs along river — flip 90°
-        if (bridgeLen > bw) bridgeAngle += Math.PI / 2;
-
-        // Step 6: draw the bridge
         ctx.save();
         ctx.translate(pt.x, pt.y);
-        ctx.rotate(bridgeAngle);
-        ctx.fillStyle = "rgba(148,136,112,0.96)"; // warm stone grey
-        ctx.fillRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-        ctx.strokeStyle = "rgba(72,54,28,0.88)"; ctx.lineWidth = 1;
-        ctx.strokeRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-        // 3-5 plank/course lines parallel to short axis (direction of travel)
-        const plankCount = Math.max(3, Math.min(5, Math.ceil(bridgeLen / 5)));
-        const plankStep = bridgeLen / (plankCount + 1);
-        ctx.strokeStyle = "rgba(72,54,28,0.22)"; ctx.lineWidth = 0.7;
-        for (let i = 1; i <= plankCount; i++) {
-          const py = -bridgeLen/2 + i * plankStep;
-          ctx.beginPath(); ctx.moveTo(-bw/2 + 1, py); ctx.lineTo(bw/2 - 1, py); ctx.stroke();
+        ctx.rotate(roadAngle);
+        // Clip to bridge rectangle for sharp bank edges
+        ctx.beginPath();
+        ctx.rect(-bridgeLen / 2, -bw / 2, bridgeLen, bw);
+        ctx.clip();
+        // Wood fill
+        ctx.fillStyle = "#8B6343";
+        ctx.fillRect(-bridgeLen / 2, -bw / 2, bridgeLen, bw);
+        // Plank lines perpendicular to road direction (across the bridge width), spaced 5px
+        ctx.strokeStyle = "#6B4A2A";
+        ctx.lineWidth = 0.9;
+        const plankSpacing = 5;
+        for (let px2 = Math.ceil(-bridgeLen / 2 / plankSpacing) * plankSpacing; px2 <= bridgeLen / 2; px2 += plankSpacing) {
+          ctx.beginPath();
+          ctx.moveTo(px2, -bw / 2);
+          ctx.lineTo(px2, bw / 2);
+          ctx.stroke();
         }
-        // One thin railing line along each long edge
-        ctx.strokeStyle = "rgba(72,54,28,0.65)"; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(-bw/2, -bridgeLen/2); ctx.lineTo(-bw/2, bridgeLen/2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(bw/2, -bridgeLen/2); ctx.lineTo(bw/2, bridgeLen/2); ctx.stroke();
+        ctx.restore();
+        // Dark 1px border on long edges (parallel to road direction) — drawn outside clip
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(roadAngle);
+        ctx.strokeStyle = "#4A3015";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-bridgeLen / 2, -bw / 2);
+        ctx.lineTo(bridgeLen / 2, -bw / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-bridgeLen / 2, bw / 2);
+        ctx.lineTo(bridgeLen / 2, bw / 2);
+        ctx.stroke();
         ctx.restore();
       }
     }
@@ -2385,8 +2353,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     usedLots.add(lotKey);
     const icx = b.x + b.w / 2, icy = b.y + b.h / 2;
     if (specialOrder[si] === "church") {
-      renderChurchBuilding(ctx, b);
-      // Bell badge centred on roof
+      // Plain rectangular building — identical style to house/inn; bell badge on roof
       const badgeR = Math.max(5, Math.min(b.w, b.h) * 0.14);
       ctx.save();
       ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
