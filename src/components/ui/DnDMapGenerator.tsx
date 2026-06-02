@@ -487,15 +487,61 @@ function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: Civ
   ctx.putImageData(img, 0, 0);
 }
 
-function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number } {
+function pointInPolygon(px: number, py: number, poly: Array<{x: number; y: number}>): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function organicPondPts(cx: number, cy: number, rx: number, ry: number, seed: number): Array<{x: number; y: number}> {
+  const n = 8 + (seededRand(790, seed) * 6 | 0);
+  const noise2D = makeNoise(seed + 76543);
+  const spans: number[] = [];
+  let total = 0;
+  for (let i = 0; i < n; i++) { const s = 0.5 + seededRand(791 + i, seed) * 1.0; spans.push(s); total += s; }
+  const norm = (2 * Math.PI) / total;
+  let ang = seededRand(799, seed) * Math.PI * 2;
+  const pts: Array<{x: number; y: number}> = [];
+  for (let i = 0; i < n; i++) {
+    ang += spans[i] * norm;
+    const rFrac = 0.62 + seededRand(800 + i, seed) * 0.36;
+    const noiseDisp = 0.08 + seededRand(810 + i, seed) * 0.12;
+    const nv = noise2D(Math.cos(ang) * 1.5, Math.sin(ang) * 1.5) * noiseDisp;
+    const r = Math.max(0.45, rFrac + nv);
+    pts.push({ x: cx + Math.cos(ang) * rx * r, y: cy + Math.sin(ang) * ry * r });
+  }
+  return pts;
+}
+
+function traceOrganicPond(ctx: CanvasRenderingContext2D, pts: Array<{x: number; y: number}>): void {
+  const n = pts.length;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i + n - 1) % n];
+    const curr = pts[i];
+    const next = pts[(i + 1) % n];
+    const next2 = pts[(i + 2) % n];
+    const cp1x = curr.x + (next.x - prev.x) / 6;
+    const cp1y = curr.y + (next.y - prev.y) / 6;
+    const cp2x = next.x - (next2.x - curr.x) / 6;
+    const cp2y = next.y - (next2.y - curr.y) / 6;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+  }
+  ctx.closePath();
+}
+
+function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; cy: number; rx: number; ry: number; poly: Array<{x: number; y: number}> } {
   const pcx = (0.12 + seededRand(760, seed) * 0.76) * W;
   const pcy = (0.12 + seededRand(761, seed) * 0.76) * H;
   const rx = 28 + seededRand(762, seed) * 44;
   const ry = 22 + seededRand(763, seed) * 35;
-  const angle = seededRand(764, seed) * Math.PI;
+  const poly = organicPondPts(pcx, pcy, rx, ry, seed);
   ctx.save();
-  ctx.beginPath();
-  ctx.ellipse(pcx, pcy, rx, ry, angle, 0, Math.PI * 2);
+  traceOrganicPond(ctx, poly);
   ctx.fillStyle = "rgba(68,108,148,0.82)"; ctx.fill();
   ctx.strokeStyle = "rgba(50,82,118,0.70)"; ctx.lineWidth = 1.8; ctx.stroke();
   for (let w = 0; w < 5; w++) {
@@ -506,7 +552,7 @@ function renderPond(ctx: CanvasRenderingContext2D, seed: number): { cx: number; 
     ctx.strokeStyle = "rgba(190,215,235,0.22)"; ctx.lineWidth = 0.8; ctx.stroke();
   }
   ctx.restore();
-  return { cx: pcx, cy: pcy, rx, ry };
+  return { cx: pcx, cy: pcy, rx, ry, poly };
 }
 
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
@@ -1731,15 +1777,26 @@ function drawFountain(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.restore();
 }
 
-function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number): { cx: number; cy: number; r: number } {
+function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number, pondPoly: Array<{x: number; y: number}> = []): { cx: number; cy: number; r: number } {
   ctx.save();
   const dockAngle = seededRand(800, seed) * Math.PI * 2;
   const dockLen = 28 + seededRand(802, seed) * 22;
   const dockW = 16 + seededRand(803, seed) * 10;
   const rampLen = 18;
-  // Shore point (where dock meets pond edge)
-  const shoreX = pondCx + Math.cos(dockAngle) * pondRx;
-  const shoreY = pondCy + Math.sin(dockAngle) * pondRy;
+  // Shore point: binary search along dockAngle ray to find organic boundary
+  let shoreX: number, shoreY: number;
+  if (pondPoly.length > 0) {
+    let lo = 0, hi = Math.max(pondRx, pondRy) * 1.6;
+    for (let iter = 0; iter < 24; iter++) {
+      const mid = (lo + hi) / 2;
+      if (pointInPolygon(pondCx + Math.cos(dockAngle)*mid, pondCy + Math.sin(dockAngle)*mid, pondPoly)) lo = mid; else hi = mid;
+    }
+    shoreX = pondCx + Math.cos(dockAngle) * lo;
+    shoreY = pondCy + Math.sin(dockAngle) * lo;
+  } else {
+    shoreX = pondCx + Math.cos(dockAngle) * pondRx;
+    shoreY = pondCy + Math.sin(dockAngle) * pondRy;
+  }
   // Direction from shore toward pond center
   const ddx = pondCx - shoreX, ddy = pondCy - shoreY;
   const ddlen = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
@@ -1798,7 +1855,7 @@ function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy
   return { cx: shoreX + px*dockLen/2, cy: shoreY + py*dockLen/2, r: Math.max(dockLen, dockW) + 20 };
 }
 
-function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number }> {
+function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number; tx: number; ty: number }> {
   if (seededRand(908, seed) > 0.38) return [];
   ctx.save();
   const side1 = Math.floor(seededRand(901, seed) * 4);
@@ -1836,13 +1893,15 @@ function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x:
   ctx.stroke();
   ctx.restore();
   // Return sampled center-line points for exclusion
-  const pts: Array<{x: number; y: number}> = [];
+  const pts: Array<{x: number; y: number; tx: number; ty: number}> = [];
   for (let s = 0; s <= 60; s++) {
     const t = s / 60, mt = 1 - t;
-    pts.push({
-      x: mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX,
-      y: mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY,
-    });
+    const x = mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX;
+    const y = mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY;
+    const dtx = 3*mt**2*(cp1x-startX) + 6*mt*t*(cp2x-cp1x) + 3*t**2*(endX-cp2x);
+    const dty = 3*mt**2*(cp1y-startY) + 6*mt*t*(cp2y-cp1y) + 3*t**2*(endY-cp2y);
+    const tlen = Math.sqrt(dtx*dtx + dty*dty) || 1;
+    pts.push({ x, y, tx: dtx/tlen, ty: dty/tlen });
   }
   return pts;
 }
@@ -1895,8 +1954,8 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
   }
 }
 
-function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number): void {
-  const bridgeLen = 32;
+function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number, crossWidth = 24): void {
+  const bridgeLen = crossWidth + 16;
   const bw = roadWidth + 6;
   ctx.save();
   ctx.translate(cx, cy);
@@ -1990,10 +2049,11 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const pondRx = 28 + seededRand(762, seed) * 44;
   const pondRy = 22 + seededRand(763, seed) * 35;
   const hasPond = rawHasPond && !farmAreas.some(fa => pondCx > fa.fx && pondCx < fa.fx + fa.fw && pondCy > fa.fy && pondCy < fa.fy + fa.fh);
+  let pondPoly: Array<{x: number; y: number}> = [];
 
   // ── Layer 0: Terrain + water ──────────────────────────────────────────────
   renderCivTerrain(ctx, seed, size);
-  if (hasPond) renderPond(ctx, seed);
+  if (hasPond) { const pr = renderPond(ctx, seed); pondPoly = pr.poly; }
 
   // ── River (occasional) ────────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
@@ -2005,12 +2065,12 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const isLake = hasPond && (pondRx > 56 || pondRy > 42);
   let dockExcl: { cx: number; cy: number; r: number } | null = null;
   if (isLake && size !== "village") {
-    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed);
+    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed, pondPoly);
   }
   const isOnDock = (px2: number, py2: number): boolean =>
     dockExcl !== null && Math.hypot(px2 - dockExcl.cx, py2 - dockExcl.cy) < dockExcl.r;
   const isOnPond = (px2: number, py2: number): boolean =>
-    hasPond && Math.hypot((px2-pondCx)/pondRx, (py2-pondCy)/pondRy) < 1.0;
+    hasPond && pointInPolygon(px2, py2, pondPoly);
 
   // ── Layer 2a: Junction blobs at multi-road anchor points ──────────────────
   for (let ai = 0; ai < anchorPts.length; ai++) {
@@ -2036,11 +2096,18 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const bridgeDone = new Set<string>();
     for (const road of civRoads) {
       for (const pt of sampleCivRoad(road, 100)) {
-        if (!riverPts.some(rp => Math.hypot(pt.x - rp.x, pt.y - rp.y) < riverExR)) continue;
+        let nearRiv = riverPts[0], nearDist = Infinity;
+        for (const rp of riverPts) {
+          const d = Math.hypot(pt.x - rp.x, pt.y - rp.y);
+          if (d < nearDist) { nearDist = d; nearRiv = rp; }
+        }
+        if (nearDist >= riverExR) continue;
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
-        drawBridge(ctx, pt.x, pt.y, Math.atan2(pt.ty, pt.tx), road.width);
+        // Use river flow angle so bridge spans perpendicular to flow (crossing direction)
+        const riverFlowAngle = Math.atan2(nearRiv.ty, nearRiv.tx);
+        drawBridge(ctx, pt.x, pt.y, riverFlowAngle, road.width, 10);
       }
     }
   }
