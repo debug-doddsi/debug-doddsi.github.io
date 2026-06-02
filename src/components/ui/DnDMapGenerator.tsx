@@ -1941,7 +1941,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const roadMask = new Uint8Array(MASK_W * MASK_H);
 
   function paintRoadMask(road: CivRoad): void {
-    const marginPx = road.width / 2 + 10;
+    const marginPx = road.width / 2 + 4;
     const maskR2 = Math.ceil((marginPx / W) * MASK_W);
     for (const pt of sampleCivRoad(road, 80)) {
       const mgx = ((pt.x / W) * MASK_W) | 0;
@@ -2026,8 +2026,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Layer 2b: Road fills — widest drawn first so narrower overlay cleanly ─
-  for (let i = 0; i < civRoads.length; i++) {
-    drawOrganicRoad(ctx, civRoads[i], seed, i);
+  const sortedForDraw = [...civRoads].sort((a, b) => b.width - a.width);
+  for (let i = 0; i < sortedForDraw.length; i++) {
+    drawOrganicRoad(ctx, sortedForDraw[i], seed, i);
   }
 
   // ── Layer 2.5: Bridges at river×road intersections ────────────────────────
@@ -2134,7 +2135,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   for (let pi = 0; pi < civRoads.length; pi++) {
     const road = civRoads[pi];
     const roadPts = sampleCivRoad(road, bSteps);
-    const sideOffset = road.width / 2 + 6;
+    // sideOffset: building centre must clear the road edge + half the smallest building side
+    // so even the minimum building doesn't visually overlap the road polygon
+    const sideOffset = road.width / 2 + minBSize / 2 + 4;
     const accessPathColor = (road.style === "track" || size === "village")
       ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
 
@@ -2162,9 +2165,6 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
         if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
         if (isOnRoad(bcx, bcy)) continue;
-        const nearEdgeMidX = bcx - nnx * side * (Math.min(bw, bh) / 2);
-        const nearEdgeMidY = bcy - nny * side * (Math.min(bw, bh) / 2);
-        if (isOnRoad(nearEdgeMidX, nearEdgeMidY)) continue;
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
         if (allBuildings.some(({ b }) => bx < b.x + b.w + 5 && bx + bw > b.x - 5 && by2 < b.y + b.h + 5 && by2 + bh > b.y - 5)) continue;
@@ -2179,7 +2179,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
 
         // Dirt access path from building to road edge when set back far enough
-        if (offsetDist > road.width + 4) {
+        if (offsetDist > road.width / 2 + 8) {
           const roadEdgeX = ppx + nnx * side * (road.width / 2 + 2);
           const roadEdgeY = ppy + nny * side * (road.width / 2 + 2);
           ctx.save();
