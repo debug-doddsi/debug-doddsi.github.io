@@ -716,21 +716,16 @@ function drawMerchantIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number)
 function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
   ctx.strokeStyle = "rgba(42,28,12,0.88)"; ctx.lineWidth = 0.85;
-  // Nave body
+  // Top-down cross shape: nave (vertical) + transept (horizontal)
+  // Nave: 10 wide × 18 tall, centred
   ctx.fillStyle = "rgba(178,165,142,0.95)";
-  ctx.fillRect(cx - 7, cy - 5, 14, 10); ctx.strokeRect(cx - 7, cy - 5, 14, 10);
-  // Tower
-  ctx.fillStyle = "rgba(158,148,128,0.95)";
-  ctx.fillRect(cx - 4, cy - 13, 8, 9); ctx.strokeRect(cx - 4, cy - 13, 8, 9);
-  // Steeple
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - 20); ctx.lineTo(cx - 4, cy - 13); ctx.lineTo(cx + 4, cy - 13);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(118,108,90,0.95)"; ctx.fill(); ctx.stroke();
-  // Cross on nave
-  ctx.fillStyle = "rgba(68,52,30,0.90)";
-  ctx.fillRect(cx - 1, cy - 3, 2, 7);
-  ctx.fillRect(cx - 4, cy - 0.5, 8, 2);
+  ctx.fillRect(cx - 5, cy - 9, 10, 18); ctx.strokeRect(cx - 5, cy - 9, 10, 18);
+  // Transept: 18 wide × 6 tall, crossing at 1/3 from top
+  ctx.fillRect(cx - 9, cy - 6, 18, 6); ctx.strokeRect(cx - 9, cy - 6, 18, 6);
+  // Roof tint on nave to unify overlap
+  ctx.fillStyle = "rgba(152,140,118,0.80)";
+  ctx.fillRect(cx - 4, cy - 8, 8, 16);
+  ctx.fillRect(cx - 8, cy - 5, 16, 4);
   ctx.restore();
 }
 
@@ -1710,55 +1705,58 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
 function renderChurchBuilding(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
   const { x, y, w, h } = b;
   const doorSide = b.doorSide ?? "S";
-  // Tower at the end away from door
-  const towerAtTop = (doorSide === "S" || doorSide === "W");
-  // Cool stone palette matching other buildings' slate option
+  // Cool stone palette — same as slate variant
   const p = { wr: 194, wg: 186, wb: 170, rr: 132, rg: 126, rb: 116 };
   const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
 
-  // Drop shadow
-  ctx.fillStyle = "rgba(28,16,4,0.26)"; ctx.fillRect(x + 4, y + 3, w, h);
+  // Transept arm geometry
+  const naveVertical = h >= w;
+  const armExt = Math.max(6, (Math.min(w, h) * 0.38) | 0);
+  let tpx: number, tpy: number, tpw: number, tph: number;
+  if (naveVertical) {
+    const armThick = Math.max(8, (h * 0.28) | 0);
+    const distFromFar = (h / 3) | 0;
+    tpx = x - armExt;
+    tpw = w + armExt * 2;
+    tph = armThick;
+    if      (doorSide === "S") tpy = y + distFromFar - (armThick / 2) | 0;
+    else if (doorSide === "N") tpy = y + h - distFromFar - (armThick / 2) | 0;
+    else                       tpy = (y + h * 0.35 - armThick / 2) | 0;
+  } else {
+    const armThick = Math.max(8, (w * 0.28) | 0);
+    const distFromFar = (w / 3) | 0;
+    tpy = y - armExt;
+    tph = h + armExt * 2;
+    tpw = armThick;
+    if      (doorSide === "W") tpx = x + distFromFar - (armThick / 2) | 0;
+    else if (doorSide === "E") tpx = x + w - distFromFar - (armThick / 2) | 0;
+    else                       tpx = (x + w * 0.35 - armThick / 2) | 0;
+  }
 
-  // Nave (main body) — use drawBuildingRect for consistent style
-  drawBuildingRect(ctx, x, y, w, h, p, wt, 72001, 0, false, doorSide);
+  // Shadows for both shapes
+  ctx.fillStyle = "rgba(28,16,4,0.26)";
+  ctx.fillRect(tpx + 4, tpy + 3, tpw, tph);
+  ctx.fillRect(x + 4, y + 3, w, h);
 
-  // Tower dimensions
-  const twW = Math.max(8, (w * 0.44) | 0);
-  const twExt = Math.max(8, (Math.min(w, h) * 0.35) | 0);
-  const twX = (x + (w - twW) / 2) | 0;
-  const twY = towerAtTop ? y - twExt : y + h - wt;
-  const twH = twExt + wt;
-
-  // Tower walls + roof
-  ctx.fillStyle = `rgb(${p.wr - 8},${p.wg - 8},${p.wb - 8})`;
-  ctx.fillRect(twX, twY, twW, twH);
+  // Draw transept arms (will be partially covered by nave)
+  ctx.fillStyle = `rgb(${p.wr},${p.wg},${p.wb})`;
+  ctx.fillRect(tpx, tpy, tpw, tph);
   ctx.fillStyle = `rgb(${p.rr},${p.rg},${p.rb})`;
-  ctx.fillRect(twX + wt, twY + wt, twW - wt * 2, twH - wt);
+  ctx.fillRect(tpx + wt, tpy + wt, tpw - wt*2, tph - wt*2);
+  const grd = ctx.createLinearGradient(tpx + wt, tpy + wt, tpx + tpw - wt, tpy + tph - wt);
+  grd.addColorStop(0, "rgba(255,255,255,0.16)");
+  grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
+  grd.addColorStop(1, "rgba(0,0,0,0.22)");
+  ctx.fillStyle = grd;
+  ctx.fillRect(tpx + wt, tpy + wt, tpw - wt*2, tph - wt*2);
+  ctx.fillStyle = "rgba(28,16,4,0.22)";
+  ctx.fillRect(tpx, tpy + tph - wt, tpw, wt);
+  ctx.fillRect(tpx + tpw - wt, tpy, wt, tph);
   ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9;
-  ctx.strokeRect(twX, twY, twW, twH);
+  ctx.strokeRect(tpx, tpy, tpw, tph);
 
-  // Steeple (pointed triangle)
-  const spireH = Math.max(10, (Math.min(w, h) * 0.42) | 0);
-  const spireBaseY = towerAtTop ? twY : twY + twH;
-  const spireTipY  = towerAtTop ? spireBaseY - spireH : spireBaseY + spireH;
-  ctx.beginPath();
-  ctx.moveTo(twX + twW / 2, spireTipY);
-  ctx.lineTo(twX, spireBaseY);
-  ctx.lineTo(twX + twW, spireBaseY);
-  ctx.closePath();
-  ctx.fillStyle = `rgb(${p.rr - 10},${p.rg - 10},${p.rb - 10})`;
-  ctx.fill();
-  ctx.strokeStyle = "rgba(42,26,8,0.88)"; ctx.lineWidth = 0.9; ctx.stroke();
-
-  // Cross on nave roof
-  const naveMidX = x + w / 2;
-  const naveMidY = towerAtTop ? y + h * 0.60 : y + h * 0.40;
-  const cVW = Math.max(2, (w * 0.11) | 0);
-  const cVH = Math.max(6, (h * 0.26) | 0);
-  const cHW = Math.max(5, (w * 0.20) | 0);
-  ctx.fillStyle = `rgba(${(p.rr * 0.52)|0},${(p.rg * 0.48)|0},${(p.rb * 0.44)|0},0.88)`;
-  ctx.fillRect(naveMidX - cVW / 2, naveMidY - cVH / 2, cVW, cVH);
-  ctx.fillRect(naveMidX - cHW / 2, naveMidY - cVH * 0.18, cHW, cVW);
+  // Draw nave on top — covers transept centre, consistent style
+  drawBuildingRect(ctx, x, y, w, h, p, wt, 72001, 0, false, doorSide);
 }
 
 function drawWell(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
@@ -1997,27 +1995,27 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
 }
 
 function drawBridge(ctx: CanvasRenderingContext2D, cx: number, cy: number, angle: number, roadWidth: number, crossWidth = 24): void {
-  const bridgeLen = crossWidth + 20; // 10px overhang each bank
-  const bw = roadWidth;             // exactly matches road width
+  const bridgeLen = crossWidth + 12; // 6px overhang each bank
+  const bw = roadWidth;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(angle);
-  // Flat stone/timber deck
-  ctx.fillStyle = "rgba(160,130,88,0.94)";
+  // Flat timber deck
+  ctx.fillStyle = "rgba(155,128,84,0.95)";
   ctx.fillRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  // Border
-  ctx.strokeStyle = "rgba(75,52,24,0.82)"; ctx.lineWidth = 1.5;
+  // 1px border
+  ctx.strokeStyle = "rgba(65,44,18,0.88)"; ctx.lineWidth = 1;
   ctx.strokeRect(-bw/2, -bridgeLen/2, bw, bridgeLen);
-  // Plank/course lines across bridge (5–8 lines along direction of travel)
-  const plankCount = Math.max(5, Math.min(8, Math.ceil(bridgeLen / 5)));
+  // 4-6 plank lines running perpendicular to river (direction of travel)
+  const plankCount = Math.max(4, Math.min(6, Math.ceil(bridgeLen / 4)));
   const plankStep = bridgeLen / (plankCount + 1);
-  ctx.strokeStyle = "rgba(75,52,24,0.28)"; ctx.lineWidth = 0.8;
+  ctx.strokeStyle = "rgba(65,44,18,0.25)"; ctx.lineWidth = 0.7;
   for (let i = 1; i <= plankCount; i++) {
     const py = -bridgeLen / 2 + i * plankStep;
     ctx.beginPath(); ctx.moveTo(-bw / 2 + 1, py); ctx.lineTo(bw / 2 - 1, py); ctx.stroke();
   }
-  // Thin railing lines along long edges
-  ctx.strokeStyle = "rgba(75,52,24,0.68)"; ctx.lineWidth = 1.2;
+  // Two thin railing lines along the long edges
+  ctx.strokeStyle = "rgba(65,44,18,0.72)"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(-bw / 2, -bridgeLen / 2); ctx.lineTo(-bw / 2, bridgeLen / 2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bw / 2, -bridgeLen / 2); ctx.lineTo(bw / 2, bridgeLen / 2); ctx.stroke();
   ctx.restore();
@@ -2131,17 +2129,31 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const bridgeDone = new Set<string>();
     for (const road of civRoads) {
       for (const pt of sampleCivRoad(road, 100)) {
-        let nearRiv = riverPts[0], nearDist = Infinity;
-        for (const rp of riverPts) {
-          const d = Math.hypot(pt.x - rp.x, pt.y - rp.y);
-          if (d < nearDist) { nearDist = d; nearRiv = rp; }
+        let nearIdx = 0, nearDist = Infinity;
+        for (let ri = 0; ri < riverPts.length; ri++) {
+          const d = Math.hypot(pt.x - riverPts[ri].x, pt.y - riverPts[ri].y);
+          if (d < nearDist) { nearDist = d; nearIdx = ri; }
         }
         if (nearDist >= riverExR) continue;
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
-        // Use river flow angle so bridge spans perpendicular to flow (crossing direction)
-        const riverFlowAngle = Math.atan2(nearRiv.ty, nearRiv.tx);
+        // Two sample points 15px either side along the river polyline
+        let fwdIdx = nearIdx, bwdIdx = nearIdx, fwdDist = 0, bwdDist = 0;
+        while (fwdIdx + 1 < riverPts.length && fwdDist < 15) {
+          fwdIdx++;
+          fwdDist += Math.hypot(riverPts[fwdIdx].x - riverPts[fwdIdx-1].x, riverPts[fwdIdx].y - riverPts[fwdIdx-1].y);
+        }
+        while (bwdIdx > 0 && bwdDist < 15) {
+          bwdIdx--;
+          bwdDist += Math.hypot(riverPts[bwdIdx].x - riverPts[bwdIdx+1].x, riverPts[bwdIdx].y - riverPts[bwdIdx+1].y);
+        }
+        const fdx = riverPts[fwdIdx].x - riverPts[bwdIdx].x;
+        const fdy = riverPts[fwdIdx].y - riverPts[bwdIdx].y;
+        const flen = Math.sqrt(fdx*fdx + fdy*fdy);
+        if (flen > 80) { console.warn("bridge: unexpectedly large river crossing at", pt.x, pt.y); continue; }
+        // Bridge angle = river flow angle; rectangle y-axis spans perpendicular to river
+        const riverFlowAngle = Math.atan2(fdy, fdx);
         drawBridge(ctx, pt.x, pt.y, riverFlowAngle, road.width, 10);
       }
     }
