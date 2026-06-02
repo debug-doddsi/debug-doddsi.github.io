@@ -979,38 +979,46 @@ function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "civilisa
       ctx.fillText(swatches[i].label, lx + pad + sw + 5, ey + 3);
     }
   } else {
-    // Icon legend for civilisation mode
+    // FIX 4: Civilisation legend — proper spacing, padding, auto-size
     const iconItems: Array<{ label: string; draw: (x: number, y: number) => void }> = [
       { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
       { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
       { label: "Tavern",     draw: (x, y) => drawTavernIcon(ctx, x, y) },
-      { label: "Temple",      draw: (x, y) => drawChurchIcon(ctx, x, y) },
+      { label: "Temple",     draw: (x, y) => drawChurchIcon(ctx, x, y) },
       { label: "Blacksmith", draw: (x, y) => drawBlacksmithIcon(ctx, x, y) },
       { label: "Armoury",    draw: (x, y) => drawSwordIcon(ctx, x, y) },
       { label: "Potions",    draw: (x, y) => drawPotionIcon(ctx, x, y) },
       { label: "Merchant",   draw: (x, y) => drawMerchantIcon(ctx, x, y) },
       { label: "Dock",       draw: (x, y) => drawDockIcon(ctx, x, y) },
     ];
-    const rowH = 26, lw = 134;
-    const lh = iconItems.length * rowH + 20;
+    const PAD = 10, ICON_SZ = 18, ICON_GAP = 10, ROW_H = 28, TITLE_EXTRA = 8;
+    ctx.font = "10px 'Cinzel', serif";
+    let maxLW = 0;
+    for (const item of iconItems) maxLW = Math.max(maxLW, ctx.measureText(item.label).width);
+    const lw = Math.ceil(PAD + ICON_SZ + ICON_GAP + maxLW + PAD);
+    const titleH = 13;
+    const lh = PAD + titleH + TITLE_EXTRA + 4 + iconItems.length * ROW_H + PAD;
     const lx = W - lw - 20, ly = 20;
-    ctx.fillStyle = "rgba(228,210,175,0.90)";
+    ctx.fillStyle = "rgba(228,210,175,0.92)";
     roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
     ctx.strokeStyle = "rgba(55,38,18,0.50)"; ctx.lineWidth = 0.8;
     roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+    // Title
     ctx.font = "bold 9px 'Cinzel', serif";
-    ctx.fillStyle = "rgba(55,38,18,0.88)";
+    ctx.fillStyle = "rgba(55,38,18,0.92)";
     ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.fillText("LEGEND", lx + lw / 2, ly + 5);
-    ctx.beginPath(); ctx.moveTo(lx + 6, ly + 16); ctx.lineTo(lx + lw - 6, ly + 16);
+    ctx.fillText("LEGEND", lx + lw / 2, ly + PAD);
+    ctx.beginPath(); ctx.moveTo(lx + 6, ly + PAD + titleH + 2); ctx.lineTo(lx + lw - 6, ly + PAD + titleH + 2);
     ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+    // Entries: icon (18×18) + 10px gap + label, 28px row height, 10px padding all sides
+    const firstY = ly + PAD + titleH + TITLE_EXTRA + 4;
     for (let i = 0; i < iconItems.length; i++) {
-      const rowY = ly + 18 + i * rowH + rowH / 2;
-      iconItems[i].draw(lx + 20, rowY);
+      const rowMid = firstY + i * ROW_H + ROW_H / 2;
+      iconItems[i].draw(lx + PAD + ICON_SZ / 2, rowMid);
       ctx.font = "10px 'Cinzel', serif";
       ctx.fillStyle = "rgba(45,30,12,0.92)";
       ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      ctx.fillText(iconItems[i].label, lx + 38, rowY - 2);
+      ctx.fillText(iconItems[i].label, lx + PAD + ICON_SZ + ICON_GAP, rowMid);
     }
   }
   ctx.restore();
@@ -1824,7 +1832,7 @@ function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy
   return { cx: shoreX + px*dockLen/2, cy: shoreY + py*dockLen/2, r: Math.max(dockLen, dockW) + 20 };
 }
 
-function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number; tx: number; ty: number }> {
+function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number, hubX = W / 2, hubY = H / 2): Array<{ x: number; y: number; tx: number; ty: number }> {
   if (seededRand(908, seed) > 0.38) return [];
   ctx.save();
   const side1 = Math.floor(seededRand(901, seed) * 4);
@@ -1840,10 +1848,32 @@ function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x:
   else if (side2 === 1) { endX = W; endY = p2pos*H; }
   else if (side2 === 2) { endX = p2pos*W; endY = H; }
   else                  { endX = 0; endY = p2pos*H; }
-  const cp1x = startX + (endX-startX)*0.30 + (seededRand(904, seed)-0.5)*280;
-  const cp1y = startY + (endY-startY)*0.30 + (seededRand(905, seed)-0.5)*230;
-  const cp2x = startX + (endX-startX)*0.70 + (seededRand(906, seed)-0.5)*280;
-  const cp2y = startY + (endY-startY)*0.70 + (seededRand(907, seed)-0.5)*230;
+  let cp1x = startX + (endX-startX)*0.30 + (seededRand(904, seed)-0.5)*280;
+  let cp1y = startY + (endY-startY)*0.30 + (seededRand(905, seed)-0.5)*230;
+  let cp2x = startX + (endX-startX)*0.70 + (seededRand(906, seed)-0.5)*280;
+  let cp2y = startY + (endY-startY)*0.70 + (seededRand(907, seed)-0.5)*230;
+  // FIX 5: Route river around town hub — bend control points away if river passes within 100px
+  {
+    const lineX = endX - startX, lineY = endY - startY;
+    const lineLen = Math.hypot(lineX, lineY) || 1;
+    const perpX = -lineY / lineLen, perpY = lineX / lineLen;
+    const hubSide = (hubX - startX) * perpX + (hubY - startY) * perpY;
+    const pushDir = hubSide >= 0 ? -1 : 1; // push river to opposite side from hub
+    const HUB_CLEAR = 130;
+    for (let iter = 0; iter < 8; iter++) {
+      let minDist = Infinity;
+      for (let s = 0; s <= 50; s++) {
+        const t = s / 50, mt = 1 - t;
+        const rx = mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX;
+        const ry = mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY;
+        minDist = Math.min(minDist, Math.hypot(rx - hubX, ry - hubY));
+      }
+      if (minDist >= HUB_CLEAR) break;
+      const push = (HUB_CLEAR - minDist) * 2.2;
+      cp1x += perpX * pushDir * push; cp1y += perpY * pushDir * push;
+      cp2x += perpX * pushDir * push; cp2y += perpY * pushDir * push;
+    }
+  }
   const riverW = 10;
   // Shadow
   ctx.beginPath(); ctx.moveTo(startX, startY);
@@ -1931,6 +1961,40 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
   }
 }
 
+
+function drawTempleProps(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, seed: number): void {
+  const propCount = 3 + (seededRand(701, seed + 77701) * 3 | 0);
+  for (let p = 0; p < propCount; p++) {
+    const angle = (p / propCount) * Math.PI * 2 + seededRand(p, seed + 77702) * 0.8;
+    const dist = radius + 6 + seededRand(p, seed + 77703) * 10;
+    const px = cx + Math.cos(angle) * dist;
+    const py = cy + Math.sin(angle) * dist;
+    const propType = (seededRand(p, seed + 77704) * 3) | 0;
+    ctx.save();
+    ctx.translate(px, py);
+    if (propType === 0) {
+      // Bench
+      ctx.fillStyle = "rgba(140,108,65,0.80)";
+      ctx.fillRect(-7, -2.5, 14, 5);
+      ctx.strokeStyle = "rgba(80,52,22,0.70)"; ctx.lineWidth = 0.8;
+      ctx.strokeRect(-7, -2.5, 14, 5);
+    } else if (propType === 1) {
+      // Garden patch
+      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(72,110,45,0.65)"; ctx.fill();
+      ctx.strokeStyle = "rgba(45,80,22,0.50)"; ctx.lineWidth = 0.7; ctx.stroke();
+    } else {
+      // Statue / plinth
+      ctx.fillStyle = "rgba(168,155,128,0.80)";
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.strokeStyle = "rgba(90,75,50,0.70)"; ctx.lineWidth = 0.8;
+      ctx.strokeRect(-3, -3, 6, 6);
+      ctx.beginPath(); ctx.arc(0, -5, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(152,140,115,0.80)"; ctx.fill();
+    }
+    ctx.restore();
+  }
+}
 
 function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
@@ -2030,7 +2094,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   if (hasPond) { const pr = renderPond(ctx, seed, pondCx, pondCy); pondPoly = pr.poly; }
 
   // ── River (occasional) ────────────────────────────────────────────────────
-  const riverPts = renderCivRiver(ctx, seed);
+  const riverPts = renderCivRiver(ctx, seed, hx, hy);
   const riverExR = 18;
   const isOnRiver = (px2: number, py2: number): boolean =>
     riverPts.some(p => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
@@ -2067,6 +2131,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Layer 2.5: Wooden bridges at river×road crossings ────────────────────
+  const bridgeCrossings: Array<{ x: number; y: number }> = [];
   if (riverPts.length > 0) {
     const riverW = 10;
     const detectR = riverW / 2 + 8;
@@ -2084,6 +2149,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         const key = `${(pt.x / 20) | 0},${(pt.y / 20) | 0}`;
         if (bridgeDone.has(key)) continue;
         bridgeDone.add(key);
+        bridgeCrossings.push({ x: pt.x, y: pt.y });
 
         // Bridge spans river in road direction; planks run perpendicular (across road width)
         const bridgeLen = riverW + 16; // 8px overhang each bank
@@ -2197,12 +2263,82 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Layer 4: Buildings — placed along roads, facing road direction ─────────
-  const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
+  // specialOrder defined here so temple pre-placement can reference it
+  const specialOrder: BuildingType[] = size === "village"
+    ? ["inn", "tavern", "blacksmith", "potions", "merchant"]
+    : size === "town"
+    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "armoury", "potions", "potions", "merchant"]
+    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "armoury", "potions", "potions", "merchant", "merchant"];
+
+  type BldgEntry = {
+    b: TownBuilding; lotCx: number; lotCy: number; buildingAngle: number;
+    accessPath: { fromX: number; fromY: number; toX: number; toY: number; color: string } | null;
+    drawIdx: number; isPreplacedTemple?: boolean;
+  };
+  const allBuildings: BldgEntry[] = [];
+
   const bSteps = size === "village" ? 28 : size === "town" ? 38 : 50;
   const density = size === "village" ? 0.38 : size === "town" ? 0.55 : 0.68;
   const minBSize = size === "village" ? 22 : size === "town" ? 26 : 30;
   const maxBSize = size === "village" ? 38 : size === "town" ? 48 : 58;
 
+  // ── FIX 3: Pre-placed temple on a primary/secondary road near hub ─────────
+  const templeW = size === "city" ? 78 : size === "town" ? 66 : 54;
+  const templeH = size === "city" ? 70 : size === "town" ? 58 : 48;
+  if (specialOrder.includes("church")) {
+    // IIFE: avoids TS narrowing issues with loop-break patterns
+    const temResult = ((): { cx: number; cy: number; angle: number; reX: number; reY: number; col: string } | null => {
+      const targetTemDist = hubR + 100 + seededRand(559, seed + 55901) * 80;
+      let bestCx = 0, bestCy = 0, bestAngle = 0, bestReX = 0, bestReY = 0, bestCol = "";
+      let bestTemScore = Infinity;
+      const temRoads = [...civRoads].sort((a, b) => (styleOrder[b.style] ?? 1) - (styleOrder[a.style] ?? 1));
+      for (const road of temRoads) {
+        if (road.style === "track") continue;
+        const aColor = road.style === "primary" ? "rgba(112,106,93,0.55)" : "rgba(148,120,72,0.50)";
+        for (const pt of sampleCivRoad(road, 60)) {
+          const dToHub = Math.hypot(pt.x - hx, pt.y - hy);
+          for (const tSide of [1, -1] as const) {
+            const offset = road.width / 2 + templeW / 2 + 6;
+            const cx = pt.x + pt.nx * tSide * offset;
+            const cy = pt.y + pt.ny * tSide * offset;
+            if (cx - templeW/2 < 28 || cy - templeH/2 < 28 || cx + templeW/2 > W - 28 || cy + templeH/2 > H - 28) continue;
+            if (Math.hypot(cx - hx, cy - hy) < hubR + 40) continue;
+            if (isOnRoad(cx, cy)) continue;
+            if (isOnRiver(cx, cy) || isOnPond(cx, cy)) continue;
+            if (riverPts.some(p => Math.hypot(cx - p.x, cy - p.y) < 180)) continue;
+            if (hasPond && Math.hypot(cx - pondCx, cy - pondCy) < pondMaxR + 180) continue;
+            if (bridgeCrossings.some(bc => Math.hypot(cx - bc.x, cy - bc.y) < 120)) continue;
+            if (size === "city" && Math.abs(cx - castleCx) < castleW/2 + 30 && Math.abs(cy - castleCy) < castleH/2 + 30) continue;
+            const score = Math.abs(dToHub - targetTemDist) + (road.style === "primary" ? 0 : 300);
+            if (score < bestTemScore) {
+              bestTemScore = score;
+              const fd = getDoorSide(-pt.nx * tSide, -pt.ny * tSide);
+              const fa = Math.atan2(-pt.ny * tSide, -pt.nx * tSide);
+              const da: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
+              bestCx = cx; bestCy = cy; bestAngle = fa - (da[fd] ?? Math.PI/2);
+              bestReX = pt.x + pt.nx * tSide * (road.width / 2 + 2);
+              bestReY = pt.y + pt.ny * tSide * (road.width / 2 + 2);
+              bestCol = aColor;
+            }
+          }
+        }
+        if (bestTemScore < 50) break;
+      }
+      return bestTemScore < Infinity ? { cx: bestCx, cy: bestCy, angle: bestAngle, reX: bestReX, reY: bestReY, col: bestCol } : null;
+    })();
+    if (temResult !== null) {
+      const tx = (temResult.cx - templeW / 2) | 0, ty = (temResult.cy - templeH / 2) | 0;
+      const tDoor = getDoorSide(hx - temResult.cx, hy - temResult.cy);
+      allBuildings.push({
+        b: { x: tx, y: ty, w: templeW, h: templeH, type: "normal", doorSide: tDoor },
+        lotCx: temResult.cx, lotCy: temResult.cy, buildingAngle: temResult.angle,
+        accessPath: { fromX: temResult.cx, fromY: temResult.cy, toX: temResult.reX, toY: temResult.reY, color: temResult.col },
+        drawIdx: 999998, isPreplacedTemple: true,
+      });
+    }
+  }
+
+  // General building placement loop — collect only, draw after collision pass
   for (let pi = 0; pi < civRoads.length; pi++) {
     const road = civRoads[pi];
     const roadPts = sampleCivRoad(road, bSteps);
@@ -2247,7 +2383,8 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
         if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
-        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
+        // FIX 1: increased castle exclusion zone to 30px
+        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 30 && Math.abs(bcy - castleCy) < castleH/2 + 30) continue;
 
         // Check center + all 4 rotated corners against road mask
         if (isOnRoad(bcx, bcy)) continue;
@@ -2258,31 +2395,71 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
           { x: bcx + cosA*bw/2 + sinA*bh/2, y: bcy + sinA*bw/2 - cosA*bh/2 },
         ];
         if (corners.some(c => isOnRoad(c.x, c.y))) continue;
-
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
         if (allBuildings.some(({ b }) => bx < b.x + b.w + 6 && bx + bw > b.x - 6 && by2 < b.y + b.h + 6 && by2 + bh > b.y - 6)) continue;
 
         const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
-
-        // Dirt access path from building to road edge when set back far enough
-        if (offsetDist > road.width / 2 + 8) {
-          const roadEdgeX = ppx + nnx * side * (road.width / 2 + 2);
-          const roadEdgeY = ppy + nny * side * (road.width / 2 + 2);
-          ctx.save();
-          ctx.beginPath(); ctx.moveTo(bcx, bcy); ctx.lineTo(roadEdgeX, roadEdgeY);
-          ctx.strokeStyle = accessPathColor;
-          ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
-          ctx.restore();
-        }
-
-        ctx.save();
-        ctx.translate(bcx, bcy); ctx.rotate(buildingAngle); ctx.translate(-bcx, -bcy);
-        drawHouseTopDown(ctx, b, seed, pi * 200 + si * 2 + (side === 1 ? 0 : 1), size === "village");
-        ctx.restore();
-        allBuildings.push({ b, lotCx: bcx, lotCy: bcy });
+        const accessPath = offsetDist > road.width / 2 + 8 ? {
+          fromX: bcx, fromY: bcy,
+          toX: ppx + nnx * side * (road.width / 2 + 2),
+          toY: ppy + nny * side * (road.width / 2 + 2),
+          color: accessPathColor,
+        } : null;
+        allBuildings.push({ b, lotCx: bcx, lotCy: bcy, buildingAngle, accessPath,
+          drawIdx: pi * 200 + si * 2 + (side === 1 ? 0 : 1) });
       }
     }
+  }
+
+  // ── FIX 1: Post-placement collision pass ──────────────────────────────────
+  // Sort by proximity to hub: closer buildings have higher priority and won't be pushed
+  allBuildings.sort((ea, eb) => Math.hypot(ea.lotCx - hx, ea.lotCy - hy) - Math.hypot(eb.lotCx - hx, eb.lotCy - hy));
+  const COLL_GAP = 14;
+  for (let iter = 0; iter < 20; iter++) {
+    let anyPushed = false;
+    for (let ii = 0; ii < allBuildings.length; ii++) {
+      const ea = allBuildings[ii];
+      for (let jj = ii + 1; jj < allBuildings.length; jj++) {
+        const eb = allBuildings[jj];
+        // Gap between AABBs in each axis (negative = overlapping in that axis)
+        const gapX = Math.max(ea.b.x, eb.b.x) - Math.min(ea.b.x + ea.b.w, eb.b.x + eb.b.w);
+        const gapY = Math.max(ea.b.y, eb.b.y) - Math.min(ea.b.y + ea.b.h, eb.b.y + eb.b.h);
+        if (gapX >= COLL_GAP || gapY >= COLL_GAP) continue;
+        anyPushed = true;
+        const penX = COLL_GAP - gapX, penY = COLL_GAP - gapY;
+        if (penX <= penY) {
+          const dir = eb.lotCx >= ea.lotCx ? 1 : -1;
+          eb.lotCx += dir * Math.ceil(penX);
+          eb.b.x = (eb.lotCx - eb.b.w / 2) | 0;
+        } else {
+          const dir = eb.lotCy >= ea.lotCy ? 1 : -1;
+          eb.lotCy += dir * Math.ceil(penY);
+          eb.b.y = (eb.lotCy - eb.b.h / 2) | 0;
+        }
+        eb.b.x = Math.max(22, Math.min(W - 22 - eb.b.w, eb.b.x));
+        eb.b.y = Math.max(22, Math.min(H - 22 - eb.b.h, eb.b.y));
+        eb.lotCx = eb.b.x + eb.b.w / 2;
+        eb.lotCy = eb.b.y + eb.b.h / 2;
+      }
+    }
+    if (!anyPushed) break;
+  }
+
+  // ── Draw buildings (access paths first, then footprints) ──────────────────
+  for (const entry of allBuildings) {
+    const { b, lotCx, lotCy, buildingAngle, accessPath, drawIdx } = entry;
+    if (accessPath) {
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(lotCx, lotCy); ctx.lineTo(accessPath.toX, accessPath.toY);
+      ctx.strokeStyle = accessPath.color;
+      ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(lotCx, lotCy); ctx.rotate(buildingAngle); ctx.translate(-lotCx, -lotCy);
+    drawHouseTopDown(ctx, b, seed, drawIdx, size === "village");
+    ctx.restore();
   }
 
   // ── Layer 4.5: Farms ──────────────────────────────────────────────────────
@@ -2326,35 +2503,41 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const sorted = allBuildings
     .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
     .sort((a, b) => a.d - b.d);
-  const specialOrder: BuildingType[] = size === "village"
-    ? ["inn", "tavern", "blacksmith", "potions", "merchant"]
-    : size === "town"
-    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "armoury", "potions", "potions", "merchant"]
-    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "armoury", "potions", "potions", "merchant", "merchant"];
-  // Size constraints per type: [minArea, maxArea]
+  // Size constraints per type — church min area set so only pre-placed temple qualifies
+  const templeMinArea = templeW * templeH * 0.85;
   const sizeRange: Partial<Record<BuildingType, [number, number]>> = {
-    church:     [900, Infinity],
+    church:     [templeMinArea, Infinity],
     inn:        [700, Infinity],
     blacksmith: [600, Infinity],
     armoury:    [550, Infinity],
     potions:    [0, 750],
   };
+  const KEY_TYPES: BuildingType[] = ["church", "inn", "tavern", "blacksmith", "armoury", "potions", "merchant"];
+  const hasPreplacedTemple = allBuildings.some(e => e.isPreplacedTemple);
   const usedLots = new Set<string>();
-  let si = 0;
+  let si2 = 0;
   for (const { i } of sorted) {
-    if (si >= specialOrder.length) break;
-    const { b, lotCx, lotCy } = allBuildings[i];
+    if (si2 >= specialOrder.length) break;
+    const entry = allBuildings[i];
+    const { b, lotCx, lotCy } = entry;
     const lotKey = `${lotCx | 0},${lotCy | 0}`;
     if (usedLots.has(lotKey)) continue;
-    // Check building area fits this special type
     const area = b.w * b.h;
-    const [minA, maxA] = sizeRange[specialOrder[si]] ?? [0, Infinity];
+    const [minA, maxA] = sizeRange[specialOrder[si2]] ?? [0, Infinity];
     if (area < minA || area > maxA) continue;
-    usedLots.add(lotKey);
     const icx = b.x + b.w / 2, icy = b.y + b.h / 2;
-    if (specialOrder[si] === "church") {
-      // Plain rectangular building — identical style to house/inn; bell badge on roof
-      const badgeR = Math.max(5, Math.min(b.w, b.h) * 0.14);
+    // FIX 2: Key buildings must not be near water or bridge crossings
+    if (KEY_TYPES.includes(specialOrder[si2])) {
+      if (riverPts.some(p => Math.hypot(icx - p.x, icy - p.y) < 180)) continue;
+      if (hasPond && Math.hypot(icx - pondCx, icy - pondCy) < pondMaxR + 180) continue;
+      if (bridgeCrossings.some(bc => Math.hypot(icx - bc.x, icy - bc.y) < 120)) continue;
+    }
+    // FIX 3: Church slot — prefer the pre-placed temple; skip regular buildings for it
+    if (specialOrder[si2] === "church" && hasPreplacedTemple && !entry.isPreplacedTemple) continue;
+    usedLots.add(lotKey);
+    if (specialOrder[si2] === "church") {
+      // Proportionally scaled bell badge on the larger temple footprint
+      const badgeR = Math.max(7, Math.min(b.w, b.h) * 0.16);
       ctx.save();
       ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(248,242,225,0.84)"; ctx.fill();
@@ -2363,8 +2546,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
       drawChurchIcon(ctx, icx, icy);
       ctx.restore();
+      // Decorative props around temple (bench, garden patch, statue)
+      drawTempleProps(ctx, icx, icy, Math.max(b.w, b.h) / 2 + 12, seed);
     } else {
-      // Small badge circle with scaled icon
       const badgeR = Math.max(6, Math.min(b.w, b.h) * 0.18);
       ctx.save();
       ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
@@ -2372,7 +2556,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.7; ctx.stroke();
       const iconS = badgeR / 11;
       ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
-      switch (specialOrder[si]) {
+      switch (specialOrder[si2]) {
         case "inn":        drawInnIcon(ctx, icx, icy); break;
         case "tavern":     drawTavernIcon(ctx, icx, icy); break;
         case "blacksmith": drawBlacksmithIcon(ctx, icx, icy); break;
@@ -2382,7 +2566,7 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       }
       ctx.restore();
     }
-    si++;
+    si2++;
   }
 
   // ── Perimeter border ─────────────────────────────────────────────────────
