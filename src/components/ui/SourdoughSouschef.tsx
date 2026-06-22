@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { BookOpen, Flame } from "lucide-react";
+import { BookOpen, Flame, Calculator } from "lucide-react";
 import { FeedingTracker } from "./FeedingTracker";
 import { BakingGuide } from "./BakingGuide";
+import { QuickStartCalculator } from "./QuickStartCalculator";
 import { BreadShell } from "./BreadShell";
 import { useBakeSession } from "../../hooks/useBakeSession";
+import { SOURDOUGH_VERSION } from "../../lib/sourdoughVersion";
 
-type SouschefView = "home" | "track" | "bake";
+type SouschefView = "home" | "track" | "bake" | "quickstart";
 
 const CRUST = "#8a5210";
 const CRUST_MID = "#a86b18";
@@ -62,6 +64,31 @@ export function SourdoughSouschef() {
     );
   }
 
+  // ── Quick Start — ratio calculator, nothing saved ──────────────────────────
+  if (view === "quickstart") {
+    return (
+      <div className="bread-view-enter">
+        <BreadShell
+          dome={
+            <span className="font-display text-lg" style={{ color: CRUST }}>
+              Quick Start
+            </span>
+          }
+        >
+          <div className="flex px-4 py-2 border-b border-amber-200/50">
+            <button
+              onClick={() => setView("home")}
+              className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-500 transition-colors"
+            >
+              ← Back
+            </button>
+          </div>
+          <QuickStartCalculator />
+        </BreadShell>
+      </div>
+    );
+  }
+
   // ── Home — title in dome (same vertical position as tracker/bake titles) ──
   return (
     <div className="bread-view-enter">
@@ -111,8 +138,31 @@ export function SourdoughSouschef() {
             </button>
           </div>
 
-          <p className="text-[10px] pb-4" style={{ color: "rgba(168,107,24,0.4)" }}>
+          {/* Quick Start — full width of the Track + Bake row above */}
+          <div className="w-full px-8 pb-5">
+            <button
+              onClick={() => setView("quickstart")}
+              className="group w-full flex items-center gap-4 px-5 py-4 rounded-xl bg-amber-50/70 border-2 border-amber-300/50 hover:border-amber-500/70 hover:bg-amber-100/70 transition-all duration-200 shadow-sm"
+            >
+              <span className="w-10 h-10 rounded-lg bg-amber-200/60 border border-amber-400/40 flex items-center justify-center shrink-0 group-hover:bg-amber-200/90 transition-colors">
+                <Calculator size={20} style={{ color: CRUST }} />
+              </span>
+              <span className="flex flex-col items-start text-left">
+                <span className="text-sm font-bold" style={{ color: CRUST }}>
+                  Quick Start
+                </span>
+                <span className="text-[11px] leading-tight" style={{ color: CRUST_MID }}>
+                  calculate ratios without a recipe
+                </span>
+              </span>
+            </button>
+          </div>
+
+          <p className="text-[10px]" style={{ color: "rgba(168,107,24,0.4)" }}>
             designed with love by iona
+          </p>
+          <p className="text-[9px] pb-4" style={{ color: "rgba(168,107,24,0.3)" }}>
+            v{SOURDOUGH_VERSION}
           </p>
         </div>
       </BreadShell>
