@@ -10,10 +10,13 @@ export function BreadShell({
   return (
     <div className="relative w-full max-w-lg mx-auto pt-10">
       {/* Steam wisps rise from the top of the crust */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-0 w-20 flex justify-around pointer-events-none">
-        <span className="steam-wisp" style={{ animationDelay: "0s" }} />
-        <span className="steam-wisp" style={{ animationDelay: "0.75s" }} />
-        <span className="steam-wisp" style={{ animationDelay: "1.5s" }} />
+      <div className="absolute left-1/2 -translate-x-1/2 top-0 w-32 flex justify-around pointer-events-none">
+        <span className="steam-wisp" style={{ animationDelay: "0s", height: "14px" }} />
+        <span className="steam-wisp" style={{ animationDelay: "0.4s", height: "20px" }} />
+        <span className="steam-wisp" style={{ animationDelay: "0.9s", height: "16px" }} />
+        <span className="steam-wisp" style={{ animationDelay: "1.3s", height: "22px" }} />
+        <span className="steam-wisp" style={{ animationDelay: "0.6s", height: "15px" }} />
+        <span className="steam-wisp" style={{ animationDelay: "1.7s", height: "19px" }} />
       </div>
 
       <div className="bread-crust">
