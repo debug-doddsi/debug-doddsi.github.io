@@ -93,7 +93,7 @@ export function QuickStartCalculator() {
       </div>
 
       <p className="text-[10px] text-center px-2" style={{ color: "rgba(168,107,24,0.55)" }}>
-        Based on a classic sourdough formula. Adjust hydration to taste — wetter doughs yield a more open crumb.
+        Based on a classic sourdough formula. Adjust hydration to taste, wetter doughs yield a more open crumb.
       </p>
     </div>
   );
