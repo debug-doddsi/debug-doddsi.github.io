@@ -94,9 +94,19 @@ export function SourdoughSouschef() {
     <div className="bread-view-enter">
       <BreadShell
         dome={
-          <h1 className="font-display text-xl tracking-tight" style={{ color: CRUST }}>
+          <h1 className="handwritten text-3xl tracking-tight" style={{ color: CRUST }}>
             Sourdough Souschef
           </h1>
+        }
+        footer={
+          <>
+            <p className="text-[10px]" style={{ color: "rgba(168,107,24,0.4)" }}>
+              designed with love by iona
+            </p>
+            <p className="text-[9px]" style={{ color: "rgba(168,107,24,0.3)" }}>
+              v{SOURDOUGH_VERSION}
+            </p>
+          </>
         }
       >
         <div className="flex flex-col items-center">
@@ -157,13 +167,6 @@ export function SourdoughSouschef() {
               </span>
             </button>
           </div>
-
-          <p className="text-[10px]" style={{ color: "rgba(168,107,24,0.4)" }}>
-            designed with love by iona
-          </p>
-          <p className="text-[9px] pb-4" style={{ color: "rgba(168,107,24,0.3)" }}>
-            v{SOURDOUGH_VERSION}
-          </p>
         </div>
       </BreadShell>
     </div>
