@@ -1287,22 +1287,15 @@ html.pink .travel-map-filter-label {
 /* ─── Sourdough Tracker — Bread Slice Shape ──────────────────────────────── */
 
 .bread-crust {
-  background-image:
-    radial-gradient(circle at 18% 22%, rgba(255, 224, 170, 0.22) 0%, transparent 12%),
-    radial-gradient(circle at 72% 12%, rgba(110, 62, 8, 0.20) 0%, transparent 10%),
-    radial-gradient(circle at 55% 68%, rgba(255, 214, 150, 0.18) 0%, transparent 14%),
-    radial-gradient(circle at 28% 78%, rgba(100, 56, 8, 0.20) 0%, transparent 11%),
-    radial-gradient(circle at 88% 50%, rgba(255, 220, 165, 0.16) 0%, transparent 10%),
-    radial-gradient(circle at 40% 45%, rgba(120, 68, 10, 0.14) 0%, transparent 9%),
-    linear-gradient(
-      to bottom,
-      #c8882a 0%,
-      #d4953a 18%,
-      #bf7e22 40%,
-      #a86b18 60%,
-      #9a5e10 80%,
-      #8a5210 100%
-    );
+  background-image: linear-gradient(
+    to bottom,
+    #c8882a 0%,
+    #d4953a 18%,
+    #bf7e22 40%,
+    #a86b18 60%,
+    #9a5e10 80%,
+    #8a5210 100%
+  );
   /* Fixed pixel V-radius → dome depth is constant regardless of total height */
   border-radius: 58% 58% 6px 6px / 100px 100px 6px 6px;
   padding: 10px 10px 12px;
@@ -1312,14 +1305,7 @@ html.pink .travel-map-filter-label {
 }
 
 .bread-inner {
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(210, 165, 105, 0.16) 0%, transparent 6%),
-    radial-gradient(circle at 65% 32%, rgba(210, 165, 105, 0.13) 0%, transparent 5%),
-    radial-gradient(circle at 38% 58%, rgba(210, 165, 105, 0.15) 0%, transparent 7%),
-    radial-gradient(circle at 80% 70%, rgba(210, 165, 105, 0.12) 0%, transparent 5%),
-    radial-gradient(circle at 22% 85%, rgba(210, 165, 105, 0.12) 0%, transparent 6%),
-    radial-gradient(circle at 90% 12%, rgba(210, 165, 105, 0.10) 0%, transparent 5%),
-    linear-gradient(to bottom, #fdf6e8, #f9eecc);
+  background-image: linear-gradient(to bottom, #fdf6e8, #f9eecc);
   /* Inner V-radius slightly smaller than crust → even crust ring all round */
   border-radius: 52% 52% 4px 4px / 88px 88px 4px 4px;
   overflow: hidden;
@@ -1351,35 +1337,30 @@ html.pink .travel-map-filter-label {
   scrollbar-color: rgba(168, 107, 24, 0.3) transparent;
 }
 
+/* Pinned below bread-body, just above the crust — for attribution/version text */
+.bread-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0 2px;
+}
+
 /* Pink-mode override — bread stays warm regardless of theme */
 html.pink .bread-crust {
-  background-image:
-    radial-gradient(circle at 18% 22%, rgba(255, 224, 170, 0.22) 0%, transparent 12%),
-    radial-gradient(circle at 72% 12%, rgba(110, 62, 8, 0.20) 0%, transparent 10%),
-    radial-gradient(circle at 55% 68%, rgba(255, 214, 150, 0.18) 0%, transparent 14%),
-    radial-gradient(circle at 28% 78%, rgba(100, 56, 8, 0.20) 0%, transparent 11%),
-    radial-gradient(circle at 88% 50%, rgba(255, 220, 165, 0.16) 0%, transparent 10%),
-    radial-gradient(circle at 40% 45%, rgba(120, 68, 10, 0.14) 0%, transparent 9%),
-    linear-gradient(
-      to bottom,
-      #c8882a 0%,
-      #d4953a 18%,
-      #bf7e22 40%,
-      #a86b18 60%,
-      #9a5e10 80%,
-      #8a5210 100%
-    );
+  background-image: linear-gradient(
+    to bottom,
+    #c8882a 0%,
+    #d4953a 18%,
+    #bf7e22 40%,
+    #a86b18 60%,
+    #9a5e10 80%,
+    #8a5210 100%
+  );
   border-radius: 58% 58% 6px 6px / 100px 100px 6px 6px;
 }
 html.pink .bread-inner {
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(210, 165, 105, 0.16) 0%, transparent 6%),
-    radial-gradient(circle at 65% 32%, rgba(210, 165, 105, 0.13) 0%, transparent 5%),
-    radial-gradient(circle at 38% 58%, rgba(210, 165, 105, 0.15) 0%, transparent 7%),
-    radial-gradient(circle at 80% 70%, rgba(210, 165, 105, 0.12) 0%, transparent 5%),
-    radial-gradient(circle at 22% 85%, rgba(210, 165, 105, 0.12) 0%, transparent 6%),
-    radial-gradient(circle at 90% 12%, rgba(210, 165, 105, 0.10) 0%, transparent 5%),
-    linear-gradient(to bottom, #fdf6e8, #f9eecc);
+  background-image: linear-gradient(to bottom, #fdf6e8, #f9eecc);
   border-radius: 52% 52% 4px 4px / 88px 88px 4px 4px;
 }
 
