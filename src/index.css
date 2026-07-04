@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-size: 120%;
+}
+
 /* ─── Base tokens (professional)*/
 :root {
   --accent: #a690c4;
