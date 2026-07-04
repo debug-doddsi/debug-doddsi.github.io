@@ -67,8 +67,8 @@ export default function App() {
       case "playground": return <PlaygroundPage />;
       case "writing":    return <WritingPage />;
       case "contact":    return <ContactPage />;
-      case "kitchen":    return <KitchenPage />;
-      case "dnd":        return <DnDPage />;
+      case "kitchen":    return <KitchenPage onBack={() => setActiveTab("apps")} />;
+      case "dnd":        return <DnDPage onBack={() => setActiveTab("apps")} />;
       case "apps":       return <AppsPage onNavigate={setActiveTab} />;
     }
   }
