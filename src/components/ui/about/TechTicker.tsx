@@ -3,7 +3,6 @@ const TECH_ITEMS = [
   "TypeScript",
   "Vite",
   "Tailwind",
-  "shadcn/ui",
   "pnpm",
   "Turbo",
   "Figma",
@@ -12,16 +11,10 @@ const TECH_ITEMS = [
   "Storybook",
   "Node.js",
   "C++",
-  "Embedded Software",
-  "DAL-C",
-  "DAL-D",
-  "RTOS",
-  "Firmware",
-  "I2C",
   "CMake",
   "Jenkins",
   "Bitbucket",
-  "Debugging",
+  "MongoDB",
 ];
 
 export function TechTicker() {

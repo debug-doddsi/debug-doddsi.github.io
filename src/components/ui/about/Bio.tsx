@@ -1,4 +1,3 @@
-import { SkeletonBlock } from "../PageShell";
 import { TechTicker } from "./TechTicker";
 
 export function Bio() {
@@ -75,14 +74,6 @@ export function Bio() {
           </h3>
           <TechTicker />
         </div>
-      </div>
-
-      {/* Currently Learning */}
-      <div>
-        <h3 className="font-display text-lg text-neutral-100 mb-3">
-          Currently Learning
-        </h3>
-        <SkeletonBlock label="TODO: Currently learning" height="h-20" />
       </div>
     </div>
   );
