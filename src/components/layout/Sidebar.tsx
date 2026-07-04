@@ -1,14 +1,20 @@
 import {
   Smile,
-  FolderKanban,
+  Folder,
   Gamepad2,
-  Pencil,
   Send,
   Heart,
   LayoutGrid,
 } from "lucide-react";
 
-export type TabId = "about" | "work" | "playground" | "writing" | "contact" | "kitchen" | "dnd" | "apps";
+export type TabId =
+  | "about"
+  | "work"
+  | "playground"
+  | "contact"
+  | "kitchen"
+  | "dnd"
+  | "apps";
 
 interface NavItem {
   id: TabId;
@@ -19,13 +25,12 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "about", label: "About", icon: <Smile size={16} /> },
-  { id: "work", label: "Work", icon: <FolderKanban size={16} /> },
+  { id: "work", label: "Work", icon: <Folder size={16} /> },
   {
     id: "playground",
     label: "Playground",
     icon: <Gamepad2 size={16} />,
   },
-  { id: "writing", label: "Writing", icon: <Pencil size={16} /> },
   { id: "contact", label: "Contact", icon: <Send size={16} /> },
   { id: "apps", label: "My Apps", icon: <LayoutGrid size={16} /> },
 ];
