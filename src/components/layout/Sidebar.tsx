@@ -5,11 +5,10 @@ import {
   Pencil,
   Send,
   Heart,
-  ChefHat,
-  Map,
+  LayoutGrid,
 } from "lucide-react";
 
-export type TabId = "about" | "work" | "playground" | "writing" | "contact" | "kitchen" | "dnd";
+export type TabId = "about" | "work" | "playground" | "writing" | "contact" | "kitchen" | "dnd" | "apps";
 
 interface NavItem {
   id: TabId;
@@ -28,8 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   { id: "writing", label: "Writing", icon: <Pencil size={16} /> },
   { id: "contact", label: "Contact", icon: <Send size={16} /> },
-  { id: "kitchen", label: "Kitchen", icon: <ChefHat size={16} /> },
-  { id: "dnd", label: "D&D Map", icon: <Map size={16} /> },
+  { id: "apps", label: "My Apps", icon: <LayoutGrid size={16} /> },
 ];
 
 interface SidebarProps {
@@ -56,7 +54,9 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 min-h-0 space-y-0.5 px-3 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
-          const isActive = item.id === active;
+          const isActive =
+            item.id === active ||
+            (item.id === "apps" && (active === "kitchen" || active === "dnd"));
           return (
             <button
               key={item.id}

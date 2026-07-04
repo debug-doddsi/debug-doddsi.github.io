@@ -9,29 +9,11 @@ import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
+import { AppsPage } from "./pages/AppsPage";
 import { HomePage } from "./pages/HomePage";
 import { StarCursor } from "./components/ui/StarCursor";
 
 const TRANSITION_MS = 180;
-
-function renderTab(tab: TabId) {
-  switch (tab) {
-    case "about":
-      return <AboutPage />;
-    case "work":
-      return <WorkPage />;
-    case "playground":
-      return <PlaygroundPage />;
-    case "writing":
-      return <WritingPage />;
-    case "contact":
-      return <ContactPage />;
-    case "kitchen":
-      return <KitchenPage />;
-    case "dnd":
-      return <DnDPage />;
-  }
-}
 
 function getInitialTab(): TabId {
   const { pathname, search } = window.location;
@@ -47,6 +29,8 @@ function getInitialTab(): TabId {
   if (
     pathname === "/dndmapmaker" ||
     pathname === "/dndmapmaker/" ||
+    pathname === "/mapgenerator" ||
+    pathname === "/mapgenerator/" ||
     new URLSearchParams(search).get("tab") === "dnd"
   ) {
     return "dnd";
@@ -75,6 +59,19 @@ export default function App() {
     }, TRANSITION_MS);
     return () => clearTimeout(t);
   }, [activeTab, displayedTab]);
+
+  function renderTab(tab: TabId) {
+    switch (tab) {
+      case "about":      return <AboutPage />;
+      case "work":       return <WorkPage />;
+      case "playground": return <PlaygroundPage />;
+      case "writing":    return <WritingPage />;
+      case "contact":    return <ContactPage />;
+      case "kitchen":    return <KitchenPage />;
+      case "dnd":        return <DnDPage />;
+      case "apps":       return <AppsPage onNavigate={setActiveTab} />;
+    }
+  }
 
   if (!hasEntered) {
     return (
