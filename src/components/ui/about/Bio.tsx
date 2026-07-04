@@ -1,5 +1,4 @@
 import { SkeletonBlock } from "../PageShell";
-import { Experience } from "./Experience";
 import { TechTicker } from "./TechTicker";
 
 export function Bio() {
@@ -66,14 +65,6 @@ export function Bio() {
           systems and biomedical electronics. This is where my love of tech
           began.
         </p>
-      </div>
-
-      {/* Experience */}
-      <div>
-        <h3 className="font-display text-lg text-neutral-100 mb-3">
-          Experience
-        </h3>
-        <Experience />
       </div>
 
       {/* Tech Stack */}
