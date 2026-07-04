@@ -6,7 +6,9 @@ export function WorkPage() {
   return (
     <PageShell
       title="Work"
-      subtitle="experience & projects"
+      subtitle="Due to the nature of my work, I am unable to share specific details
+          about the projects I have worked on. However, I can provide a general
+          overview of my professional experience and career journey."
       icon={<FolderKanban size={28} />}
     >
       <Experience />

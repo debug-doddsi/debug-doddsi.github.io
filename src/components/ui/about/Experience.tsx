@@ -12,7 +12,7 @@ const JOBS: Job[] = [
   {
     title: "Software Engineer - Frontend",
     period: "Apr 2026 - Present",
-    location: "Hybrid,Edinburgh",
+    location: "Hybrid, Edinburgh",
     description:
       "Seeking a change in career and a new challenge, I moved into a frontend software engineering role. I develop a range of customer-facing products. I am the Design Authority in my team for the frontend codebase, and I am responsible for ensuring that the code is maintainable, scalable and aesthetically pleasing.",
     tags: [
