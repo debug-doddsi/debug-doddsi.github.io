@@ -233,12 +233,28 @@ html:not(.pink) .nav-item-active {
   color: var(--accent);
 }
 
-/* ─── Custom cursor (fine pointer only) ──────────────────── */
+/* ─── Custom cursor ──────────────────────────────────────── */
 @media (pointer: fine) {
-  *,
-  *::before,
-  *::after {
+  /* Pink mode: hide system cursor entirely (StarCursor takes over) */
+  html.pink *,
+  html.pink *::before,
+  html.pink *::after {
     cursor: none !important;
+  }
+
+  /* Professional mode: force a black arrow cursor */
+  html:not(.pink),
+  html:not(.pink) * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19'%3E%3Cpath d='M0 0L0 15L3.5 11L6 17.5L7.5 17L5 10.5L9 10.5Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E") 0 0, auto !important;
+  }
+
+  /* Restore pointer cursor on interactive elements */
+  html:not(.pink) a[href],
+  html:not(.pink) button,
+  html:not(.pink) [role="button"],
+  html:not(.pink) select,
+  html:not(.pink) label[for] {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='20'%3E%3Cpath d='M4 0L4 12L6 10L8 16L10 15L8 9L11 9L4 0Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E") 4 0, pointer !important;
   }
 }
 

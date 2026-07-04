@@ -11,7 +11,6 @@ import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
 import { StarCursor } from "./components/ui/StarCursor";
-import { Pointer } from "./components/ui/pointer";
 
 const TRANSITION_MS = 180;
 
@@ -74,11 +73,7 @@ export default function App() {
   return (
     <>
       <div className="fade-in h-screen overflow-hidden bg-neutral-950 flex">
-        {isPink ? (
-          <StarCursor isPink={isPink} />
-        ) : (
-          <Pointer className="text-[#5a3580] stroke-white" />
-        )}
+        {isPink && <StarCursor isPink={isPink} />}
         <Sidebar
           active={activeTab}
           onNavigate={setActiveTab}
