@@ -37,7 +37,7 @@ export function Topbar({
         >
           ionakate
         </SparklesText>
-        <span style={{ color: "#a690c4" }}>.uk</span>
+        <span style={{ color: isPink ? "#ff6eb4" : "#a690c4" }}>.uk</span>
       </div>
 
       {/* Pink toggle — pushed to the right */}
