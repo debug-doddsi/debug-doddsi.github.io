@@ -1,16 +1,16 @@
 import { Gamepad2 } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
-import { Notebook } from "../components/ui/Notebook";
-import { NewspaperReader, type PaperArticle } from "../components/ui/NewspaperReader";
-import { ScrapbookProjects } from "../components/ui/ScrapbookProjects";
-import { SkillsGlobe } from "../components/ui/SkillsGlobe";
-import { TravelMap } from "../components/ui/TravelMap";
+import { Notebook } from "../components/ui/playground/Notebook";
+import { NewspaperReader, type PaperArticle } from "../components/ui/playground/NewspaperReader";
+import { ScrapbookProjects } from "../components/ui/playground/ScrapbookProjects";
+import { SkillsGlobe } from "../components/ui/playground/SkillsGlobe";
+import { TravelMap } from "../components/ui/playground/TravelMap";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../components/ui/accordion";
+} from "../components/ui/primitives/accordion";
 
 const NOTEBOOK_DEMO_CHAPTERS = [
   {

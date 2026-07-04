@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Check, PartyPopper, Timer, Bell } from "lucide-react";
-import { type BakeSession } from "../../hooks/useBakeSession";
+import { type BakeSession } from "../../../hooks/useBakeSession";
 
 interface BakingGuideProps {
   session: BakeSession | null;

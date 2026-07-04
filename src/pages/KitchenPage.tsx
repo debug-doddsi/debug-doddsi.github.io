@@ -1,6 +1,6 @@
 import { ChefHat, ArrowLeft } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
-import { SourdoughSouschef } from "../components/ui/SourdoughSouschef";
+import { SourdoughSouschef } from "../components/ui/kitchen/SourdoughSouschef";
 
 interface KitchenPageProps {
   onBack: () => void;

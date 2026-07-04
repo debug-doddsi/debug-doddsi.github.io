@@ -1,4 +1,4 @@
-import { SkeletonBlock } from "./PageShell";
+import { SkeletonBlock } from "../PageShell";
 import { Experience } from "./Experience";
 import { TechTicker } from "./TechTicker";
 
