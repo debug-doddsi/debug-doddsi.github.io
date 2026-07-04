@@ -42,17 +42,8 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
     <aside
       className={`top-0 left-0 z-10 fixed flex flex-col bg-neutral-950 border-neutral-800 border-r w-52 h-screen overflow-hidden transition-transform duration-300 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
     >
-      {/* Wordmark */}
-      <div className="px-6 pt-16 pb-10">
-        <span className="font-display text-neutral-100 text-xl tracking-tight">
-          iona<span className="text-accent">kate</span>
-        </span>
-        <p className="mt-1 font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
-          .uk
-        </p>
-      </div>
       {/* Nav */}
-      <nav className="flex-1 min-h-0 space-y-0.5 px-3 overflow-y-auto">
+      <nav className="flex-1 min-h-0 space-y-0.5 px-3 pt-16 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.id === active ||

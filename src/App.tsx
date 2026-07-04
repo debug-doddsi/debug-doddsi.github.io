@@ -10,7 +10,6 @@ import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
-import { HomePage } from "./pages/HomePage";
 import { StarCursor } from "./components/ui/StarCursor";
 
 const TRANSITION_MS = 180;
@@ -42,8 +41,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const { isPink, toggle } = usePinkMode();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // Skip the entry splash when arriving via a direct link (e.g. /sourdough)
-  const [hasEntered, setHasEntered] = useState(() => getInitialTab() !== "about");
 
   const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
   const [isExiting, setIsExiting] = useState(false);
@@ -73,15 +70,6 @@ export default function App() {
     }
   }
 
-  if (!hasEntered) {
-    return (
-      <>
-        <StarCursor />
-        <HomePage onEnter={() => setHasEntered(true)} />
-      </>
-    );
-  }
-
   return (
     <>
       <StarCursor />
@@ -102,7 +90,7 @@ export default function App() {
             onSidebarToggle={setIsSidebarOpen}
           />
 
-          <main ref={mainRef} className="flex-1 overflow-y-auto pt-12">
+          <main ref={mainRef} className="flex-1 overflow-y-auto pt-14">
             <div
               key={displayedTab}
               className={`px-12 py-14 ${isExiting ? "page-exit" : "page-enter"}`}
