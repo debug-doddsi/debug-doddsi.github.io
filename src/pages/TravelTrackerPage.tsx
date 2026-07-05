@@ -151,6 +151,75 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
 
   const stopPanning = () => { panStart.current = null; setIsPanningActive(false); };
 
+  // Touch support — one finger pans, two fingers pinch-zoom
+  const pinchStart = useRef<{ dist: number; scale: number; x: number; y: number; cx: number; cy: number } | null>(null);
+
+  const touchDist = (t: TouchList) => {
+    const [a, b] = [t[0], t[1]];
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  };
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    const rect = mapContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    if (e.touches.length === 2) {
+      panStart.current = null;
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      pinchStart.current = {
+        dist: touchDist(e.touches),
+        scale: mapTransform.scale,
+        x: mapTransform.x,
+        y: mapTransform.y,
+        cx, cy,
+      };
+    } else if (e.touches.length === 1) {
+      pinchStart.current = null;
+      panStart.current = { mx: e.touches[0].clientX, my: e.touches[0].clientY, tx: mapTransform.x, ty: mapTransform.y };
+      setIsPanningActive(true);
+    }
+  }, [mapTransform]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2 && pinchStart.current) {
+      e.preventDefault();
+      const { dist, scale, x, y, cx, cy } = pinchStart.current;
+      const factor = touchDist(e.touches) / dist;
+      const newScale = Math.min(Math.max(scale * factor, 1), 10);
+      const ratio = newScale / scale;
+      setMapTransform({ scale: newScale, x: cx - ratio * (cx - x), y: cy - ratio * (cy - y) });
+    } else if (e.touches.length === 1 && panStart.current) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - panStart.current.mx;
+      const dy = e.touches[0].clientY - panStart.current.my;
+      setMapTransform(prev => ({ ...prev, x: panStart.current!.tx + dx, y: panStart.current!.ty + dy }));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    pinchStart.current = null;
+    if (e.touches.length === 1) {
+      panStart.current = { mx: e.touches[0].clientX, my: e.touches[0].clientY, tx: mapTransform.x, ty: mapTransform.y };
+    } else {
+      stopPanning();
+    }
+  }, [mapTransform]);
+
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
   // Compute tooltip screen position from SVG coordinates + current transform
   const computeTooltipPos = useCallback((svgX: number, svgY: number) => {
     const el = mapContainerRef.current;
@@ -285,7 +354,7 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 flex flex-col justify-center px-5 py-3 rounded-xl bg-accent-soft border border-accent/20">
           <span className="font-display text-2xl text-accent">{visitedCountries}</span>
           <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest mt-0.5">Countries visited</span>
@@ -309,6 +378,7 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
         onMouseMove={handleMapMouseMove}
         onMouseUp={stopPanning}
         onMouseLeave={() => { stopPanning(); setTooltip(null); }}
+        onClick={() => setTooltip(null)}
       >
         {/* Zoomable / pannable layer */}
         <div
@@ -338,6 +408,10 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
                   style={{ pointerEvents: "all" }}
                   onMouseEnter={() => setTooltip({ label, svgX: x, svgY: y })}
                   onMouseLeave={() => setTooltip(null)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setTooltip(prev => (prev?.label === label ? null : { label, svgX: x, svgY: y }));
+                  }}
                 />
               );
             }}
@@ -417,7 +491,7 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
       <div className="max-w-3xl space-y-6">
         <div className="flex flex-col gap-2">
           <h2 className="font-display text-base text-neutral-100">Add a place</h2>
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <input
               ref={inputRef}
               type="text"
@@ -425,26 +499,28 @@ export function TravelTrackerPage({ onBack, isPink }: TravelTrackerPageProps) {
               onChange={e => { setInput(e.target.value); setError(null); }}
               onKeyDown={e => e.key === "Enter" && addPlace()}
               placeholder="City or country…"
-              className="w-44 px-3 py-2 rounded-xl text-sm font-body bg-neutral-900 border border-neutral-700 text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-accent transition-colors"
+              className="w-full sm:w-44 px-3 py-2 rounded-xl text-sm font-body bg-neutral-900 border border-neutral-700 text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-accent transition-colors"
               disabled={loading}
             />
-            <select
-              value={addStatus}
-              onChange={e => setAddStatus(e.target.value as "visited" | "to-visit")}
-              className="px-3 py-2 rounded-xl text-xs font-body bg-neutral-900 border border-neutral-700 text-neutral-300 focus:outline-none focus:border-accent transition-colors"
-              disabled={loading}
-            >
-              <option value="visited">Visited</option>
-              <option value="to-visit">Want to visit</option>
-            </select>
-            <button
-              onClick={addPlace}
-              disabled={loading || !input.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-body text-xs font-medium text-white bg-accent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none"
-            >
-              {loading ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-              Add
-            </button>
+            <div className="flex gap-2">
+              <select
+                value={addStatus}
+                onChange={e => setAddStatus(e.target.value as "visited" | "to-visit")}
+                className="flex-1 sm:flex-none px-3 py-2 rounded-xl text-xs font-body bg-neutral-900 border border-neutral-700 text-neutral-300 focus:outline-none focus:border-accent transition-colors"
+                disabled={loading}
+              >
+                <option value="visited">Visited</option>
+                <option value="to-visit">Want to visit</option>
+              </select>
+              <button
+                onClick={addPlace}
+                disabled={loading || !input.trim()}
+                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl font-body text-xs font-medium text-white bg-accent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
+              >
+                {loading ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                Add
+              </button>
+            </div>
           </div>
           {error && <p className="text-xs font-body text-red-400">{error}</p>}
         </div>

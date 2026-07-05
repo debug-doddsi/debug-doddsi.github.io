@@ -74,7 +74,7 @@ export default function App() {
         {isPink && <StarCursor isPink={isPink} />}
         <Sidebar
           active={activeTab}
-          onNavigate={setActiveTab}
+          onNavigate={tab => { setActiveTab(tab); setIsSidebarOpen(false); }}
           isSidebarOpen={isSidebarOpen}
           onSidebarToggle={setIsSidebarOpen}
         />
@@ -91,7 +91,7 @@ export default function App() {
           <main ref={mainRef} className="flex-1 overflow-y-auto pt-14">
             <div
               key={displayedTab}
-              className={`px-12 py-14 ${isExiting ? "page-exit" : "page-enter"}`}
+              className={`px-4 py-8 sm:px-8 sm:py-10 md:px-12 md:py-14 ${isExiting ? "page-exit" : "page-enter"}`}
             >
               {renderTab(displayedTab)}
             </div>
