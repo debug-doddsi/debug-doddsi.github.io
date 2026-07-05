@@ -1,16 +1,8 @@
-import {
-  Smile,
-  Folder,
-  Gamepad2,
-  Send,
-  Heart,
-  LayoutGrid,
-} from "lucide-react";
+import { Smile, Folder, Send, Heart, LayoutGrid } from "lucide-react";
 
 export type TabId =
   | "about"
   | "work"
-  | "playground"
   | "contact"
   | "kitchen"
   | "dnd"
@@ -26,13 +18,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "about", label: "About", icon: <Smile size={16} /> },
   { id: "work", label: "Work", icon: <Folder size={16} /> },
-  {
-    id: "playground",
-    label: "Playground",
-    icon: <Gamepad2 size={16} />,
-  },
-  { id: "contact", label: "Contact", icon: <Send size={16} /> },
   { id: "apps", label: "My Apps", icon: <LayoutGrid size={16} /> },
+  { id: "contact", label: "Contact", icon: <Send size={16} /> },
 ];
 
 interface SidebarProps {
