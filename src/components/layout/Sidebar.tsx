@@ -6,6 +6,7 @@ export type TabId =
   | "contact"
   | "kitchen"
   | "dnd"
+  | "travel"
   | "apps";
 
 interface NavItem {
@@ -39,7 +40,7 @@ export function Sidebar({ active, onNavigate, isSidebarOpen }: SidebarProps) {
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.id === active ||
-            (item.id === "apps" && (active === "kitchen" || active === "dnd"));
+            (item.id === "apps" && (active === "kitchen" || active === "dnd" || active === "travel"));
           return (
             <button
               key={item.id}

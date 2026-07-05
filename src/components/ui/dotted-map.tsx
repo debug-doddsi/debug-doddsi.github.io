@@ -8,6 +8,7 @@ export interface Marker {
   lng: number
   size?: number
   pulse?: boolean
+  color?: string
 }
 
 /** addMarkers returns markers with lat/lng removed; only x, y and other props (e.g. size) remain */
@@ -117,10 +118,11 @@ export function DottedMap<M extends Marker = Marker>({
           ? marker.pulse !== false
           : marker.pulse === true
         const pulseTo = r * 2.8
+        const color = marker.color ?? markerColor
 
         return (
           <g key={`${marker.x}-${marker.y}-${index}`}>
-            <circle cx={x} cy={y} r={r} fill={markerColor} />
+            <circle cx={x} cy={y} r={r} fill={color} />
 
             {shouldPulse ? (
               <g pointerEvents="none">
@@ -129,7 +131,7 @@ export function DottedMap<M extends Marker = Marker>({
                   cy={y}
                   r={r}
                   fill="none"
-                  stroke={markerColor}
+                  stroke={color}
                   strokeOpacity={1}
                   strokeWidth={0.35}
                 >
@@ -151,7 +153,7 @@ export function DottedMap<M extends Marker = Marker>({
                   cy={y}
                   r={r}
                   fill="none"
-                  stroke={markerColor}
+                  stroke={color}
                   strokeOpacity={0.9}
                   strokeWidth={0.3}
                 >

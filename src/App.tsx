@@ -8,6 +8,7 @@ import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
+import { TravelTrackerPage } from "./pages/TravelTrackerPage";
 import { StarCursor } from "./components/ui/StarCursor";
 
 const TRANSITION_MS = 180;
@@ -62,6 +63,7 @@ export default function App() {
       case "contact":    return <ContactPage />;
       case "kitchen":    return <KitchenPage onBack={() => setActiveTab("apps")} />;
       case "dnd":        return <DnDPage onBack={() => setActiveTab("apps")} />;
+      case "travel":     return <TravelTrackerPage onBack={() => setActiveTab("apps")} isPink={isPink} />;
       case "apps":       return <AppsPage onNavigate={setActiveTab} />;
     }
   }
