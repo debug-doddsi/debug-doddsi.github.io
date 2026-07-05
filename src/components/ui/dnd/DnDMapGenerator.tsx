@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RefreshCw, MapPin, Download, Check, X } from "lucide-react";
 import { createNoise2D } from "simplex-noise";
-import { cn } from "../../lib/utils";
+import { cn } from "../../../lib/utils";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

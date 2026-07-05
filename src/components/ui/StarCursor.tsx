@@ -35,11 +35,12 @@ function drawStar(
   ctx.restore();
 }
 
-export function StarCursor() {
+export function StarCursor({ isPink }: { isPink: boolean }) {
   const cursorRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (!isPink) return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const canvas = canvasRef.current!;
@@ -141,8 +142,11 @@ export function StarCursor() {
       document.removeEventListener("mouseenter", handleMouseEnter);
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(rafId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.display = "none";
+      cursor.style.display = "none";
     };
-  }, []);
+  }, [isPink]);
 
   return (
     <>

@@ -4,8 +4,8 @@ import { FeedingTracker } from "./FeedingTracker";
 import { BakingGuide } from "./BakingGuide";
 import { QuickStartCalculator } from "./QuickStartCalculator";
 import { BreadShell } from "./BreadShell";
-import { useBakeSession } from "../../hooks/useBakeSession";
-import { SOURDOUGH_VERSION } from "../../lib/sourdoughVersion";
+import { useBakeSession } from "../../../hooks/useBakeSession";
+import { SOURDOUGH_VERSION } from "../../../lib/sourdoughVersion";
 
 type SouschefView = "home" | "track" | "bake" | "quickstart";
 

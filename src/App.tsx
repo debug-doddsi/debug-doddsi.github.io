@@ -4,34 +4,14 @@ import { Topbar } from "./components/layout/Topbar";
 import { usePinkMode } from "./hooks/usePinkMode";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
-import { PlaygroundPage } from "./pages/PlaygroundPage";
-import { WritingPage } from "./pages/WritingPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
-import { HomePage } from "./pages/HomePage";
+import { AppsPage } from "./pages/AppsPage";
+import { TravelTrackerPage } from "./pages/TravelTrackerPage";
 import { StarCursor } from "./components/ui/StarCursor";
 
 const TRANSITION_MS = 180;
-
-function renderTab(tab: TabId) {
-  switch (tab) {
-    case "about":
-      return <AboutPage />;
-    case "work":
-      return <WorkPage />;
-    case "playground":
-      return <PlaygroundPage />;
-    case "writing":
-      return <WritingPage />;
-    case "contact":
-      return <ContactPage />;
-    case "kitchen":
-      return <KitchenPage />;
-    case "dnd":
-      return <DnDPage />;
-  }
-}
 
 function getInitialTab(): TabId {
   const { pathname, search } = window.location;
@@ -47,6 +27,8 @@ function getInitialTab(): TabId {
   if (
     pathname === "/dndmapmaker" ||
     pathname === "/dndmapmaker/" ||
+    pathname === "/mapgenerator" ||
+    pathname === "/mapgenerator/" ||
     new URLSearchParams(search).get("tab") === "dnd"
   ) {
     return "dnd";
@@ -58,8 +40,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const { isPink, toggle } = usePinkMode();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // Skip the entry splash when arriving via a direct link (e.g. /sourdough)
-  const [hasEntered, setHasEntered] = useState(() => getInitialTab() !== "about");
 
   const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
   const [isExiting, setIsExiting] = useState(false);
@@ -76,19 +56,22 @@ export default function App() {
     return () => clearTimeout(t);
   }, [activeTab, displayedTab]);
 
-  if (!hasEntered) {
-    return (
-      <>
-        <StarCursor />
-        <HomePage onEnter={() => setHasEntered(true)} />
-      </>
-    );
+  function renderTab(tab: TabId) {
+    switch (tab) {
+      case "about":      return <AboutPage />;
+      case "work":       return <WorkPage />;
+      case "contact":    return <ContactPage />;
+      case "kitchen":    return <KitchenPage onBack={() => setActiveTab("apps")} />;
+      case "dnd":        return <DnDPage onBack={() => setActiveTab("apps")} />;
+      case "travel":     return <TravelTrackerPage onBack={() => setActiveTab("apps")} isPink={isPink} />;
+      case "apps":       return <AppsPage onNavigate={setActiveTab} />;
+    }
   }
 
   return (
     <>
-      <StarCursor />
       <div className="fade-in h-screen overflow-hidden bg-neutral-950 flex">
+        {isPink && <StarCursor isPink={isPink} />}
         <Sidebar
           active={activeTab}
           onNavigate={setActiveTab}
@@ -105,7 +88,7 @@ export default function App() {
             onSidebarToggle={setIsSidebarOpen}
           />
 
-          <main ref={mainRef} className="flex-1 overflow-y-auto pt-12">
+          <main ref={mainRef} className="flex-1 overflow-y-auto pt-14">
             <div
               key={displayedTab}
               className={`px-12 py-14 ${isExiting ? "page-exit" : "page-enter"}`}
