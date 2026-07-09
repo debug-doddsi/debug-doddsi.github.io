@@ -1,4 +1,4 @@
-import { TechTicker } from "./TechTicker";
+import { TechLoop } from "./TechLoop";
 
 export function Bio() {
   return (
@@ -72,7 +72,7 @@ export function Bio() {
           <h3 className="font-display text-lg text-neutral-100 mb-3">
             Tech Stack
           </h3>
-          <TechTicker />
+          <TechLoop />
         </div>
       </div>
     </div>
