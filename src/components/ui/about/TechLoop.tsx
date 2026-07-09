@@ -12,6 +12,7 @@ export function TechLoop() {
       fadeOut
       fadeOutColor="var(--bg-base)"
       scaleOnHover
+      draggable
       ariaLabel="Tech stack"
       className="pt-10"
     />

@@ -36,6 +36,7 @@ export interface LogoLoopProps {
   fadeOut?: boolean;
   fadeOutColor?: string;
   scaleOnHover?: boolean;
+  draggable?: boolean;
   renderItem?: (item: LogoItem, key: React.Key) => React.ReactNode;
   ariaLabel?: string;
   className?: string;
@@ -131,12 +132,13 @@ const useAnimationLoop = (
   seqHeight: number,
   isHovered: boolean,
   hoverSpeed: number | undefined,
-  isVertical: boolean
+  isVertical: boolean,
+  offsetRef: React.MutableRefObject<number>,
+  velocityRef: React.MutableRefObject<number>,
+  isDraggingRef: React.MutableRefObject<boolean>
 ) => {
   const rafRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number | null>(null);
-  const offsetRef = useRef(0);
-  const velocityRef = useRef(0);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -149,12 +151,16 @@ const useAnimationLoop = (
 
     const seqSize = isVertical ? seqHeight : seqWidth;
 
-    if (seqSize > 0) {
-      offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
+    const applyTransform = () => {
       const transformValue = isVertical
         ? `translate3d(0, ${-offsetRef.current}px, 0)`
         : `translate3d(${-offsetRef.current}px, 0, 0)`;
       track.style.transform = transformValue;
+    };
+
+    if (seqSize > 0) {
+      offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
+      applyTransform();
     }
 
     if (prefersReduced) {
@@ -172,22 +178,23 @@ const useAnimationLoop = (
       const deltaTime = Math.max(0, timestamp - lastTimestampRef.current) / 1000;
       lastTimestampRef.current = timestamp;
 
-      const target =
-        isHovered && hoverSpeed !== undefined ? hoverSpeed : targetVelocity;
+      if (!isDraggingRef.current) {
+        const target =
+          isHovered && hoverSpeed !== undefined ? hoverSpeed : targetVelocity;
 
-      const easingFactor = 1 - Math.exp(-deltaTime / ANIMATION_CONFIG.SMOOTH_TAU);
-      velocityRef.current += (target - velocityRef.current) * easingFactor;
+        const easingFactor = 1 - Math.exp(-deltaTime / ANIMATION_CONFIG.SMOOTH_TAU);
+        velocityRef.current += (target - velocityRef.current) * easingFactor;
 
-      if (seqSize > 0) {
-        let nextOffset = offsetRef.current + velocityRef.current * deltaTime;
-        nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
-        offsetRef.current = nextOffset;
-
-        const transformValue = isVertical
-          ? `translate3d(0, ${-offsetRef.current}px, 0)`
-          : `translate3d(${-offsetRef.current}px, 0, 0)`;
-        track.style.transform = transformValue;
+        if (seqSize > 0) {
+          let nextOffset = offsetRef.current + velocityRef.current * deltaTime;
+          nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
+          offsetRef.current = nextOffset;
+        }
+      } else if (seqSize > 0) {
+        offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
       }
+
+      if (seqSize > 0) applyTransform();
 
       rafRef.current = requestAnimationFrame(animate);
     };
@@ -201,7 +208,17 @@ const useAnimationLoop = (
       }
       lastTimestampRef.current = null;
     };
-  }, [targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical]);
+  }, [
+    targetVelocity,
+    seqWidth,
+    seqHeight,
+    isHovered,
+    hoverSpeed,
+    isVertical,
+    offsetRef,
+    velocityRef,
+    isDraggingRef,
+  ]);
 };
 
 export const LogoLoop = React.memo<LogoLoopProps>(
@@ -217,6 +234,7 @@ export const LogoLoop = React.memo<LogoLoopProps>(
     fadeOut = false,
     fadeOutColor,
     scaleOnHover = false,
+    draggable = false,
     renderItem,
     ariaLabel = "Partner logos",
     className,
@@ -225,6 +243,14 @@ export const LogoLoop = React.memo<LogoLoopProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
     const seqRef = useRef<HTMLUListElement>(null);
+
+    const offsetRef = useRef(0);
+    const velocityRef = useRef(0);
+    const isDraggingRef = useRef(false);
+    const dragPointerIdRef = useRef<number | null>(null);
+    const dragLastPosRef = useRef(0);
+    const dragLastTimeRef = useRef(0);
+    const [isDragging, setIsDragging] = useState(false);
 
     const [seqWidth, setSeqWidth] = useState<number>(0);
     const [seqHeight, setSeqHeight] = useState<number>(0);
@@ -297,8 +323,60 @@ export const LogoLoop = React.memo<LogoLoopProps>(
       seqHeight,
       isHovered,
       effectiveHoverSpeed,
-      isVertical
+      isVertical,
+      offsetRef,
+      velocityRef,
+      isDraggingRef
     );
+
+    const handlePointerDown = useCallback(
+      (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!draggable) return;
+        isDraggingRef.current = true;
+        setIsDragging(true);
+        dragPointerIdRef.current = e.pointerId;
+        dragLastPosRef.current = isVertical ? e.clientY : e.clientX;
+        dragLastTimeRef.current = performance.now();
+        velocityRef.current = 0;
+        e.currentTarget.setPointerCapture(e.pointerId);
+      },
+      [draggable, isVertical]
+    );
+
+    const handlePointerMove = useCallback(
+      (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isDraggingRef.current) return;
+        const seqSize = isVertical ? seqHeight : seqWidth;
+        const pos = isVertical ? e.clientY : e.clientX;
+        const now = performance.now();
+        const dt = Math.max(1, now - dragLastTimeRef.current) / 1000;
+        const delta = pos - dragLastPosRef.current;
+
+        offsetRef.current -= delta;
+        if (seqSize > 0) {
+          offsetRef.current =
+            ((offsetRef.current % seqSize) + seqSize) % seqSize;
+        }
+        velocityRef.current = -delta / dt;
+
+        dragLastPosRef.current = pos;
+        dragLastTimeRef.current = now;
+      },
+      [isVertical, seqWidth, seqHeight]
+    );
+
+    const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      if (
+        dragPointerIdRef.current !== null &&
+        e.currentTarget.hasPointerCapture(dragPointerIdRef.current)
+      ) {
+        e.currentTarget.releasePointerCapture(dragPointerIdRef.current);
+      }
+      dragPointerIdRef.current = null;
+    }, []);
 
     const cssVariables = useMemo(
       () =>
@@ -514,11 +592,17 @@ export const LogoLoop = React.memo<LogoLoopProps>(
           className={cx(
             "flex will-change-transform select-none relative z-0",
             "motion-reduce:transform-none",
-            isVertical ? "flex-col h-max w-full" : "flex-row w-max"
+            isVertical ? "flex-col h-max w-full" : "flex-row w-max",
+            draggable && (isDragging ? "cursor-grabbing" : "cursor-grab")
           )}
+          style={draggable ? { touchAction: isVertical ? "pan-x" : "pan-y" } : undefined}
           ref={trackRef}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
         >
           {logoLists}
         </div>
