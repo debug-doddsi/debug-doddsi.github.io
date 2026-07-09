@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Sidebar, type TabId } from "./components/layout/Sidebar";
+import { DockNav } from "./components/layout/DockNav";
 import { Topbar } from "./components/layout/Topbar";
+import type { TabId } from "./types";
 import { usePinkMode } from "./hooks/usePinkMode";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
@@ -39,7 +40,6 @@ function getInitialTab(): TabId {
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const { isPink, toggle } = usePinkMode();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
   const [isExiting, setIsExiting] = useState(false);
@@ -72,23 +72,12 @@ export default function App() {
     <>
       <div className="fade-in h-screen overflow-hidden bg-neutral-950 flex">
         {isPink && <StarCursor isPink={isPink} />}
-        <Sidebar
-          active={activeTab}
-          onNavigate={setActiveTab}
-          isSidebarOpen={isSidebarOpen}
-          onSidebarToggle={setIsSidebarOpen}
-        />
+        <Topbar isPink={isPink} onPinkToggle={toggle} />
+        <DockNav active={activeTab} onNavigate={setActiveTab} />
 
-        {/* Right side — topbar + scrollable content */}
-        <div className="flex-1 flex flex-col md:ml-52 overflow-hidden">
-          <Topbar
-            isPink={isPink}
-            onPinkToggle={toggle}
-            isSidebarOpen={isSidebarOpen}
-            onSidebarToggle={setIsSidebarOpen}
-          />
-
-          <main ref={mainRef} className="flex-1 overflow-y-auto pt-14">
+        {/* Scrollable content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main ref={mainRef} className="flex-1 overflow-y-auto pt-14 pb-24">
             <div
               key={displayedTab}
               className={`px-12 py-14 ${isExiting ? "page-exit" : "page-enter"}`}
@@ -103,14 +92,6 @@ export default function App() {
           className="pointer-events-none fixed top-0 left-0 w-72 h-72 rounded-full opacity-[0.04] blur-3xl"
           style={{ background: "var(--accent)" }}
         />
-
-        {/* Mobile backdrop */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 z-[5] bg-black/40 md:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
       </div>
     </>
   );
