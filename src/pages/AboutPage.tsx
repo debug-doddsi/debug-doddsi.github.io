@@ -30,22 +30,27 @@ export function AboutPage() {
               About Me
             </h2>
 
-            {/* Lanyard badge, floated right so text wraps around it. Taller
-                than the badge itself so there's a gap above for the lanyard
-                strap to hang through without covering the text below — the
-                card settles near the bottom of this box, roughly where the
-                old static portrait sat. */}
-            <div className="float-right ml-2 mb-4 w-56 h-80 relative">
-              <Suspense fallback={null}>
-                <Lanyard
-                  position={[0, 0, 36]}
-                  gravity={[0, -40, 0]}
-                  fov={20}
-                  transparent
-                  frontImage="/stardew.png"
-                  imageFit="contain"
-                />
-              </Suspense>
+            {/* Lanyard badge. The float box reserves text-wrap space at
+                roughly the card's own footprint (same spot the old static
+                portrait sat), while the actual canvas is a much larger
+                absolutely positioned overlay (pulled up and widened well past
+                that box) so the strap starts near the top of the page and the
+                card has plenty of room to swing/drag over the surrounding
+                text without ever being clipped by its own canvas edge. */}
+            <div className="float-right ml-2 mb-4 w-80 h-80 relative">
+              <div className="absolute right-0 -top-[340px] w-[950px] max-w-[90vw] h-[950px] pointer-events-none">
+                <Suspense fallback={null}>
+                  <Lanyard
+                    position={[0, 0, 16]}
+                    gravity={[0, -40, 0]}
+                    fov={20}
+                    transparent
+                    frontImage="/stardew.png"
+                    imageFit="contain"
+                    className="pointer-events-auto"
+                  />
+                </Suspense>
+              </div>
             </div>
 
             <Bio />
