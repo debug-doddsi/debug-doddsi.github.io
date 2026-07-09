@@ -38,7 +38,7 @@ export function AboutPage() {
                 card has plenty of room to swing/drag over the surrounding
                 text without ever being clipped by its own canvas edge. */}
             <div className="float-right ml-2 mb-4 w-80 h-80 relative">
-              <div className="absolute right-0 -top-[340px] w-[950px] max-w-[90vw] h-[950px] pointer-events-none">
+              <div className="absolute -right-[260px] -top-[380px] w-[950px] max-w-[90vw] h-[950px] pointer-events-none">
                 <Suspense fallback={null}>
                   <Lanyard
                     position={[0, 0, 16]}
