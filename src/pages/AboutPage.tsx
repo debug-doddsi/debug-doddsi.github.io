@@ -1,47 +1,23 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useRef } from "react";
 import { Smile } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
 import { Interests } from "../components/ui/about/Interests";
 import { Bio } from "../components/ui/about/Bio";
-import { StickerPeel } from "../components/ui/StickerPeel";
-import { getStickerPosition, setStickerPosition } from "../lib/stickerPositions";
-import { placeStickers } from "../lib/stickers";
+import { StickerField } from "../components/ui/about/StickerField";
+
+// Lazy-loaded: three.js + rapier physics + drei pull in several MB, and
+// only the About page needs them — keeps that weight off every other page.
+const Lanyard = lazy(() => import("../components/ui/Lanyard"));
 
 export function AboutPage() {
-  // Computed once per mount (not on every re-render, e.g. pink-mode toggles)
-  // so the stickers don't snap back to their default spots. Falls back to
-  // each one's last dragged-to position if the page was visited before.
-  const stickers = useMemo(() => {
-    return placeStickers(window.innerWidth).map((sticker) => ({
-      ...sticker,
-      initialPosition: getStickerPosition(sticker.id) ?? {
-        x: sticker.defaultX,
-        y: sticker.defaultY,
-      },
-    }));
-  }, []);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="relative">
-      {/* Stickers — hidden on mobile, shown at every larger size.
-          Bounds span the full viewport so each can be dragged anywhere on the page. */}
-      <div className="hidden sm:block top-0 left-0 z-40 fixed w-full h-full pointer-events-none">
-        <div className="relative w-full h-full pointer-events-none">
-          {stickers.map((sticker) => (
-            <StickerPeel
-              key={sticker.id}
-              imageSrc={sticker.src}
-              width={sticker.width}
-              rotate={sticker.rotate}
-              peelBackHoverPct={25}
-              peelBackActivePct={35}
-              initialPosition={sticker.initialPosition}
-              onPositionChange={(pos) => setStickerPosition(sticker.id, pos)}
-              className="pointer-events-auto"
-            />
-          ))}
-        </div>
-      </div>
+    <div className="relative" ref={rootRef}>
+      {/* Stickers — hidden on mobile, shown at every larger size. Positioned
+          relative to this full-page container (not the viewport) so they're
+          distributed down the whole page and scroll with the content. */}
+      <StickerField containerRef={rootRef} />
 
       <PageShell
         title="Hello, I'm Iona."
@@ -54,16 +30,22 @@ export function AboutPage() {
               About Me
             </h2>
 
-            {/* Portrait floated right so text wraps around it */}
-            <div className="float-right ml-6 mb-4">
-              <div className="border border-accent p-2 rounded-lg bg-accent-soft inline-block">
-                <img
-                  src="/stardew.png"
-                  alt="Iona, in Stardew Valley style"
-                  className="h-40 w-auto object-contain rounded"
-                  style={{ imageRendering: "pixelated" }}
+            {/* Lanyard badge, floated right so text wraps around it. Taller
+                than the badge itself so there's a gap above for the lanyard
+                strap to hang through without covering the text below — the
+                card settles near the bottom of this box, roughly where the
+                old static portrait sat. */}
+            <div className="float-right ml-2 mb-4 w-56 h-80 relative">
+              <Suspense fallback={null}>
+                <Lanyard
+                  position={[0, 0, 36]}
+                  gravity={[0, -40, 0]}
+                  fov={20}
+                  transparent
+                  frontImage="/stardew.png"
+                  imageFit="contain"
                 />
-              </div>
+              </Suspense>
             </div>
 
             <Bio />

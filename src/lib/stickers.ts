@@ -21,6 +21,7 @@ export const STICKERS: StickerDef[] = [
   { id: "tenner", src: "/stickers/tenner.png", width: 170, rotate: 10 },
   { id: "receipt", src: "/stickers/receipt.png", width: 150, rotate: -12 },
   { id: "lipbalm", src: "/stickers/lipbalm.png", width: 130, rotate: 18 },
+  { id: "airpods", src: "/stickers/airpods.png", width: 140, rotate: -18 },
 ];
 
 export type StickerSide = "left" | "right";
@@ -35,11 +36,10 @@ const EDGE_MARGIN = 24;
 // How far into the page each side's placement zone can wander horizontally —
 // keeps things away from the centered text column while still feeling loose.
 const HORIZONTAL_JITTER = 60;
-// Clears the fixed topbar (~67px tall) with room to spare, even at the
-// largest possible upward jitter.
-const TOP_MARGIN = 130;
-// Vertical room given to each sticker's "slot" before jitter is applied.
-const VERTICAL_SLOT = 260;
+// Don't start placing until this far down the page, and leave room at the
+// bottom too — keeps stickers from clustering right under the header.
+const TOP_SKIP_PCT = 0.14;
+const BOTTOM_SKIP_PCT = 0.06;
 // Minimum gap enforced between two stickers' bounding boxes so defaults
 // never touch, even after random placement.
 const MIN_GAP = 28;
@@ -83,15 +83,36 @@ function boxesOverlap(a: Box, b: Box, margin: number): boolean {
   );
 }
 
-export function placeStickers(viewportWidth: number): PlacedSticker[] {
+/**
+ * Computes each sticker's default position as a fraction of the page's full
+ * scrollable height (not just the viewport) so they end up spread down the
+ * whole length of the content instead of bunched near the top.
+ */
+export function placeStickers(
+  containerWidth: number,
+  containerHeight: number
+): PlacedSticker[] {
+  const sides: StickerSide[] = STICKERS.map((_, i) =>
+    i % 2 === 0 ? "right" : "left"
+  );
+  const sideCounts: Record<StickerSide, number> = {
+    left: sides.filter((s) => s === "left").length,
+    right: sides.filter((s) => s === "right").length,
+  };
+
+  const usableTop = containerHeight * TOP_SKIP_PCT;
+  const usableBottom = containerHeight * (1 - BOTTOM_SKIP_PCT);
+  const usableHeight = Math.max(0, usableBottom - usableTop);
+
   const slotsUsed: Record<StickerSide, number> = { left: 0, right: 0 };
   const placedBoxes: Record<StickerSide, Box[]> = { left: [], right: [] };
 
   return STICKERS.map((sticker, index) => {
-    // Alternate sides, starting on the right, so a lone sticker keeps
-    // landing beside the text column like before.
-    const side: StickerSide = index % 2 === 0 ? "right" : "left";
+    const side = sides[index];
     const slot = slotsUsed[side]++;
+    const slotCount = sideCounts[side];
+    const slotHeight = usableHeight / slotCount;
+
     const rand = mulberry32(hashStringToSeed(sticker.id));
 
     // Conservative square footprint for collision checks — some stickers
@@ -101,15 +122,16 @@ export function placeStickers(viewportWidth: number): PlacedSticker[] {
 
     const baseX =
       side === "right"
-        ? viewportWidth - size - EDGE_MARGIN - HORIZONTAL_JITTER
+        ? containerWidth - size - EDGE_MARGIN - HORIZONTAL_JITTER
         : EDGE_MARGIN;
-    const baseY = TOP_MARGIN + slot * VERTICAL_SLOT;
+    const baseY = usableTop + slot * slotHeight + slotHeight / 2;
+    const yJitterRange = Math.max(0, slotHeight - size - MIN_GAP);
 
     let chosen: Box | null = null;
     for (let attempt = 0; attempt < MAX_PLACEMENT_ATTEMPTS; attempt++) {
       const candidate: Box = {
         x: baseX + rand() * HORIZONTAL_JITTER,
-        y: baseY + (rand() - 0.5) * (VERTICAL_SLOT - size - MIN_GAP),
+        y: baseY + (rand() - 0.5) * yJitterRange,
         size,
       };
       const collides = placedBoxes[side].some((box) =>
@@ -121,7 +143,7 @@ export function placeStickers(viewportWidth: number): PlacedSticker[] {
       }
     }
 
-    // Fall back to the plain stacked slot if we couldn't find a free spot —
+    // Fall back to the slot center if we couldn't find a free spot —
     // guaranteed not to touch anything already placed above it.
     const finalBox = chosen ?? { x: baseX, y: baseY, size };
     placedBoxes[side].push(finalBox);

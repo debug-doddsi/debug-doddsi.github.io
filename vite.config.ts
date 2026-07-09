@@ -4,6 +4,7 @@ import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  assetsInclude: ['**/*.glb'],
   plugins: [
     react(),
     VitePWA({
@@ -39,6 +40,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // The About page's 3D lanyard badge (three.js + rapier physics) pulls
+        // in a JS chunk well past Workbox's 2 MiB default — it's lazy-loaded
+        // and irrelevant to the installable Sourdough app this PWA targets,
+        // but still gets swept up by the glob above, so raise the ceiling
+        // rather than fight the precache manifest over it.
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
   ],
