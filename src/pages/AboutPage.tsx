@@ -1,9 +1,13 @@
-import { lazy, Suspense, useRef } from "react";
+import { lazy, Suspense, useMemo, useRef } from "react";
 import { Smile } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
 import { Interests } from "../components/ui/about/Interests";
 import { Bio } from "../components/ui/about/Bio";
 import { StickerField } from "../components/ui/about/StickerField";
+import {
+  createSparklyLanyardTexture,
+  createSparklyCardTexture,
+} from "../lib/sparklyTexture";
 
 // Lazy-loaded: three.js + rapier physics + drei pull in several MB, and
 // only the About page needs them — keeps that weight off every other page.
@@ -11,6 +15,8 @@ const Lanyard = lazy(() => import("../components/ui/Lanyard"));
 
 export function AboutPage() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const lanyardTexture = useMemo(() => createSparklyLanyardTexture(), []);
+  const cardBackTexture = useMemo(() => createSparklyCardTexture(), []);
 
   return (
     <div className="relative" ref={rootRef}>
@@ -46,7 +52,11 @@ export function AboutPage() {
                     fov={20}
                     transparent
                     frontImage="/stardew.png"
+                    // Placeholder until a real back-of-card image is swapped in.
+                    backImage={cardBackTexture}
                     imageFit="contain"
+                    lanyardImage={lanyardTexture}
+                    lanyardWidth={1.2}
                     className="pointer-events-auto"
                   />
                 </Suspense>
