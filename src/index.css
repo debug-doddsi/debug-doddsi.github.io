@@ -6,13 +6,27 @@ html {
   font-size: 120%;
 }
 
-/* ─── Base tokens (professional)*/
+/* ─── Strawberry Matcha palette ─────────────────────────────
+   The site's default colour palette. Named after the drink: pink
+   "strawberry" tones for accents/highlights, green "matcha" tones for
+   secondary surfaces/text, and warm "latte" cream for backgrounds. */
 :root {
-  --accent: #a690c4;
-  --accent-soft: #a690c418;
-  --accent-rgb: 166, 144, 196;
-  --bg-base: #f5f0eb;
-  --bg-sidebar: #ede8e3;
+  --strawberry: #c66f80;
+  --strawberry-light: #f4c7d0;
+  --strawberry-cream: #fcebf1;
+  --matcha-dark: #4a6644;
+  --matcha: #9faa74;
+  --matcha-light: #d7dab3;
+  --latte: #ece3d2;
+}
+
+/* ─── Base tokens (strawberry matcha) ───────────────────────*/
+:root {
+  --accent: var(--strawberry);
+  --accent-soft: #c66f8018;
+  --accent-rgb: 198, 111, 128;
+  --bg-base: var(--strawberry-cream);
+  --bg-sidebar: var(--latte);
   --border: oklch(0.922 0 0);
 }
 
@@ -100,50 +114,50 @@ html.pink .border-neutral-700 {
   border-color: #ffc2e0 !important;
 }
 
-/* Professional Colour Palette */
+/* Strawberry Matcha Colour Palette (default) */
 html:not(.pink) body {
-  color: #1a1410;
+  color: var(--matcha-dark);
 }
 html:not(.pink) .bg-neutral-950 {
-  background-color: #f5f0eb !important;
+  background-color: var(--strawberry-cream) !important;
 }
 html:not(.pink) .bg-neutral-900 {
-  background-color: #ede8e3 !important;
+  background-color: var(--latte) !important;
 }
 html:not(.pink) aside {
-  background-color: #ede8e3 !important;
-  border-color: #d4cdc6 !important;
+  background-color: var(--latte) !important;
+  border-color: var(--matcha-light) !important;
 }
 html:not(.pink) header {
-  background-color: #ede8e3 !important;
-  border-color: #d4cdc6 !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
 html:not(.pink) .text-neutral-100 {
-  color: #1a1410 !important;
+  color: var(--matcha-dark) !important;
 }
 html:not(.pink) .text-neutral-300 {
-  color: #a690c4 !important;
+  color: var(--strawberry) !important;
 }
 html:not(.pink) .text-neutral-400 {
-  color: #6b5f58 !important;
+  color: var(--matcha) !important;
 }
 html:not(.pink) .text-neutral-500 {
-  color: #a690c4 !important;
+  color: var(--strawberry) !important;
 }
 html:not(.pink) .text-neutral-700 {
-  color: #a690c4 !important;
+  color: var(--strawberry) !important;
 }
 html:not(.pink) .border-neutral-700 {
-  border-color: #d4cdc6 !important;
+  border-color: var(--matcha-light) !important;
 }
 html:not(.pink) .border-neutral-800 {
-  border-color: #d4cdc6 !important;
+  border-color: var(--matcha-light) !important;
 }
 html:not(.pink) .hover\:bg-neutral-800:hover {
-  background-color: #ede8f5 !important;
+  background-color: var(--strawberry-light) !important;
 }
 html:not(.pink) .bg-neutral-900\/40 {
-  background-color: #ede8e3 !important;
+  background-color: var(--latte) !important;
 }
 
 /* ─── Accent utility (CSS var aware) ─────────────────────── */
@@ -175,8 +189,8 @@ html:not(.pink) .bg-neutral-900\/40 {
   background-color: var(--accent-soft);
 }
 html:not(.pink) .nav-item-active {
-  color: #6b4fa0 !important;
-  background-color: #ddd5ee !important;
+  color: var(--strawberry) !important;
+  background-color: var(--strawberry-light) !important;
 }
 
 @keyframes fadeIn {
@@ -685,7 +699,7 @@ html.pink .scrapbook-page {
 
 /* Left page — stacked pages on outer left edge via layered box-shadow */
 .scrapbook-page-left {
-  border: 1px solid #d4cdc6;
+  border: 1px solid var(--matcha-light);
   border-right: none;
   border-radius: 6px 0 0 6px;
   box-shadow:
@@ -707,7 +721,7 @@ html.pink .scrapbook-page-left {
 
 /* Right page — stacked pages on outer right edge */
 .scrapbook-page-right {
-  border: 1px solid #d4cdc6;
+  border: 1px solid var(--matcha-light);
   border-left: none;
   border-radius: 0 6px 6px 0;
   box-shadow:
@@ -924,7 +938,7 @@ html.pink .scrapbook-title {
 .scrapbook-subtitle {
   font-family: "Caveat", cursive;
   font-size: 17px;
-  color: #6b5f58;
+  color: var(--matcha-dark);
   font-style: italic;
   margin-bottom: 8px;
 }
@@ -1018,7 +1032,7 @@ html.pink .scrapbook-nav-btn {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #d4cdc6;
+  background: var(--matcha-light);
   border: none;
   cursor: pointer;
   padding: 0;
@@ -1043,7 +1057,7 @@ html.pink .scrapbook-dot {
     display: none;
   }
   .scrapbook-page-left {
-    border-right: 1px solid #d4cdc6;
+    border-right: 1px solid var(--matcha-light);
     border-bottom: none;
     border-radius: 6px 6px 0 0;
     min-height: 240px;
@@ -1053,8 +1067,8 @@ html.pink .scrapbook-dot {
     border-color: #f0d0e4;
   }
   .scrapbook-page-right {
-    border-left: 1px solid #d4cdc6;
-    border-top: 2px dashed #d4cdc6;
+    border-left: 1px solid var(--matcha-light);
+    border-top: 2px dashed var(--matcha-light);
     border-radius: 0 0 6px 6px;
     box-shadow: none;
   }

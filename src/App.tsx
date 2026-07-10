@@ -11,6 +11,7 @@ import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
 import { TravelTrackerPage } from "./pages/TravelTrackerPage";
 import { StarCursor } from "./components/ui/StarCursor";
+import Grainient from "./components/ui/Grainient";
 
 const TRANSITION_MS = 180;
 
@@ -70,7 +71,28 @@ export default function App() {
 
   return (
     <>
-      <div className="fade-in h-screen overflow-hidden bg-neutral-950 flex">
+      <div className="fade-in h-screen overflow-hidden flex">
+        {/* Grainient page background — pale strawberry-cream dominant, with
+            soft strawberry-pink/rose blob accents, sitting behind everything.
+            Grainient's own root div hardcodes position:relative, so it's
+            wrapped here rather than trying to override that via className
+            (Tailwind's utility ordering — not JSX class order — decides
+            which `position` utility wins on a class clash). */}
+        <div className="fixed inset-0 -z-10 pointer-events-none">
+          <Grainient
+            color1="#FCEBF1"
+            color2="#F4C7D0"
+            color3="#C66F80"
+            colorBalance={0.55}
+            warpAmplitude={70}
+            blendSoftness={0.35}
+            grainAmount={0.045}
+            contrast={1.1}
+            saturation={1.05}
+            zoom={1.1}
+          />
+        </div>
+
         {isPink && <StarCursor isPink={isPink} />}
         <Topbar isPink={isPink} onPinkToggle={toggle} />
         <DockNav active={activeTab} onNavigate={setActiveTab} />
@@ -86,12 +108,6 @@ export default function App() {
             </div>
           </main>
         </div>
-
-        {/* Subtle accent glow */}
-        <div
-          className="pointer-events-none fixed top-0 left-0 w-72 h-72 rounded-full opacity-[0.04] blur-3xl"
-          style={{ background: "var(--accent)" }}
-        />
       </div>
     </>
   );

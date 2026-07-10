@@ -34,8 +34,8 @@ function save(places: Place[]) {
 function defaultColors(isPink: boolean): Colors {
   return {
     home:    "#f0b429",
-    visited: isPink ? "#f472b6" : "#7c5cbf",
-    toVisit: isPink ? "#fda4af" : "#a5b4fc",
+    visited: isPink ? "#f472b6" : "#c66f80",
+    toVisit: isPink ? "#fda4af" : "#9faa74",
   };
 }
 
