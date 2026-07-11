@@ -1,9 +1,8 @@
-import { lazy, Suspense, useMemo, useRef } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Smile } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
 import { Interests } from "../components/ui/about/Interests";
 import { Bio } from "../components/ui/about/Bio";
-import { StickerField } from "../components/ui/about/StickerField";
 import {
   createSparklyLanyardTexture,
   createSparklyCardTexture,
@@ -14,17 +13,11 @@ import {
 const Lanyard = lazy(() => import("../components/ui/Lanyard"));
 
 export function AboutPage() {
-  const rootRef = useRef<HTMLDivElement>(null);
   const lanyardTexture = useMemo(() => createSparklyLanyardTexture(), []);
   const cardBackTexture = useMemo(() => createSparklyCardTexture(), []);
 
   return (
-    <div className="relative" ref={rootRef}>
-      {/* Stickers — hidden on mobile, shown at every larger size. Positioned
-          relative to this full-page container (not the viewport) so they're
-          distributed down the whole page and scroll with the content. */}
-      <StickerField containerRef={rootRef} />
-
+    <div className="relative">
       <PageShell
         title="Hello, I'm Iona."
         subtitle="I'm a Software Engineer from Scotland. Welcome to my website!"

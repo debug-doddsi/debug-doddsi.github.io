@@ -82,13 +82,13 @@ export default function App() {
           <Grainient
             color1="#FCEBF1"
             color2="#F4C7D0"
-            color3="#C66F80"
-            colorBalance={0.55}
-            warpAmplitude={70}
-            blendSoftness={0.35}
+            color3="#8B3F56"
+            colorBalance={0.15}
+            warpAmplitude={60}
+            blendSoftness={0.18}
             grainAmount={0.045}
-            contrast={1.1}
-            saturation={1.05}
+            contrast={1.3}
+            saturation={1.15}
             zoom={1.1}
           />
         </div>
