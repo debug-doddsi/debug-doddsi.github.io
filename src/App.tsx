@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { DockNav } from "./components/layout/DockNav";
-import { Topbar } from "./components/layout/Topbar";
 import type { TabId } from "./types";
 import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
@@ -57,14 +56,22 @@ export default function App() {
 
   function renderTab(tab: TabId) {
     switch (tab) {
-      case "home":       return <HomePage onNavigate={setActiveTab} />;
-      case "about":      return <AboutPage />;
-      case "work":       return <WorkPage />;
-      case "caseStudies": return <CaseStudiesPage />;
-      case "contact":    return <ContactPage />;
-      case "kitchen":    return <KitchenPage onBack={() => setActiveTab("apps")} />;
-      case "dnd":        return <DnDPage onBack={() => setActiveTab("apps")} />;
-      case "apps":       return <AppsPage onNavigate={setActiveTab} />;
+      case "home":
+        return <HomePage onNavigate={setActiveTab} />;
+      case "about":
+        return <AboutPage />;
+      case "work":
+        return <WorkPage />;
+      case "caseStudies":
+        return <CaseStudiesPage />;
+      case "contact":
+        return <ContactPage />;
+      case "kitchen":
+        return <KitchenPage onBack={() => setActiveTab("apps")} />;
+      case "dnd":
+        return <DnDPage onBack={() => setActiveTab("apps")} />;
+      case "apps":
+        return <AppsPage onNavigate={setActiveTab} />;
     }
   }
 
@@ -92,7 +99,6 @@ export default function App() {
           />
         </div>
 
-        <Topbar />
         <DockNav active={activeTab} onNavigate={setActiveTab} />
 
         {/* Scrollable content */}

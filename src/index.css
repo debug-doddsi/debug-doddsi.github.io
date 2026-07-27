@@ -22,10 +22,12 @@ html {
   --strawberry: #c66f80;
   --strawberry-light: #f4c7d0;
   --strawberry-cream: #fcebf1;
+  --strawberry-dark: #7a3f4a;
   --matcha-dark: #4a6644;
   --matcha: #9faa74;
   --matcha-light: #d7dab3;
   --latte: #ece3d2;
+  --cream: #faf3e4;
 
   /* Dedicated text tokens for the default theme — deep wine for
      headings/body, muted mauve for secondary text. Kept separate from

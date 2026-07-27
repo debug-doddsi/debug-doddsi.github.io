@@ -33,7 +33,9 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
       icon: item.icon,
       label: item.label,
       onClick: () => onNavigate(item.id),
-      className: isActive ? "border-accent text-accent" : "",
+      className: isActive
+        ? "!bg-[var(--matcha-light)] !border-[var(--matcha)] !text-[var(--strawberry-dark)]"
+        : "",
     };
   });
 
