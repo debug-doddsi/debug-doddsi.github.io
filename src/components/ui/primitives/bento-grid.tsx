@@ -16,6 +16,19 @@ export function BentoGrid({ children, className = "" }: BentoGridProps) {
   );
 }
 
+export type BentoSize = "sm" | "wide" | "tall" | "lg" | "full";
+
+// Span presets, applied at the lg breakpoint (the grid is single/2-column
+// below that, so span classes only matter once there's room for them).
+// "sm" is the default 1x1 tile — every other size is relative to that.
+const SIZE_CLASSES: Record<BentoSize, string> = {
+  sm: "lg:col-span-1 lg:row-span-1",
+  wide: "lg:col-span-2 lg:row-span-1",
+  tall: "lg:col-span-1 lg:row-span-2",
+  lg: "lg:col-span-2 lg:row-span-2",
+  full: "lg:col-span-3 lg:row-span-1",
+};
+
 interface BentoCardProps {
   name: string;
   description?: string;
@@ -23,8 +36,17 @@ interface BentoCardProps {
   cta?: string;
   href?: string;
   onClick?: () => void;
+  /** Tile span preset. Defaults to a standard 1x1 card. Combine with
+   *  className (e.g. "lg:col-start-3") if you need to pin its position too. */
+  size?: BentoSize;
+  /** Drop any component into the card body — sits below the name/description,
+   *  above the cta, while keeping the standard Icon/name layout. Use this
+   *  instead of `children` whenever you just need to embed something like a
+   *  ticker or widget without rebuilding the icon/heading markup by hand. */
+  content?: ReactNode;
   className?: string;
-  /** Full custom content — if provided, overrides the default Icon/name/description layout. */
+  /** Full custom content — overrides the entire default layout (Icon, name,
+   *  description, content, cta) when you need something completely bespoke. */
   children?: ReactNode;
 }
 
@@ -35,6 +57,8 @@ export function BentoCard({
   cta,
   href,
   onClick,
+  size = "sm",
+  content,
   className = "",
   children,
 }: BentoCardProps) {
@@ -51,7 +75,7 @@ export function BentoCard({
         bg-white/55 backdrop-blur-md border border-white/60
         shadow-[0_8px_30px_rgba(0,0,0,0.06)]
         transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)]
-        ${className}`}
+        ${SIZE_CLASSES[size]} ${className}`}
     >
       {children ?? (
         <>
@@ -65,6 +89,7 @@ export function BentoCard({
                 {description}
               </p>
             )}
+            {content && <div className="mb-3">{content}</div>}
             {cta &&
               (href ? (
                 <a href={href}>{action}</a>
