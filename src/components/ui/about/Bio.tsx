@@ -1,10 +1,6 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { TechLoop } from "./TechLoop";
 
 export function Bio() {
-  const [showMore, setShowMore] = useState(false);
-
   return (
     <div className="space-y-8">
       <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
@@ -31,20 +27,7 @@ export function Bio() {
 
       <div className="bg-gradient-to-r from-accent to-transparent mt-4 w-24 h-px" />
 
-      <button
-        type="button"
-        onClick={() => setShowMore((v) => !v)}
-        aria-expanded={showMore}
-        className="flex items-center gap-1.5 font-mono text-xs text-accent uppercase tracking-widest hover:underline"
-      >
-        {showMore ? "Show less" : "Education & tech stack"}
-        <ChevronDown
-          size={14}
-          className={`transition-transform duration-200 ${showMore ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {showMore && (
+      {
         <div className="space-y-8">
           {/* Education */}
           <div>
@@ -76,12 +59,12 @@ export function Bio() {
             </div>
             <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
               A five-year integrated masters degree covering biomechanics,
-              biomedical materials, electronics, anatomy & physiology, and medical
-              device design, bridging engineering and healthcare. Specialised in
-              electronics, software and instrumentation electives, covering
-              microcontrollers, digital signal processing, image processing, control
-              systems and biomedical electronics. This is where my love of tech
-              began.
+              biomedical materials, electronics, anatomy & physiology, and
+              medical device design, bridging engineering and healthcare.
+              Specialised in electronics, software and instrumentation
+              electives, covering microcontrollers, digital signal processing,
+              image processing, control systems and biomedical electronics. This
+              is where my love of tech began.
             </p>
           </div>
 
@@ -95,7 +78,7 @@ export function Bio() {
             </div>
           </div>
         </div>
-      )}
+      }
     </div>
   );
 }
