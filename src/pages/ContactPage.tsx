@@ -1,5 +1,6 @@
 import { Send, Mail, Linkedin, Link } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
+import { GlassCard } from "../components/ui/GlassCard";
 
 export function ContactPage() {
   return (
@@ -8,7 +9,7 @@ export function ContactPage() {
       subtitle="Want to work together, or just say hello? Find me here."
       icon={<Send size={28} />}
     >
-      <div className="space-y-4">
+      <GlassCard>
         <div className="flex flex-col gap-3">
           {/* Email */}
           <div className="flex items-center gap-3">
@@ -44,7 +45,7 @@ export function ContactPage() {
             </a>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </PageShell>
   );
 }

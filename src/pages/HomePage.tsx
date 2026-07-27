@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Sparkles, FolderGit2, Mail } from "lucide-react";
-import { BentoGrid, BentoCard } from "../components/ui/primitives/bento-grid";
-import { TechLoop } from "../components/ui/about/TechLoop";
+import { BentoGrid, BentoCard } from "../components/ui/bento-grid";
+import { TechLoop } from "../components/about/TechLoop";
 import type { TabId } from "../types";
 
 interface HomePageProps {
@@ -71,8 +71,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
         <p className="font-body text-base sm:text-lg text-neutral-400 mt-8 max-w-md leading-relaxed mx-auto">
           Software Engineer with a Biomedical Engineering background, building
-          thoughtful, well-crafted things at the intersection of science and
-          code.
+          thoughtful, well-crafted things just for fun.
         </p>
 
         <button

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RefreshCw, MapPin, Download, Check, X } from "lucide-react";
 import { createNoise2D } from "simplex-noise";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../lib/utils";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -12,16 +12,53 @@ const HM_H = 267;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface UserPin { id: string; nx: number; ny: number; label: string; }
-interface ForestCluster { cx: number; cy: number; }
-interface LandscapeLocation { type: "city" | "town"; cx: number; cy: number; }
-interface RiverPoint { gx: number; gy: number; }
+interface UserPin {
+  id: string;
+  nx: number;
+  ny: number;
+  label: string;
+}
+interface ForestCluster {
+  cx: number;
+  cy: number;
+}
+interface LandscapeLocation {
+  type: "city" | "town";
+  cx: number;
+  cy: number;
+}
+interface RiverPoint {
+  gx: number;
+  gy: number;
+}
 
 type MapScale = "small" | "medium" | "large";
 type CivSize = "village" | "town" | "city";
-type BuildingType = "normal" | "castle" | "inn" | "tavern" | "merchant" | "church" | "blacksmith" | "potions" | "armoury";
-interface TownBuilding { x: number; y: number; w: number; h: number; type: BuildingType; doorSide?: "N"|"S"|"E"|"W"; }
-interface FarmArea { fx: number; fy: number; fw: number; fh: number; f: number; }
+type BuildingType =
+  | "normal"
+  | "castle"
+  | "inn"
+  | "tavern"
+  | "merchant"
+  | "church"
+  | "blacksmith"
+  | "potions"
+  | "armoury";
+interface TownBuilding {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  type: BuildingType;
+  doorSide?: "N" | "S" | "E" | "W";
+}
+interface FarmArea {
+  fx: number;
+  fy: number;
+  fw: number;
+  fh: number;
+  f: number;
+}
 
 interface CubicSegment {
   p0: { x: number; y: number };
@@ -46,7 +83,7 @@ function seededRand(n: number, seed: number): number {
   return ((h ^ (h >>> 16)) >>> 0) / 0xffffffff;
 }
 
-function getDoorSide(dx: number, dy: number): "N"|"S"|"E"|"W" {
+function getDoorSide(dx: number, dy: number): "N" | "S" | "E" | "W" {
   if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? "E" : "W";
   return dy > 0 ? "S" : "N";
 }
@@ -61,8 +98,16 @@ function makeNoise(seed: number): ReturnType<typeof createNoise2D> {
   });
 }
 
-function fbm(noise: ReturnType<typeof createNoise2D>, x: number, y: number, oct: number): number {
-  let v = 0, amp = 0.5, freq = 1, maxV = 0;
+function fbm(
+  noise: ReturnType<typeof createNoise2D>,
+  x: number,
+  y: number,
+  oct: number,
+): number {
+  let v = 0,
+    amp = 0.5,
+    freq = 1,
+    maxV = 0;
   for (let i = 0; i < oct; i++) {
     v += amp * (noise(x * freq, y * freq) * 0.5 + 0.5);
     maxV += amp;
@@ -74,19 +119,26 @@ function fbm(noise: ReturnType<typeof createNoise2D>, x: number, y: number, oct:
 
 // ─── Heightmap ────────────────────────────────────────────────────────────────
 
-const SCALE_FREQ: Record<MapScale, number> = { small: 1.0, medium: 2.0, large: 4.0 };
+const SCALE_FREQ: Record<MapScale, number> = {
+  small: 1.0,
+  medium: 2.0,
+  large: 4.0,
+};
 
 // Organic road generation tuning parameters
 const ORGANIC_ROAD = {
-  curviness:         0.65, // 0–1: perpendicular offset of control points relative to road length
-  wobble:            0.45, // 0–1: Perlin noise edge displacement (max ~5px at 1.0)
-  widthVariance:     0.65, // 0–1: sine-wave oscillation of road width along its length
-  minAngleDeltaDeg:  28,   // minimum angular separation between roads leaving same node
-  cobbleDensity:     0.85, // 0–1: fraction of cobblestone stamp positions that are filled
+  curviness: 0.65, // 0–1: perpendicular offset of control points relative to road length
+  wobble: 0.45, // 0–1: Perlin noise edge displacement (max ~5px at 1.0)
+  widthVariance: 0.65, // 0–1: sine-wave oscillation of road width along its length
+  minAngleDeltaDeg: 28, // minimum angular separation between roads leaving same node
+  cobbleDensity: 0.85, // 0–1: fraction of cobblestone stamp positions that are filled
   useChainedBeziers: true, // split roads >240px into 2 chained cubic segments
 };
 
-function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
+function buildMaps(
+  seed: number,
+  scale: MapScale = "medium",
+): { hm: Float32Array; am: Float32Array; sm: Float32Array } {
   const tn = makeNoise(seed);
   const an = makeNoise(seed + 99991);
   const dn = makeNoise(seed + 49999);
@@ -101,10 +153,19 @@ function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array
   let maxH = 0;
   for (let gy = 0; gy < HM_H; gy++) {
     for (let gx = 0; gx < HM_W; gx++) {
-      const nx = gx / HM_W, ny = gy / HM_H;
-      const raw = fbm(tn, nx * tf, ny * tf, 6) + fbm(dn, nx * tf * 4, ny * tf * 4, 3) * 0.08;
-      const ex = Math.max(0, Math.max((marginX - nx) / marginX, (nx - (1 - marginX)) / marginX));
-      const ey = Math.max(0, Math.max((marginY - ny) / marginY, (ny - (1 - marginY)) / marginY));
+      const nx = gx / HM_W,
+        ny = gy / HM_H;
+      const raw =
+        fbm(tn, nx * tf, ny * tf, 6) +
+        fbm(dn, nx * tf * 4, ny * tf * 4, 3) * 0.08;
+      const ex = Math.max(
+        0,
+        Math.max((marginX - nx) / marginX, (nx - (1 - marginX)) / marginX),
+      );
+      const ey = Math.max(
+        0,
+        Math.max((marginY - ny) / marginY, (ny - (1 - marginY)) / marginY),
+      );
       const fall = 1 - Math.min(1, Math.pow(Math.max(ex, ey) * 3.5, 1.3));
       const h = Math.max(0, raw * fall);
       hm[gy * HM_W + gx] = h;
@@ -132,13 +193,19 @@ function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array
   const sm = new Float32Array(HM_W * HM_H);
   for (let gy = 0; gy < HM_H; gy++) {
     for (let gx = 0; gx < HM_W; gx++) {
-      const gx0 = Math.max(0, gx - 1), gx2 = Math.min(HM_W - 1, gx + 1);
-      const gy0 = Math.max(0, gy - 1), gy2 = Math.min(HM_H - 1, gy + 1);
+      const gx0 = Math.max(0, gx - 1),
+        gx2 = Math.min(HM_W - 1, gx + 1);
+      const gy0 = Math.max(0, gy - 1),
+        gy2 = Math.min(HM_H - 1, gy + 1);
       const dzdx = (hm[gy * HM_W + gx2] - hm[gy * HM_W + gx0]) / (gx2 - gx0);
       const dzdy = (hm[gy2 * HM_W + gx] - hm[gy0 * HM_W + gx]) / (gy2 - gy0);
-      const ex = -dzdx * 10, ey = -dzdy * 10, ez = 0.15;
+      const ex = -dzdx * 10,
+        ey = -dzdy * 10,
+        ez = 0.15;
       const len = Math.sqrt(ex * ex + ey * ey + ez * ez);
-      const lx = -0.5774, ly = -0.5774, lz = 0.5774;
+      const lx = -0.5774,
+        ly = -0.5774,
+        lz = 0.5774;
       sm[gy * HM_W + gx] = Math.max(0.05, (ex * lx + ey * ly + ez * lz) / len);
     }
   }
@@ -149,18 +216,24 @@ function buildMaps(seed: number, scale: MapScale = "medium"): { hm: Float32Array
 function sampleGrid(g: Float32Array, nx: number, ny: number): number {
   const gx = Math.max(0, Math.min(HM_W - 1.001, nx * (HM_W - 1)));
   const gy = Math.max(0, Math.min(HM_H - 1.001, ny * (HM_H - 1)));
-  const gx0 = gx | 0, gy0 = gy | 0, gx1 = gx0 + 1, gy1 = gy0 + 1;
-  const fx = gx - gx0, fy = gy - gy0;
-  return g[gy0 * HM_W + gx0] * (1 - fx) * (1 - fy)
-       + g[gy0 * HM_W + gx1] * fx * (1 - fy)
-       + g[gy1 * HM_W + gx0] * (1 - fx) * fy
-       + g[gy1 * HM_W + gx1] * fx * fy;
+  const gx0 = gx | 0,
+    gy0 = gy | 0,
+    gx1 = gx0 + 1,
+    gy1 = gy0 + 1;
+  const fx = gx - gx0,
+    fy = gy - gy0;
+  return (
+    g[gy0 * HM_W + gx0] * (1 - fx) * (1 - fy) +
+    g[gy0 * HM_W + gx1] * fx * (1 - fy) +
+    g[gy1 * HM_W + gx0] * (1 - fx) * fy +
+    g[gy1 * HM_W + gx1] * fx * fy
+  );
 }
 
 // ─── Terrain Colour ───────────────────────────────────────────────────────────
 
 const BANDS: Array<{ t: number; rgb: RGB }> = [
-  { t: 0.30, rgb: [58, 84, 108] },
+  { t: 0.3, rgb: [58, 84, 108] },
   { t: 0.37, rgb: [85, 120, 145] },
   { t: 0.41, rgb: [198, 182, 140] },
   { t: 0.48, rgb: [135, 152, 92] },
@@ -169,12 +242,16 @@ const BANDS: Array<{ t: number; rgb: RGB }> = [
   { t: 0.69, rgb: [68, 98, 48] },
   { t: 0.75, rgb: [148, 138, 118] },
   { t: 0.82, rgb: [182, 174, 162] },
-  { t: 0.90, rgb: [218, 212, 205] },
+  { t: 0.9, rgb: [218, 212, 205] },
   { t: 1.01, rgb: [242, 240, 238] },
 ];
 
 function lerpRGB(a: RGB, b: RGB, t: number): RGB {
-  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
 }
 
 function terrainColor(h: number, arid: number): RGB {
@@ -183,7 +260,10 @@ function terrainColor(h: number, arid: number): RGB {
   for (let i = 0; i < BANDS.length - 1; i++) {
     if (h < BANDS[i + 1].t) {
       const delta = h - (BANDS[i + 1].t - blend);
-      base = delta > 0 ? lerpRGB(BANDS[i].rgb, BANDS[i + 1].rgb, delta / blend) : BANDS[i].rgb;
+      base =
+        delta > 0
+          ? lerpRGB(BANDS[i].rgb, BANDS[i + 1].rgb, delta / blend)
+          : BANDS[i].rgb;
       break;
     }
   }
@@ -197,15 +277,24 @@ function terrainColor(h: number, arid: number): RGB {
 
 // ─── Terrain Render (pixel-perfect with hillshading) ─────────────────────────
 
-function renderTerrain(ctx: CanvasRenderingContext2D, hm: Float32Array, am: Float32Array, sm: Float32Array): void {
+function renderTerrain(
+  ctx: CanvasRenderingContext2D,
+  hm: Float32Array,
+  am: Float32Array,
+  sm: Float32Array,
+): void {
   const img = ctx.createImageData(W, H);
   const d = img.data;
   for (let py = 0; py < H; py++) {
     for (let px = 0; px < W; px++) {
-      const nx = px / (W - 1), ny = py / (H - 1);
+      const nx = px / (W - 1),
+        ny = py / (H - 1);
       const h = sampleGrid(hm, nx, ny);
       const arid = sampleGrid(am, nx, ny);
-      const shade = Math.pow(Math.max(0, Math.min(1, sampleGrid(sm, nx, ny))), 0.65);
+      const shade = Math.pow(
+        Math.max(0, Math.min(1, sampleGrid(sm, nx, ny))),
+        0.65,
+      );
       let [r, g, b] = terrainColor(h, arid);
       r = r * shade + 25 * (1 - shade);
       g = g * shade + 18 * (1 - shade);
@@ -222,7 +311,11 @@ function renderTerrain(ctx: CanvasRenderingContext2D, hm: Float32Array, am: Floa
 
 // ─── Water Waves ──────────────────────────────────────────────────────────────
 
-function renderWaterWaves(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: number): void {
+function renderWaterWaves(
+  ctx: CanvasRenderingContext2D,
+  hm: Float32Array,
+  seed: number,
+): void {
   ctx.save();
   for (let gy = 0; gy < HM_H; gy++) {
     for (let gx = 0; gx < HM_W; gx++) {
@@ -249,12 +342,22 @@ function generateRivers(hm: Float32Array, seed: number): RiverPoint[][] {
     for (let gx = 8; gx < HM_W - 8; gx += 3)
       if (hm[gy * HM_W + gx] > 0.72) candidates.push({ gx, gy });
 
-  candidates.sort((a, b) => seededRand(a.gx * 100 + a.gy, seed + 88888) - seededRand(b.gx * 100 + b.gy, seed + 88888));
+  candidates.sort(
+    (a, b) =>
+      seededRand(a.gx * 100 + a.gy, seed + 88888) -
+      seededRand(b.gx * 100 + b.gy, seed + 88888),
+  );
 
   const rivers: RiverPoint[][] = [];
   for (let ri = 0; ri < Math.min(count, candidates.length); ri++) {
     const src = candidates[ri];
-    if (rivers.some(r => Math.abs(r[0].gx - src.gx) < 18 && Math.abs(r[0].gy - src.gy) < 18)) continue;
+    if (
+      rivers.some(
+        (r) =>
+          Math.abs(r[0].gx - src.gx) < 18 && Math.abs(r[0].gy - src.gy) < 18,
+      )
+    )
+      continue;
 
     const path: RiverPoint[] = [src];
     const visited = new Set([`${src.gx},${src.gy}`]);
@@ -263,22 +366,42 @@ function generateRivers(hm: Float32Array, seed: number): RiverPoint[][] {
     for (let step = 0; step < 300; step++) {
       if (hm[gy * HM_W + gx] < 0.37) break;
       if (gx <= 0 || gx >= HM_W - 1 || gy <= 0 || gy >= HM_H - 1) break;
-      const dirs = [[gx-1,gy],[gx+1,gy],[gx,gy-1],[gx,gy+1],[gx-1,gy-1],[gx+1,gy-1],[gx-1,gy+1],[gx+1,gy+1]];
-      let bestH = hm[gy * HM_W + gx], bx = 0, by = 0;
+      const dirs = [
+        [gx - 1, gy],
+        [gx + 1, gy],
+        [gx, gy - 1],
+        [gx, gy + 1],
+        [gx - 1, gy - 1],
+        [gx + 1, gy - 1],
+        [gx - 1, gy + 1],
+        [gx + 1, gy + 1],
+      ];
+      let bestH = hm[gy * HM_W + gx],
+        bx = 0,
+        by = 0;
       for (const [nx, ny] of dirs) {
         if (nx < 0 || nx >= HM_W || ny < 0 || ny >= HM_H) continue;
         if (visited.has(`${nx},${ny}`)) continue;
         const nh = hm[ny * HM_W + nx];
-        if (nh < bestH) { bestH = nh; bx = nx - gx; by = ny - gy; }
+        if (nh < bestH) {
+          bestH = nh;
+          bx = nx - gx;
+          by = ny - gy;
+        }
       }
       if (bx === 0 && by === 0) {
         for (const [nx, ny] of dirs) {
           if (nx < 0 || nx >= HM_W || ny < 0 || ny >= HM_H) continue;
-          if (!visited.has(`${nx},${ny}`)) { bx = nx - gx; by = ny - gy; break; }
+          if (!visited.has(`${nx},${ny}`)) {
+            bx = nx - gx;
+            by = ny - gy;
+            break;
+          }
         }
       }
       if (bx === 0 && by === 0) break;
-      gx += bx; gy += by;
+      gx += bx;
+      gy += by;
       visited.add(`${gx},${gy}`);
       path.push({ gx, gy });
     }
@@ -288,21 +411,33 @@ function generateRivers(hm: Float32Array, seed: number): RiverPoint[][] {
   return rivers;
 }
 
-function renderRivers(ctx: CanvasRenderingContext2D, rivers: RiverPoint[][]): void {
+function renderRivers(
+  ctx: CanvasRenderingContext2D,
+  rivers: RiverPoint[][],
+): void {
   ctx.save();
   for (const river of rivers) {
     if (river.length < 2) continue;
-    const pts = river.map(p => ({ x: (p.gx / HM_W) * W, y: (p.gy / HM_H) * H }));
+    const pts = river.map((p) => ({
+      x: (p.gx / HM_W) * W,
+      y: (p.gy / HM_H) * H,
+    }));
 
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < pts.length - 1; i++) {
-      const mx = (pts[i].x + pts[i+1].x) / 2, my = (pts[i].y + pts[i+1].y) / 2;
+      const mx = (pts[i].x + pts[i + 1].x) / 2,
+        my = (pts[i].y + pts[i + 1].y) / 2;
       ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
     }
     ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
 
-    const g = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[pts.length-1].x, pts[pts.length-1].y);
+    const g = ctx.createLinearGradient(
+      pts[0].x,
+      pts[0].y,
+      pts[pts.length - 1].x,
+      pts[pts.length - 1].y,
+    );
     g.addColorStop(0, "rgba(100,140,170,0.65)");
     g.addColorStop(1, "rgba(82,116,140,0.88)");
     ctx.strokeStyle = g;
@@ -315,7 +450,8 @@ function renderRivers(ctx: CanvasRenderingContext2D, rivers: RiverPoint[][]): vo
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < pts.length - 1; i++) {
-      const mx = (pts[i].x + pts[i+1].x) / 2, my = (pts[i].y + pts[i+1].y) / 2;
+      const mx = (pts[i].x + pts[i + 1].x) / 2,
+        my = (pts[i].y + pts[i + 1].y) / 2;
       ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
     }
     ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
@@ -328,7 +464,12 @@ function renderRivers(ctx: CanvasRenderingContext2D, rivers: RiverPoint[][]): vo
 
 // ─── Forest ───────────────────────────────────────────────────────────────────
 
-function drawTree(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+function drawTree(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, size * 0.46, 0, Math.PI * 2);
@@ -358,36 +499,51 @@ function drawTree(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: n
   ctx.restore();
 }
 
-function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, seed: number, idx: number): void {
+function drawBush(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  seed: number,
+  idx: number,
+): void {
   ctx.save();
   const rv = (seededRand(idx, seed + 33500) * 14) | 0;
   const outlineColor = "rgba(28,48,16,0.55)";
-  ctx.strokeStyle = outlineColor; ctx.lineWidth = 0.55;
+  ctx.strokeStyle = outlineColor;
+  ctx.lineWidth = 0.55;
   // 2-3 overlapping lobes
   for (let l = 0; l < 3; l++) {
-    const la = (l / 3) * Math.PI * 2 + seededRand(idx * 3 + l, seed + 33501) * 1.2;
+    const la =
+      (l / 3) * Math.PI * 2 + seededRand(idx * 3 + l, seed + 33501) * 1.2;
     const ld = r * (0.22 + seededRand(idx * 3 + l, seed + 33502) * 0.18);
     const lr = r * (0.62 + seededRand(idx * 3 + l, seed + 33503) * 0.28);
     const lv = (seededRand(idx * 3 + l, seed + 33504) * 12) | 0;
-    ctx.fillStyle = `rgba(${52+rv+lv},${84+rv+lv},${36+rv+lv},0.80)`;
-    ctx.beginPath(); ctx.arc(cx + Math.cos(la) * ld, cy + Math.sin(la) * ld, lr, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = `rgba(${52 + rv + lv},${84 + rv + lv},${36 + rv + lv},0.80)`;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(la) * ld, cy + Math.sin(la) * ld, lr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
   }
   ctx.restore();
 }
 
-function placeForests(hm: Float32Array, am: Float32Array, seed: number): ForestCluster[] {
+function placeForests(
+  hm: Float32Array,
+  am: Float32Array,
+  seed: number,
+): ForestCluster[] {
   const clusters: ForestCluster[] = [];
   const occ = new Set<string>();
   for (let gy = 2; gy < HM_H - 2; gy++) {
     for (let gx = 2; gx < HM_W - 2; gx++) {
       const h = hm[gy * HM_W + gx];
-      if (h < 0.54 || h > 0.73 || am[gy * HM_W + gx] > 0.60) continue;
+      if (h < 0.54 || h > 0.73 || am[gy * HM_W + gx] > 0.6) continue;
       if (seededRand(gy * HM_W + gx + 1, seed + 11111) > 0.17) continue;
       let clear = true;
       for (let dy = -3; dy <= 3 && clear; dy++)
         for (let dx = -3; dx <= 3 && clear; dx++)
-          if (occ.has(`${gx+dx},${gy+dy}`)) clear = false;
+          if (occ.has(`${gx + dx},${gy + dy}`)) clear = false;
       if (!clear) continue;
       occ.add(`${gx},${gy}`);
       clusters.push({ cx: (gx / HM_W) * W, cy: (gy / HM_H) * H });
@@ -396,14 +552,23 @@ function placeForests(hm: Float32Array, am: Float32Array, seed: number): ForestC
   return clusters;
 }
 
-function renderForests(ctx: CanvasRenderingContext2D, clusters: ForestCluster[], seed: number): void {
+function renderForests(
+  ctx: CanvasRenderingContext2D,
+  clusters: ForestCluster[],
+  seed: number,
+): void {
   for (let i = 0; i < clusters.length; i++) {
     const { cx, cy } = clusters[i];
     const n = 3 + Math.floor(seededRand(i, seed + 22222) * 4);
     for (let t = 0; t < n; t++) {
       const a = seededRand(i * 10 + t, seed + 33333) * Math.PI * 2;
       const d = seededRand(i * 10 + t + 100, seed + 44444) * 13;
-      drawTree(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, 5 + seededRand(i * 10 + t + 200, seed + 55555) * 4);
+      drawTree(
+        ctx,
+        cx + Math.cos(a) * d,
+        cy + Math.sin(a) * d,
+        5 + seededRand(i * 10 + t + 200, seed + 55555) * 4,
+      );
     }
   }
 }
@@ -413,7 +578,11 @@ function renderForests(ctx: CanvasRenderingContext2D, clusters: ForestCluster[],
 // high peaks → snow already in BANDS[]). This adds fine stippling for cells
 // above h > 0.76 to reinforce the stony texture without any geometric shapes.
 
-function renderRockTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: number): void {
+function renderRockTexture(
+  ctx: CanvasRenderingContext2D,
+  hm: Float32Array,
+  seed: number,
+): void {
   ctx.save();
   for (let gy = 1; gy < HM_H - 1; gy++) {
     for (let gx = 1; gx < HM_W - 1; gx++) {
@@ -435,7 +604,11 @@ function renderRockTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, seed
 
 // ─── Snow Caps ────────────────────────────────────────────────────────────────
 
-function renderSnow(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: number): void {
+function renderSnow(
+  ctx: CanvasRenderingContext2D,
+  hm: Float32Array,
+  seed: number,
+): void {
   ctx.save();
   for (let gy = 1; gy < HM_H - 1; gy++) {
     for (let gx = 1; gx < HM_W - 1; gx++) {
@@ -458,14 +631,19 @@ function renderSnow(ctx: CanvasRenderingContext2D, hm: Float32Array, seed: numbe
 // ─── Civ Terrain ──────────────────────────────────────────────────────────────
 
 // Flat grass terrain for civilisation mode (no mountains, no deep ocean)
-function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
+function renderCivTerrain(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  size: CivSize,
+): void {
   const gn = makeNoise(seed + 44321);
   const dn = makeNoise(seed + 55432);
   const img = ctx.createImageData(W, H);
   const d = img.data;
   for (let py = 0; py < H; py++) {
     for (let px = 0; px < W; px++) {
-      const nx = px / W, ny = py / H;
+      const nx = px / W,
+        ny = py / H;
       const gv = fbm(gn, nx * 9, ny * 9, 4);
       let r = (122 + gv * 44) | 0;
       let g = (148 + gv * 42) | 0;
@@ -481,42 +659,69 @@ function renderCivTerrain(ctx: CanvasRenderingContext2D, seed: number, size: Civ
         b = (b + t * (96 - b)) | 0;
       }
       const i = (py * W + px) * 4;
-      d[i] = Math.min(255, r); d[i+1] = Math.min(255, g); d[i+2] = Math.min(255, b); d[i+3] = 255;
+      d[i] = Math.min(255, r);
+      d[i + 1] = Math.min(255, g);
+      d[i + 2] = Math.min(255, b);
+      d[i + 3] = 255;
     }
   }
   ctx.putImageData(img, 0, 0);
 }
 
-function pointInPolygon(px: number, py: number, poly: Array<{x: number; y: number}>): boolean {
+function pointInPolygon(
+  px: number,
+  py: number,
+  poly: Array<{ x: number; y: number }>,
+): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
-    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+    const xi = poly[i].x,
+      yi = poly[i].y,
+      xj = poly[j].x,
+      yj = poly[j].y;
+    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi)
+      inside = !inside;
   }
   return inside;
 }
 
-function organicPondPts(cx: number, cy: number, rx: number, ry: number, seed: number): Array<{x: number; y: number}> {
-  const n = 8 + (seededRand(790, seed) * 6 | 0);
+function organicPondPts(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  seed: number,
+): Array<{ x: number; y: number }> {
+  const n = 8 + ((seededRand(790, seed) * 6) | 0);
   const noise2D = makeNoise(seed + 76543);
   const spans: number[] = [];
   let total = 0;
-  for (let i = 0; i < n; i++) { const s = 0.5 + seededRand(791 + i, seed) * 1.0; spans.push(s); total += s; }
+  for (let i = 0; i < n; i++) {
+    const s = 0.5 + seededRand(791 + i, seed) * 1.0;
+    spans.push(s);
+    total += s;
+  }
   const norm = (2 * Math.PI) / total;
   let ang = seededRand(799, seed) * Math.PI * 2;
-  const pts: Array<{x: number; y: number}> = [];
+  const pts: Array<{ x: number; y: number }> = [];
   for (let i = 0; i < n; i++) {
     ang += spans[i] * norm;
     const rFrac = 0.62 + seededRand(800 + i, seed) * 0.36;
     const noiseDisp = 0.08 + seededRand(810 + i, seed) * 0.12;
     const nv = noise2D(Math.cos(ang) * 1.5, Math.sin(ang) * 1.5) * noiseDisp;
     const r = Math.max(0.45, rFrac + nv);
-    pts.push({ x: cx + Math.cos(ang) * rx * r, y: cy + Math.sin(ang) * ry * r });
+    pts.push({
+      x: cx + Math.cos(ang) * rx * r,
+      y: cy + Math.sin(ang) * ry * r,
+    });
   }
   return pts;
 }
 
-function traceOrganicPond(ctx: CanvasRenderingContext2D, pts: Array<{x: number; y: number}>): void {
+function traceOrganicPond(
+  ctx: CanvasRenderingContext2D,
+  pts: Array<{ x: number; y: number }>,
+): void {
   const n = pts.length;
   ctx.beginPath();
   ctx.moveTo(pts[0].x, pts[0].y);
@@ -534,7 +739,18 @@ function traceOrganicPond(ctx: CanvasRenderingContext2D, pts: Array<{x: number; 
   ctx.closePath();
 }
 
-function renderPond(ctx: CanvasRenderingContext2D, seed: number, overrideCx?: number, overrideCy?: number): { cx: number; cy: number; rx: number; ry: number; poly: Array<{x: number; y: number}> } {
+function renderPond(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  overrideCx?: number,
+  overrideCy?: number,
+): {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  poly: Array<{ x: number; y: number }>;
+} {
   const pcx = overrideCx ?? (0.12 + seededRand(760, seed) * 0.76) * W;
   const pcy = overrideCy ?? (0.12 + seededRand(761, seed) * 0.76) * H;
   const rx = 28 + seededRand(762, seed) * 44;
@@ -542,14 +758,26 @@ function renderPond(ctx: CanvasRenderingContext2D, seed: number, overrideCx?: nu
   const poly = organicPondPts(pcx, pcy, rx, ry, seed);
   ctx.save();
   traceOrganicPond(ctx, poly);
-  ctx.fillStyle = "rgba(68,108,148,0.82)"; ctx.fill();
-  ctx.strokeStyle = "rgba(50,82,118,0.70)"; ctx.lineWidth = 1.8; ctx.stroke();
+  ctx.fillStyle = "rgba(68,108,148,0.82)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50,82,118,0.70)";
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
   for (let w = 0; w < 5; w++) {
     const wa = seededRand(w + 770, seed) * Math.PI * 2;
     const wd = seededRand(w + 771, seed) * rx * 0.65;
     ctx.beginPath();
-    ctx.arc(pcx + Math.cos(wa)*wd, pcy + Math.sin(wa)*wd*(ry/rx), 3 + seededRand(w+772,seed)*5, 0, Math.PI, true);
-    ctx.strokeStyle = "rgba(190,215,235,0.22)"; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.arc(
+      pcx + Math.cos(wa) * wd,
+      pcy + Math.sin(wa) * wd * (ry / rx),
+      3 + seededRand(w + 772, seed) * 5,
+      0,
+      Math.PI,
+      true,
+    );
+    ctx.strokeStyle = "rgba(190,215,235,0.22)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
   }
   ctx.restore();
   return { cx: pcx, cy: pcy, rx, ry, poly };
@@ -557,17 +785,31 @@ function renderPond(ctx: CanvasRenderingContext2D, seed: number, overrideCx?: nu
 
 // ─── Desert Dunes ─────────────────────────────────────────────────────────────
 
-function renderDesertTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, am: Float32Array, seed: number): void {
+function renderDesertTexture(
+  ctx: CanvasRenderingContext2D,
+  hm: Float32Array,
+  am: Float32Array,
+  seed: number,
+): void {
   ctx.save();
   for (let gy = 1; gy < HM_H - 1; gy += 2) {
     for (let gx = 1; gx < HM_W - 1; gx += 2) {
-      const h = hm[gy * HM_W + gx], arid = am[gy * HM_W + gx];
+      const h = hm[gy * HM_W + gx],
+        arid = am[gy * HM_W + gx];
       if (!(arid > 0.62 && h > 0.41 && h < 0.58)) continue;
       if (seededRand(gy * HM_W + gx, seed + 77777) > 0.22) continue;
-      const px = (gx / HM_W) * W, py = (gy / HM_H) * H;
+      const px = (gx / HM_W) * W,
+        py = (gy / HM_H) * H;
       const a = seededRand(gx + gy * 17, seed + 88888) * 0.6;
       ctx.beginPath();
-      ctx.arc(px, py, 5 + seededRand(gx * 13 + gy, seed + 99999) * 8, Math.PI + a, Math.PI * 2 - a, false);
+      ctx.arc(
+        px,
+        py,
+        5 + seededRand(gx * 13 + gy, seed + 99999) * 8,
+        Math.PI + a,
+        Math.PI * 2 - a,
+        false,
+      );
       ctx.strokeStyle = "rgba(175,150,78,0.32)";
       ctx.lineWidth = 0.8;
       ctx.stroke();
@@ -578,9 +820,14 @@ function renderDesertTexture(ctx: CanvasRenderingContext2D, hm: Float32Array, am
 
 // ─── Location Icons ───────────────────────────────────────────────────────────
 
-function drawCityIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawCityIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.fillStyle = "rgba(88,68,44,0.92)";
   ctx.strokeStyle = "rgba(28,18,8,0.9)";
   ctx.lineWidth = 1.2;
@@ -590,255 +837,403 @@ function drawCityIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): vo
   ctx.strokeRect(cx - 14, cy - 22, 28, 22);
   // Crenellations
   for (let c = 0; c < 4; c++) {
-    if (c % 2 === 0) { ctx.fillRect(cx - 14 + c * 7, cy - 27, 7, 5); }
+    if (c % 2 === 0) {
+      ctx.fillRect(cx - 14 + c * 7, cy - 27, 7, 5);
+    }
   }
   // Side towers
-  ctx.fillRect(cx - 22, cy - 16, 9, 16); ctx.strokeRect(cx - 22, cy - 16, 9, 16);
-  ctx.fillRect(cx + 13, cy - 16, 9, 16); ctx.strokeRect(cx + 13, cy - 16, 9, 16);
+  ctx.fillRect(cx - 22, cy - 16, 9, 16);
+  ctx.strokeRect(cx - 22, cy - 16, 9, 16);
+  ctx.fillRect(cx + 13, cy - 16, 9, 16);
+  ctx.strokeRect(cx + 13, cy - 16, 9, 16);
   // Gate arch
   ctx.beginPath();
   ctx.arc(cx, cy - 5, 5, Math.PI, 0);
-  ctx.fillStyle = "rgba(45,32,18,0.9)"; ctx.fill();
+  ctx.fillStyle = "rgba(45,32,18,0.9)";
+  ctx.fill();
 
   ctx.restore();
 }
 
-function drawTownIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawTownIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.fillStyle = "rgba(162,138,102,0.92)";
   ctx.strokeStyle = "rgba(38,28,12,0.85)";
   ctx.lineWidth = 1.0;
-  ctx.fillRect(cx - 10, cy - 10, 20, 10); ctx.strokeRect(cx - 10, cy - 10, 20, 10);
+  ctx.fillRect(cx - 10, cy - 10, 20, 10);
+  ctx.strokeRect(cx - 10, cy - 10, 20, 10);
   ctx.beginPath();
-  ctx.moveTo(cx - 12, cy - 10); ctx.lineTo(cx, cy - 21); ctx.lineTo(cx + 12, cy - 10); ctx.closePath();
-  ctx.fillStyle = "rgba(115,88,58,0.9)"; ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "rgba(45,32,18,0.7)"; ctx.fillRect(cx - 2.5, cy - 9, 5, 4);
+  ctx.moveTo(cx - 12, cy - 10);
+  ctx.lineTo(cx, cy - 21);
+  ctx.lineTo(cx + 12, cy - 10);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(115,88,58,0.9)";
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(45,32,18,0.7)";
+  ctx.fillRect(cx - 2.5, cy - 9, 5, 4);
   ctx.restore();
 }
 
 // ─── Town Icons ───────────────────────────────────────────────────────────────
 
-function drawTownCastleIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawTownCastleIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.fillStyle = "rgba(78,58,38,0.92)";
   ctx.strokeStyle = "rgba(28,18,8,0.9)";
   ctx.lineWidth = 0.85;
-  ctx.fillRect(cx - 11, cy - 16, 22, 16); ctx.strokeRect(cx - 11, cy - 16, 22, 16);
-  for (let c = 0; c < 6; c++) { if (c % 2 === 0) ctx.fillRect(cx - 11 + c * 3.7, cy - 19, 3.7, 3); }
-  ctx.fillRect(cx - 16, cy - 13, 6, 13); ctx.strokeRect(cx - 16, cy - 13, 6, 13);
-  ctx.fillRect(cx + 10, cy - 13, 6, 13); ctx.strokeRect(cx + 10, cy - 13, 6, 13);
-  ctx.beginPath(); ctx.arc(cx, cy - 4, 3.5, Math.PI, 0); ctx.fillStyle = "rgba(40,28,14,0.9)"; ctx.fill();
+  ctx.fillRect(cx - 11, cy - 16, 22, 16);
+  ctx.strokeRect(cx - 11, cy - 16, 22, 16);
+  for (let c = 0; c < 6; c++) {
+    if (c % 2 === 0) ctx.fillRect(cx - 11 + c * 3.7, cy - 19, 3.7, 3);
+  }
+  ctx.fillRect(cx - 16, cy - 13, 6, 13);
+  ctx.strokeRect(cx - 16, cy - 13, 6, 13);
+  ctx.fillRect(cx + 10, cy - 13, 6, 13);
+  ctx.strokeRect(cx + 10, cy - 13, 6, 13);
+  ctx.beginPath();
+  ctx.arc(cx, cy - 4, 3.5, Math.PI, 0);
+  ctx.fillStyle = "rgba(40,28,14,0.9)";
+  ctx.fill();
   ctx.restore();
 }
 
-function drawInnIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawInnIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(35,25,12,0.88)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(35,25,12,0.88)";
+  ctx.lineWidth = 0.85;
   // Bed frame
   ctx.fillStyle = "rgba(118,85,52,0.95)";
-  ctx.fillRect(cx - 9, cy - 13, 18, 26); ctx.strokeRect(cx - 9, cy - 13, 18, 26);
+  ctx.fillRect(cx - 9, cy - 13, 18, 26);
+  ctx.strokeRect(cx - 9, cy - 13, 18, 26);
   // Mattress
   ctx.fillStyle = "rgba(225,212,185,0.95)";
-  ctx.fillRect(cx - 7, cy - 11, 14, 21); ctx.strokeRect(cx - 7, cy - 11, 14, 21);
+  ctx.fillRect(cx - 7, cy - 11, 14, 21);
+  ctx.strokeRect(cx - 7, cy - 11, 14, 21);
   // Blanket (lower portion)
   ctx.fillStyle = "rgba(178,140,98,0.88)";
-  ctx.fillRect(cx - 7, cy - 3, 14, 13); ctx.strokeRect(cx - 7, cy - 3, 14, 13);
+  ctx.fillRect(cx - 7, cy - 3, 14, 13);
+  ctx.strokeRect(cx - 7, cy - 3, 14, 13);
   // Blanket fold
-  ctx.beginPath(); ctx.moveTo(cx - 7, cy - 3); ctx.lineTo(cx + 7, cy - 3);
-  ctx.strokeStyle = "rgba(35,25,12,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 7, cy - 3);
+  ctx.lineTo(cx + 7, cy - 3);
+  ctx.strokeStyle = "rgba(35,25,12,0.30)";
+  ctx.lineWidth = 0.6;
+  ctx.stroke();
   // Two pillows side by side
-  ctx.strokeStyle = "rgba(35,25,12,0.60)"; ctx.lineWidth = 0.7;
+  ctx.strokeStyle = "rgba(35,25,12,0.60)";
+  ctx.lineWidth = 0.7;
   ctx.fillStyle = "rgba(245,235,215,0.96)";
-  ctx.fillRect(cx - 7, cy - 11, 6, 6); ctx.strokeRect(cx - 7, cy - 11, 6, 6);
-  ctx.fillRect(cx + 1, cy - 11, 6, 6); ctx.strokeRect(cx + 1, cy - 11, 6, 6);
+  ctx.fillRect(cx - 7, cy - 11, 6, 6);
+  ctx.strokeRect(cx - 7, cy - 11, 6, 6);
+  ctx.fillRect(cx + 1, cy - 11, 6, 6);
+  ctx.strokeRect(cx + 1, cy - 11, 6, 6);
   // Headboard (darker bar at top)
   ctx.fillStyle = "rgba(85,58,32,0.96)";
   ctx.fillRect(cx - 9, cy - 13, 18, 3);
   ctx.restore();
 }
 
-function drawTavernIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawTavernIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(38,28,14,0.82)";
+  ctx.lineWidth = 0.85;
   // Pint glass — wider at top, narrower at base
   ctx.beginPath();
-  ctx.moveTo(cx - 5.5, cy - 10); ctx.lineTo(cx + 5.5, cy - 10); // top rim
-  ctx.lineTo(cx + 4, cy + 4);   ctx.lineTo(cx - 4, cy + 4);   // base
+  ctx.moveTo(cx - 5.5, cy - 10);
+  ctx.lineTo(cx + 5.5, cy - 10); // top rim
+  ctx.lineTo(cx + 4, cy + 4);
+  ctx.lineTo(cx - 4, cy + 4); // base
   ctx.closePath();
   // Beer fill (amber)
-  ctx.fillStyle = "rgba(195,148,38,0.88)"; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(195,148,38,0.88)";
+  ctx.fill();
+  ctx.stroke();
   // Foam at top
   ctx.fillStyle = "rgba(242,238,225,0.95)";
-  ctx.fillRect(cx - 5.5, cy - 10, 11, 3.5); ctx.strokeRect(cx - 5.5, cy - 10, 11, 3.5);
+  ctx.fillRect(cx - 5.5, cy - 10, 11, 3.5);
+  ctx.strokeRect(cx - 5.5, cy - 10, 11, 3.5);
   // Handle
   ctx.beginPath();
-  ctx.arc(cx + 7, cy - 5, 3, -Math.PI*0.5, Math.PI*0.5);
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 1.2; ctx.stroke();
-  ctx.restore();
-}
-
-function drawMerchantIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
-  ctx.save();
-  ctx.strokeStyle = "rgba(105,72,18,0.92)"; ctx.lineWidth = 0.9;
-  // Back-left coin
-  ctx.beginPath();
-  ctx.ellipse(cx - 5, cy - 4, 7, 4.5, -0.15, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(190,152,52,0.88)"; ctx.fill(); ctx.stroke();
-  // Back-right coin
-  ctx.beginPath();
-  ctx.ellipse(cx + 3, cy - 6, 7, 4.5, 0.15, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(200,163,58,0.90)"; ctx.fill(); ctx.stroke();
-  // Front coin — most prominent
-  ctx.beginPath();
-  ctx.ellipse(cx - 1, cy + 1, 8, 5, 0, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(218,180,68,0.96)"; ctx.fill(); ctx.stroke();
-  // Shine arc on front coin
-  ctx.beginPath();
-  ctx.arc(cx - 3, cy - 1, 3, -Math.PI * 0.55, -Math.PI * 0.1);
-  ctx.strokeStyle = "rgba(248,228,148,0.70)"; ctx.lineWidth = 0.8;
+  ctx.arc(cx + 7, cy - 5, 3, -Math.PI * 0.5, Math.PI * 0.5);
+  ctx.strokeStyle = "rgba(38,28,14,0.82)";
+  ctx.lineWidth = 1.2;
   ctx.stroke();
   ctx.restore();
 }
 
-function drawChurchIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawMerchantIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,26,10,0.88)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(105,72,18,0.92)";
+  ctx.lineWidth = 0.9;
+  // Back-left coin
+  ctx.beginPath();
+  ctx.ellipse(cx - 5, cy - 4, 7, 4.5, -0.15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(190,152,52,0.88)";
+  ctx.fill();
+  ctx.stroke();
+  // Back-right coin
+  ctx.beginPath();
+  ctx.ellipse(cx + 3, cy - 6, 7, 4.5, 0.15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(200,163,58,0.90)";
+  ctx.fill();
+  ctx.stroke();
+  // Front coin — most prominent
+  ctx.beginPath();
+  ctx.ellipse(cx - 1, cy + 1, 8, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(218,180,68,0.96)";
+  ctx.fill();
+  ctx.stroke();
+  // Shine arc on front coin
+  ctx.beginPath();
+  ctx.arc(cx - 3, cy - 1, 3, -Math.PI * 0.55, -Math.PI * 0.1);
+  ctx.strokeStyle = "rgba(248,228,148,0.70)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawChurchIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
+  ctx.save();
+  ctx.strokeStyle = "rgba(38,26,10,0.88)";
+  ctx.lineWidth = 0.85;
   // Bell body — rounded dome
   ctx.beginPath();
   ctx.moveTo(cx - 8, cy + 4);
   ctx.bezierCurveTo(cx - 10, cy, cx - 10, cy - 8, cx, cy - 11);
   ctx.bezierCurveTo(cx + 10, cy - 8, cx + 10, cy, cx + 8, cy + 4);
   ctx.closePath();
-  ctx.fillStyle = "rgba(185,158,78,0.95)"; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(185,158,78,0.95)";
+  ctx.fill();
+  ctx.stroke();
   // Rim bar
   ctx.fillStyle = "rgba(165,135,58,0.95)";
-  ctx.fillRect(cx - 9, cy + 4, 18, 3); ctx.strokeRect(cx - 9, cy + 4, 18, 3);
+  ctx.fillRect(cx - 9, cy + 4, 18, 3);
+  ctx.strokeRect(cx - 9, cy + 4, 18, 3);
   // Clapper line + dot
-  ctx.beginPath(); ctx.moveTo(cx, cy + 7); ctx.lineTo(cx, cy + 11);
-  ctx.strokeStyle = "rgba(38,26,10,0.72)"; ctx.lineWidth = 0.8; ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx, cy + 12, 1.5, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(38,26,10,0.72)"; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + 7);
+  ctx.lineTo(cx, cy + 11);
+  ctx.strokeStyle = "rgba(38,26,10,0.72)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy + 12, 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(38,26,10,0.72)";
+  ctx.fill();
   ctx.restore();
 }
 
-function drawBlacksmithIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawBlacksmithIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
   ctx.fillStyle = "rgba(85,78,68,0.92)";
-  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(28,18,8,0.85)";
+  ctx.lineWidth = 0.85;
   // Hammer head (horizontal, at top)
-  ctx.fillRect(cx - 7, cy - 12, 14, 6); ctx.strokeRect(cx - 7, cy - 12, 14, 6);
+  ctx.fillRect(cx - 7, cy - 12, 14, 6);
+  ctx.strokeRect(cx - 7, cy - 12, 14, 6);
   // Handle (vertical, angled slightly)
   ctx.save();
-  ctx.translate(cx, cy); ctx.rotate(0.18);
+  ctx.translate(cx, cy);
+  ctx.rotate(0.18);
   ctx.fillStyle = "rgba(130,98,58,0.92)";
-  ctx.fillRect(-1.8, -6, 3.6, 14); ctx.strokeRect(-1.8, -6, 3.6, 14);
+  ctx.fillRect(-1.8, -6, 3.6, 14);
+  ctx.strokeRect(-1.8, -6, 3.6, 14);
   ctx.restore();
   ctx.restore();
 }
 
-
-function drawPotionIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawPotionIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(28,18,8,0.85)";
+  ctx.lineWidth = 0.85;
   // Bottle body (round)
-  ctx.beginPath(); ctx.arc(cx, cy - 1, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(138,48,188,0.82)"; ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy - 1, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(138,48,188,0.82)";
+  ctx.fill();
+  ctx.stroke();
   // Neck
   ctx.fillStyle = "rgba(118,38,158,0.88)";
-  ctx.fillRect(cx - 2.2, cy - 11, 4.4, 6); ctx.strokeRect(cx - 2.2, cy - 11, 4.4, 6);
+  ctx.fillRect(cx - 2.2, cy - 11, 4.4, 6);
+  ctx.strokeRect(cx - 2.2, cy - 11, 4.4, 6);
   // Cork
   ctx.fillStyle = "rgba(162,118,72,0.92)";
-  ctx.fillRect(cx - 2.8, cy - 14, 5.6, 3.5); ctx.strokeRect(cx - 2.8, cy - 14, 5.6, 3.5);
+  ctx.fillRect(cx - 2.8, cy - 14, 5.6, 3.5);
+  ctx.strokeRect(cx - 2.8, cy - 14, 5.6, 3.5);
   // Shine on bottle
   ctx.fillStyle = "rgba(255,255,255,0.28)";
-  ctx.beginPath(); ctx.arc(cx - 2, cy - 3, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx - 2, cy - 3, 2.5, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
-function drawSwordIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawSwordIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(28,18,8,0.85)"; ctx.lineWidth = 0.85;
+  ctx.strokeStyle = "rgba(28,18,8,0.85)";
+  ctx.lineWidth = 0.85;
   // Blade (vertical)
   ctx.fillStyle = "rgba(188,192,198,0.92)";
-  ctx.fillRect(cx - 1.5, cy - 13, 3, 16); ctx.strokeRect(cx - 1.5, cy - 13, 3, 16);
+  ctx.fillRect(cx - 1.5, cy - 13, 3, 16);
+  ctx.strokeRect(cx - 1.5, cy - 13, 3, 16);
   // Guard (horizontal crosspiece)
   ctx.fillStyle = "rgba(155,135,80,0.92)";
-  ctx.fillRect(cx - 7, cy + 2, 14, 2.5); ctx.strokeRect(cx - 7, cy + 2, 14, 2.5);
+  ctx.fillRect(cx - 7, cy + 2, 14, 2.5);
+  ctx.strokeRect(cx - 7, cy + 2, 14, 2.5);
   // Handle
   ctx.fillStyle = "rgba(118,82,42,0.92)";
-  ctx.fillRect(cx - 1.8, cy + 4, 3.6, 6); ctx.strokeRect(cx - 1.8, cy + 4, 3.6, 6);
+  ctx.fillRect(cx - 1.8, cy + 4, 3.6, 6);
+  ctx.strokeRect(cx - 1.8, cy + 4, 3.6, 6);
   // Pommel
-  ctx.beginPath(); ctx.arc(cx, cy + 10, 2.5, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(155,135,80,0.92)"; ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy + 10, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(155,135,80,0.92)";
+  ctx.fill();
+  ctx.stroke();
   // Blade tip
-  ctx.beginPath(); ctx.moveTo(cx - 1.5, cy - 13); ctx.lineTo(cx, cy - 17); ctx.lineTo(cx + 1.5, cy - 13);
-  ctx.fillStyle = "rgba(188,192,198,0.92)"; ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 1.5, cy - 13);
+  ctx.lineTo(cx, cy - 17);
+  ctx.lineTo(cx + 1.5, cy - 13);
+  ctx.fillStyle = "rgba(188,192,198,0.92)";
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
-function drawDockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawDockIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78;
+  ctx.strokeStyle = "rgba(38,28,14,0.82)";
+  ctx.lineWidth = 0.78;
   ctx.fillStyle = "rgba(72,110,148,0.78)";
   ctx.fillRect(cx - 11, cy - 3, 22, 9);
   ctx.fillStyle = "rgba(148,118,80,0.92)";
-  ctx.fillRect(cx - 9, cy - 10, 18, 8); ctx.strokeRect(cx - 9, cy - 10, 18, 8);
-  ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.5;
+  ctx.fillRect(cx - 9, cy - 10, 18, 8);
+  ctx.strokeRect(cx - 9, cy - 10, 18, 8);
+  ctx.strokeStyle = "rgba(55,38,18,0.30)";
+  ctx.lineWidth = 0.5;
   for (let pl = 0; pl < 4; pl++) {
-    ctx.beginPath(); ctx.moveTo(cx - 9 + pl * 6, cy - 10);
-    ctx.lineTo(cx - 9 + pl * 6, cy - 2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - 9 + pl * 6, cy - 10);
+    ctx.lineTo(cx - 9 + pl * 6, cy - 2);
+    ctx.stroke();
   }
   ctx.fillStyle = "rgba(105,80,52,0.88)";
   ctx.beginPath();
-  ctx.moveTo(cx - 8, cy + 3); ctx.quadraticCurveTo(cx, cy + 7, cx + 8, cy + 3);
+  ctx.moveTo(cx - 8, cy + 3);
+  ctx.quadraticCurveTo(cx, cy + 7, cx + 8, cy + 3);
   ctx.quadraticCurveTo(cx + 8, cy - 1, cx, cy - 2);
   ctx.quadraticCurveTo(cx - 8, cy - 1, cx - 8, cy + 3);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(38,28,14,0.82)"; ctx.lineWidth = 0.78; ctx.stroke();
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(38,28,14,0.82)";
+  ctx.lineWidth = 0.78;
+  ctx.stroke();
   ctx.restore();
 }
 
 // ─── Landscape Location Placement ─────────────────────────────────────────────
 
-function placeLandscapeLocations(hm: Float32Array, rivers: RiverPoint[][], seed: number): LandscapeLocation[] {
+function placeLandscapeLocations(
+  hm: Float32Array,
+  rivers: RiverPoint[][],
+  seed: number,
+): LandscapeLocation[] {
   const locs: LandscapeLocation[] = [];
   const citiesN = 2 + Math.floor(seededRand(seed, 123) * 3);
   const townsN = 5 + Math.floor(seededRand(seed, 456) * 5);
-  const riverSet = new Set(rivers.flatMap(r => r.map(p => `${p.gx},${p.gy}`)));
+  const riverSet = new Set(
+    rivers.flatMap((r) => r.map((p) => `${p.gx},${p.gy}`)),
+  );
 
   const scored: Array<{ gx: number; gy: number; score: number }> = [];
   for (let gy = 5; gy < HM_H - 5; gy += 2) {
     for (let gx = 5; gx < HM_W - 5; gx += 2) {
       const h = hm[gy * HM_W + gx];
-      if (h < 0.40 || h > 0.60) continue;
+      if (h < 0.4 || h > 0.6) continue;
       let s = seededRand(gx * 1000 + gy, seed + 9999);
       if (h < 0.48) s += 2;
-      for (let d = -3; d <= 3; d++) for (let e = -3; e <= 3; e++) if (riverSet.has(`${gx+d},${gy+e}`)) { s += 3; break; }
+      for (let d = -3; d <= 3; d++)
+        for (let e = -3; e <= 3; e++)
+          if (riverSet.has(`${gx + d},${gy + e}`)) {
+            s += 3;
+            break;
+          }
       scored.push({ gx, gy, score: s });
     }
   }
   scored.sort((a, b) => b.score - a.score);
 
   for (const c of scored) {
-    if (locs.filter(l => l.type === "city").length >= citiesN) break;
-    const px = (c.gx / HM_W) * W, py = (c.gy / HM_H) * H;
-    if (locs.some(l => Math.hypot(px - l.cx, py - l.cy) < W * 0.15)) continue;
+    if (locs.filter((l) => l.type === "city").length >= citiesN) break;
+    const px = (c.gx / HM_W) * W,
+      py = (c.gy / HM_H) * H;
+    if (locs.some((l) => Math.hypot(px - l.cx, py - l.cy) < W * 0.15)) continue;
     locs.push({ type: "city", cx: px, cy: py });
   }
 
-  const tc: Array<{gx:number;gy:number}> = [];
+  const tc: Array<{ gx: number; gy: number }> = [];
   for (let gy = 5; gy < HM_H - 5; gy += 3)
     for (let gx = 5; gx < HM_W - 5; gx += 3) {
       const h = hm[gy * HM_W + gx];
       if (h >= 0.41 && h <= 0.76) tc.push({ gx, gy });
     }
-  tc.sort((a, b) => seededRand(a.gx * 500 + a.gy, seed + 8888) - seededRand(b.gx * 500 + b.gy, seed + 8888));
+  tc.sort(
+    (a, b) =>
+      seededRand(a.gx * 500 + a.gy, seed + 8888) -
+      seededRand(b.gx * 500 + b.gy, seed + 8888),
+  );
   for (const c of tc) {
-    if (locs.filter(l => l.type === "town").length >= townsN) break;
-    const px = (c.gx / HM_W) * W, py = (c.gy / HM_H) * H;
-    if (locs.some(l => Math.hypot(px - l.cx, py - l.cy) < 45)) continue;
+    if (locs.filter((l) => l.type === "town").length >= townsN) break;
+    const px = (c.gx / HM_W) * W,
+      py = (c.gy / HM_H) * H;
+    if (locs.some((l) => Math.hypot(px - l.cx, py - l.cy) < 45)) continue;
     locs.push({ type: "town", cx: px, cy: py });
   }
   return locs;
@@ -846,46 +1241,92 @@ function placeLandscapeLocations(hm: Float32Array, rivers: RiverPoint[][], seed:
 
 // ─── Compass Rose ─────────────────────────────────────────────────────────────
 
-function drawCompassRose(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+function drawCompassRose(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+): void {
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
-  const diags = [-Math.PI/4, Math.PI/4, 3*Math.PI/4, -3*Math.PI/4];
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  const diags = [
+    -Math.PI / 4,
+    Math.PI / 4,
+    (3 * Math.PI) / 4,
+    (-3 * Math.PI) / 4,
+  ];
   ctx.fillStyle = "rgba(82,65,40,0.7)";
   for (const a of diags) {
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a) * size * 0.55, cy + Math.sin(a) * size * 0.55);
-    ctx.lineTo(cx + Math.cos(a + 0.28) * size * 0.12, cy + Math.sin(a + 0.28) * size * 0.12);
-    ctx.lineTo(cx + Math.cos(a - 0.28) * size * 0.12, cy + Math.sin(a - 0.28) * size * 0.12);
-    ctx.closePath(); ctx.fill();
+    ctx.lineTo(
+      cx + Math.cos(a + 0.28) * size * 0.12,
+      cy + Math.sin(a + 0.28) * size * 0.12,
+    );
+    ctx.lineTo(
+      cx + Math.cos(a - 0.28) * size * 0.12,
+      cy + Math.sin(a - 0.28) * size * 0.12,
+    );
+    ctx.closePath();
+    ctx.fill();
   }
-  const mains = [{ a: -Math.PI/2, s: 1.0 }, { a: 0, s: 0.75 }, { a: Math.PI/2, s: 0.75 }, { a: Math.PI, s: 0.75 }];
+  const mains = [
+    { a: -Math.PI / 2, s: 1.0 },
+    { a: 0, s: 0.75 },
+    { a: Math.PI / 2, s: 0.75 },
+    { a: Math.PI, s: 0.75 },
+  ];
   const wx = size * 0.18;
   for (const { a, s } of mains) {
     const len = size * s;
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-    ctx.lineTo(cx + Math.cos(a + Math.PI/2) * wx, cy + Math.sin(a + Math.PI/2) * wx);
-    ctx.lineTo(cx, cy); ctx.closePath();
-    ctx.fillStyle = "rgba(228,216,192,0.95)"; ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-    ctx.lineTo(cx + Math.cos(a - Math.PI/2) * wx, cy + Math.sin(a - Math.PI/2) * wx);
-    ctx.lineTo(cx, cy); ctx.closePath();
-    ctx.fillStyle = "rgba(72,56,35,0.9)"; ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-    ctx.lineTo(cx + Math.cos(a + Math.PI/2) * wx, cy + Math.sin(a + Math.PI/2) * wx);
+    ctx.lineTo(
+      cx + Math.cos(a + Math.PI / 2) * wx,
+      cy + Math.sin(a + Math.PI / 2) * wx,
+    );
     ctx.lineTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(a - Math.PI/2) * wx, cy + Math.sin(a - Math.PI/2) * wx);
     ctx.closePath();
-    ctx.strokeStyle = "rgba(32,22,10,0.8)"; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.fillStyle = "rgba(228,216,192,0.95)";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.lineTo(
+      cx + Math.cos(a - Math.PI / 2) * wx,
+      cy + Math.sin(a - Math.PI / 2) * wx,
+    );
+    ctx.lineTo(cx, cy);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(72,56,35,0.9)";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.lineTo(
+      cx + Math.cos(a + Math.PI / 2) * wx,
+      cy + Math.sin(a + Math.PI / 2) * wx,
+    );
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(
+      cx + Math.cos(a - Math.PI / 2) * wx,
+      cy + Math.sin(a - Math.PI / 2) * wx,
+    );
+    ctx.closePath();
+    ctx.strokeStyle = "rgba(32,22,10,0.8)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
   }
-  ctx.beginPath(); ctx.arc(cx, cy, size * 0.12, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(228,216,192,0.95)"; ctx.fill();
-  ctx.strokeStyle = "rgba(32,22,10,0.8)"; ctx.lineWidth = 0.8; ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.12, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(228,216,192,0.95)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(32,22,10,0.8)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
   ctx.font = `bold ${size * 0.4}px 'Cinzel', serif`;
   ctx.fillStyle = "rgba(32,22,10,0.9)";
-  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
   ctx.fillText("N", cx, cy - size * 1.12);
   ctx.restore();
 }
@@ -894,122 +1335,195 @@ function drawCompassRose(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
 
 function drawBorder(ctx: CanvasRenderingContext2D, seed: number): void {
   ctx.save();
-  ctx.lineCap = "round"; ctx.lineJoin = "round";
-  ctx.strokeStyle = "rgba(38,26,12,0.92)"; ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(38,26,12,0.92)";
+  ctx.lineWidth = 2.5;
   ctx.strokeRect(3, 3, W - 6, H - 6);
-  ctx.strokeStyle = "rgba(38,26,12,0.55)"; ctx.lineWidth = 0.75;
+  ctx.strokeStyle = "rgba(38,26,12,0.55)";
+  ctx.lineWidth = 0.75;
   ctx.strokeRect(13, 13, W - 26, H - 26);
   ctx.fillStyle = "rgba(38,26,12,0.72)";
-  for (const [cx, cy] of [[13,13],[W-13,13],[W-13,H-13],[13,H-13]] as [number,number][]) {
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4);
-    ctx.fillRect(-5, -5, 10, 10); ctx.restore();
+  for (const [cx, cy] of [
+    [13, 13],
+    [W - 13, 13],
+    [W - 13, H - 13],
+    [13, H - 13],
+  ] as [number, number][]) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-5, -5, 10, 10);
+    ctx.restore();
   }
   // Worn corner scratches
-  ctx.strokeStyle = "rgba(38,26,12,0.22)"; ctx.lineWidth = 0.5;
+  ctx.strokeStyle = "rgba(38,26,12,0.22)";
+  ctx.lineWidth = 0.5;
   for (let i = 0; i < 40; i++) {
     const t = seededRand(i, seed + 121212);
     const side = Math.floor(t * 4);
     let x1: number, y1: number, x2: number, y2: number;
-    if (side === 0) { x1 = seededRand(i+100,seed)*W; y1 = 3; x2 = x1 + seededRand(i+200,seed)*8-4; y2 = 3 + seededRand(i+300,seed)*5; }
-    else if (side === 1) { x1 = seededRand(i+100,seed)*W; y1 = H-3; x2 = x1+seededRand(i+200,seed)*8-4; y2 = H-3-seededRand(i+300,seed)*5; }
-    else if (side === 2) { x1 = 3; y1 = seededRand(i+100,seed)*H; x2 = 3+seededRand(i+200,seed)*5; y2 = y1+seededRand(i+300,seed)*8-4; }
-    else { x1 = W-3; y1 = seededRand(i+100,seed)*H; x2 = W-3-seededRand(i+200,seed)*5; y2 = y1+seededRand(i+300,seed)*8-4; }
-    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    if (side === 0) {
+      x1 = seededRand(i + 100, seed) * W;
+      y1 = 3;
+      x2 = x1 + seededRand(i + 200, seed) * 8 - 4;
+      y2 = 3 + seededRand(i + 300, seed) * 5;
+    } else if (side === 1) {
+      x1 = seededRand(i + 100, seed) * W;
+      y1 = H - 3;
+      x2 = x1 + seededRand(i + 200, seed) * 8 - 4;
+      y2 = H - 3 - seededRand(i + 300, seed) * 5;
+    } else if (side === 2) {
+      x1 = 3;
+      y1 = seededRand(i + 100, seed) * H;
+      x2 = 3 + seededRand(i + 200, seed) * 5;
+      y2 = y1 + seededRand(i + 300, seed) * 8 - 4;
+    } else {
+      x1 = W - 3;
+      y1 = seededRand(i + 100, seed) * H;
+      x2 = W - 3 - seededRand(i + 200, seed) * 5;
+      y2 = y1 + seededRand(i + 300, seed) * 8 - 4;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
   ctx.restore();
 }
 
 // ─── Legend ───────────────────────────────────────────────────────────────────
 
-function drawLegend(ctx: CanvasRenderingContext2D, mode: "landscape" | "civilisation"): void {
+function drawLegend(
+  ctx: CanvasRenderingContext2D,
+  mode: "landscape" | "civilisation",
+): void {
   ctx.save();
 
   if (mode === "landscape") {
-    const iconEntries: Array<{ label: string; draw: (x: number, y: number) => void }> = [
-      { label: "City",  draw: (x, y) => drawCityIcon(ctx, x, y) },
-      { label: "Town",  draw: (x, y) => drawTownIcon(ctx, x, y) },
+    const iconEntries: Array<{
+      label: string;
+      draw: (x: number, y: number) => void;
+    }> = [
+      { label: "City", draw: (x, y) => drawCityIcon(ctx, x, y) },
+      { label: "Town", draw: (x, y) => drawTownIcon(ctx, x, y) },
     ];
     const swatches = [
-      { color: "rgb(58,84,108)",   label: "Deep sea" },
-      { color: "rgb(85,120,145)",  label: "Coastal water" },
+      { color: "rgb(58,84,108)", label: "Deep sea" },
+      { color: "rgb(85,120,145)", label: "Coastal water" },
       { color: "rgb(198,182,140)", label: "Shore / beach" },
-      { color: "rgb(135,152,92)",  label: "Lowland grass" },
-      { color: "rgb(90,120,62)",   label: "Forest" },
+      { color: "rgb(135,152,92)", label: "Lowland grass" },
+      { color: "rgb(90,120,62)", label: "Forest" },
       { color: "rgb(148,138,118)", label: "Highland" },
       { color: "rgb(182,174,162)", label: "Stone / rock" },
       { color: "rgb(218,212,205)", label: "High peaks" },
       { color: "rgb(242,240,238)", label: "Snow" },
       { color: "rgb(210,188,122)", label: "Desert sand" },
     ];
-    const sw = 14, rh = 16, pad = 7, lw = 148, iconRowH = 22;
-    const lh = iconEntries.length * iconRowH + swatches.length * rh + pad * 2 + 20;
-    const lx = W - lw - 20, ly = 20;
+    const sw = 14,
+      rh = 16,
+      pad = 7,
+      lw = 148,
+      iconRowH = 22;
+    const lh =
+      iconEntries.length * iconRowH + swatches.length * rh + pad * 2 + 20;
+    const lx = W - lw - 20,
+      ly = 20;
     ctx.fillStyle = "rgba(228,210,175,0.90)";
-    roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
-    ctx.strokeStyle = "rgba(55,38,18,0.50)"; ctx.lineWidth = 0.8;
-    roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+    roundRect(ctx, lx, ly, lw, lh, 4);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(55,38,18,0.50)";
+    ctx.lineWidth = 0.8;
+    roundRect(ctx, lx, ly, lw, lh, 4);
+    ctx.stroke();
     ctx.font = "bold 8.5px 'Cinzel', serif";
     ctx.fillStyle = "rgba(50,32,12,0.90)";
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
     ctx.fillText("LEGEND", lx + lw / 2, ly + pad);
-    ctx.beginPath(); ctx.moveTo(lx + 5, ly + pad + 12); ctx.lineTo(lx + lw - 5, ly + pad + 12);
-    ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lx + 5, ly + pad + 12);
+    ctx.lineTo(lx + lw - 5, ly + pad + 12);
+    ctx.strokeStyle = "rgba(55,38,18,0.28)";
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
     // Icon rows (city + town)
     for (let i = 0; i < iconEntries.length; i++) {
       const rowY = ly + pad + 14 + i * iconRowH + iconRowH / 2;
       iconEntries[i].draw(lx + 18, rowY);
       ctx.font = "9px 'Cinzel', serif";
       ctx.fillStyle = "rgba(32,20,6,0.88)";
-      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
       ctx.fillText(iconEntries[i].label, lx + pad + 24, rowY - 1);
     }
     const divY = ly + pad + 14 + iconEntries.length * iconRowH + 2;
-    ctx.beginPath(); ctx.moveTo(lx + 5, divY); ctx.lineTo(lx + lw - 5, divY);
-    ctx.strokeStyle = "rgba(55,38,18,0.20)"; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lx + 5, divY);
+    ctx.lineTo(lx + lw - 5, divY);
+    ctx.strokeStyle = "rgba(55,38,18,0.20)";
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
     // Terrain swatches
     for (let i = 0; i < swatches.length; i++) {
       const ey = divY + 3 + i * rh;
       ctx.fillStyle = swatches[i].color;
       ctx.fillRect(lx + pad, ey + 2, sw, rh - 5);
-      ctx.strokeStyle = "rgba(40,26,10,0.35)"; ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "rgba(40,26,10,0.35)";
+      ctx.lineWidth = 0.5;
       ctx.strokeRect(lx + pad, ey + 2, sw, rh - 5);
       ctx.fillStyle = "rgba(32,20,6,0.88)";
       ctx.font = "8px 'Cinzel', serif";
-      ctx.textAlign = "left"; ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
       ctx.fillText(swatches[i].label, lx + pad + sw + 5, ey + 3);
     }
   } else {
     // Icon legend for civilisation mode
-    const iconItems: Array<{ label: string; draw: (x: number, y: number) => void }> = [
-      { label: "Castle",     draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
-      { label: "Inn",        draw: (x, y) => drawInnIcon(ctx, x, y) },
-      { label: "Tavern",     draw: (x, y) => drawTavernIcon(ctx, x, y) },
-      { label: "Temple",      draw: (x, y) => drawChurchIcon(ctx, x, y) },
+    const iconItems: Array<{
+      label: string;
+      draw: (x: number, y: number) => void;
+    }> = [
+      { label: "Castle", draw: (x, y) => drawTownCastleIcon(ctx, x, y) },
+      { label: "Inn", draw: (x, y) => drawInnIcon(ctx, x, y) },
+      { label: "Tavern", draw: (x, y) => drawTavernIcon(ctx, x, y) },
+      { label: "Temple", draw: (x, y) => drawChurchIcon(ctx, x, y) },
       { label: "Blacksmith", draw: (x, y) => drawBlacksmithIcon(ctx, x, y) },
-      { label: "Armoury",    draw: (x, y) => drawSwordIcon(ctx, x, y) },
-      { label: "Potions",    draw: (x, y) => drawPotionIcon(ctx, x, y) },
-      { label: "Merchant",   draw: (x, y) => drawMerchantIcon(ctx, x, y) },
-      { label: "Dock",       draw: (x, y) => drawDockIcon(ctx, x, y) },
+      { label: "Armoury", draw: (x, y) => drawSwordIcon(ctx, x, y) },
+      { label: "Potions", draw: (x, y) => drawPotionIcon(ctx, x, y) },
+      { label: "Merchant", draw: (x, y) => drawMerchantIcon(ctx, x, y) },
+      { label: "Dock", draw: (x, y) => drawDockIcon(ctx, x, y) },
     ];
-    const rowH = 26, lw = 134;
+    const rowH = 26,
+      lw = 134;
     const lh = iconItems.length * rowH + 20;
-    const lx = W - lw - 20, ly = 20;
+    const lx = W - lw - 20,
+      ly = 20;
     ctx.fillStyle = "rgba(228,210,175,0.90)";
-    roundRect(ctx, lx, ly, lw, lh, 4); ctx.fill();
-    ctx.strokeStyle = "rgba(55,38,18,0.50)"; ctx.lineWidth = 0.8;
-    roundRect(ctx, lx, ly, lw, lh, 4); ctx.stroke();
+    roundRect(ctx, lx, ly, lw, lh, 4);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(55,38,18,0.50)";
+    ctx.lineWidth = 0.8;
+    roundRect(ctx, lx, ly, lw, lh, 4);
+    ctx.stroke();
     ctx.font = "bold 9px 'Cinzel', serif";
     ctx.fillStyle = "rgba(55,38,18,0.88)";
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
     ctx.fillText("LEGEND", lx + lw / 2, ly + 5);
-    ctx.beginPath(); ctx.moveTo(lx + 6, ly + 16); ctx.lineTo(lx + lw - 6, ly + 16);
-    ctx.strokeStyle = "rgba(55,38,18,0.30)"; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lx + 6, ly + 16);
+    ctx.lineTo(lx + lw - 6, ly + 16);
+    ctx.strokeStyle = "rgba(55,38,18,0.30)";
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
     for (let i = 0; i < iconItems.length; i++) {
       const rowY = ly + 18 + i * rowH + rowH / 2;
       iconItems[i].draw(lx + 20, rowY);
       ctx.font = "10px 'Cinzel', serif";
       ctx.fillStyle = "rgba(45,30,12,0.92)";
-      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
       ctx.fillText(iconItems[i].label, lx + 38, rowY - 2);
     }
   }
@@ -1035,26 +1549,38 @@ function drawTatteredEdges(ctx: CanvasRenderingContext2D, seed: number): void {
     for (let b = 0; b < biteCount && pos < len; b++) {
       const bw = 8 + seededRand(e * 1000 + b, seed + 22222) * 26;
       const depth = 5 + seededRand(e * 1000 + b + 500, seed + 33333) * 20;
-      const verts = 4 + Math.floor(seededRand(e * 1000 + b + 1000, seed + 44444) * 3);
+      const verts =
+        4 + Math.floor(seededRand(e * 1000 + b + 1000, seed + 44444) * 3);
       ctx.beginPath();
       if (horiz) {
         ctx.moveTo(pos, fixedVal);
         for (let v = 0; v < verts; v++) {
-          const vx = pos + (bw * v) / verts + (seededRand(e*5000+b*12+v, seed)*4-2);
-          const vy = fixedVal + dir * depth * seededRand(e*5000+b*12+v+100, seed+55555);
+          const vx =
+            pos +
+            (bw * v) / verts +
+            (seededRand(e * 5000 + b * 12 + v, seed) * 4 - 2);
+          const vy =
+            fixedVal +
+            dir * depth * seededRand(e * 5000 + b * 12 + v + 100, seed + 55555);
           ctx.lineTo(vx, vy);
         }
         ctx.lineTo(pos + bw, fixedVal);
       } else {
         ctx.moveTo(fixedVal, pos);
         for (let v = 0; v < verts; v++) {
-          const vy = pos + (bw * v) / verts + (seededRand(e*5000+b*12+v, seed)*4-2);
-          const vx = fixedVal + dir * depth * seededRand(e*5000+b*12+v+100, seed+55555);
+          const vy =
+            pos +
+            (bw * v) / verts +
+            (seededRand(e * 5000 + b * 12 + v, seed) * 4 - 2);
+          const vx =
+            fixedVal +
+            dir * depth * seededRand(e * 5000 + b * 12 + v + 100, seed + 55555);
           ctx.lineTo(vx, vy);
         }
         ctx.lineTo(fixedVal, pos + bw);
       }
-      ctx.closePath(); ctx.fill();
+      ctx.closePath();
+      ctx.fill();
       pos += bw * 0.62;
     }
   }
@@ -1062,13 +1588,25 @@ function drawTatteredEdges(ctx: CanvasRenderingContext2D, seed: number): void {
   for (let i = 0; i < 260; i++) {
     const t = seededRand(i, seed + 66666);
     const side = Math.floor(t * 4);
-    let sx = 0, sy = 0;
-    if (side === 0) { sx = seededRand(i+1000,seed)*W; sy = seededRand(i+2000,seed)*32; }
-    else if (side === 1) { sx = seededRand(i+3000,seed)*W; sy = H - seededRand(i+4000,seed)*32; }
-    else if (side === 2) { sx = seededRand(i+5000,seed)*32; sy = seededRand(i+6000,seed)*H; }
-    else { sx = W - seededRand(i+7000,seed)*32; sy = seededRand(i+8000,seed)*H; }
-    const r = 0.7 + seededRand(i+9000,seed) * 2.6;
-    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
+    let sx = 0,
+      sy = 0;
+    if (side === 0) {
+      sx = seededRand(i + 1000, seed) * W;
+      sy = seededRand(i + 2000, seed) * 32;
+    } else if (side === 1) {
+      sx = seededRand(i + 3000, seed) * W;
+      sy = H - seededRand(i + 4000, seed) * 32;
+    } else if (side === 2) {
+      sx = seededRand(i + 5000, seed) * 32;
+      sy = seededRand(i + 6000, seed) * H;
+    } else {
+      sx = W - seededRand(i + 7000, seed) * 32;
+      sy = seededRand(i + 8000, seed) * H;
+    }
+    const r = 0.7 + seededRand(i + 9000, seed) * 2.6;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
@@ -1088,19 +1626,34 @@ function drawGrain(ctx: CanvasRenderingContext2D, seed: number): void {
 
 function postProcess(ctx: CanvasRenderingContext2D, seed: number): void {
   drawGrain(ctx, seed);
-  ctx.fillStyle = "rgba(152,112,52,0.12)"; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = "rgba(228,213,175,0.08)"; ctx.fillRect(0, 0, W, H);
-  const vg = ctx.createRadialGradient(W/2, H/2, H*0.17, W/2, H/2, H*0.83);
+  ctx.fillStyle = "rgba(152,112,52,0.12)";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(228,213,175,0.08)";
+  ctx.fillRect(0, 0, W, H);
+  const vg = ctx.createRadialGradient(
+    W / 2,
+    H / 2,
+    H * 0.17,
+    W / 2,
+    H / 2,
+    H * 0.83,
+  );
   vg.addColorStop(0, "rgba(20,12,3,0)");
   vg.addColorStop(1, "rgba(20,12,3,0.52)");
-  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
   drawTatteredEdges(ctx, seed);
 }
 
 // ─── Landscape Orchestrator ───────────────────────────────────────────────────
 
-function renderLandscape(ctx: CanvasRenderingContext2D, seed: number, scale: MapScale = "medium"): void {
-  ctx.fillStyle = "rgb(230,216,180)"; ctx.fillRect(0, 0, W, H);
+function renderLandscape(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  scale: MapScale = "medium",
+): void {
+  ctx.fillStyle = "rgb(230,216,180)";
+  ctx.fillRect(0, 0, W, H);
   const { hm, am, sm } = buildMaps(seed, scale);
   renderTerrain(ctx, hm, am, sm);
   renderWaterWaves(ctx, hm, seed);
@@ -1129,21 +1682,46 @@ function renderLandscape(ctx: CanvasRenderingContext2D, seed: number, scale: Map
 function cubicPoint(seg: CubicSegment, t: number): { x: number; y: number } {
   const u = 1 - t;
   return {
-    x: u*u*u*seg.p0.x + 3*u*u*t*seg.cp1.x + 3*u*t*t*seg.cp2.x + t*t*t*seg.p1.x,
-    y: u*u*u*seg.p0.y + 3*u*u*t*seg.cp1.y + 3*u*t*t*seg.cp2.y + t*t*t*seg.p1.y,
+    x:
+      u * u * u * seg.p0.x +
+      3 * u * u * t * seg.cp1.x +
+      3 * u * t * t * seg.cp2.x +
+      t * t * t * seg.p1.x,
+    y:
+      u * u * u * seg.p0.y +
+      3 * u * u * t * seg.cp1.y +
+      3 * u * t * t * seg.cp2.y +
+      t * t * t * seg.p1.y,
   };
 }
 
-function cubicTangent(seg: CubicSegment, t: number): { dx: number; dy: number } {
+function cubicTangent(
+  seg: CubicSegment,
+  t: number,
+): { dx: number; dy: number } {
   const u = 1 - t;
-  let dx = 3*u*u*(seg.cp1.x-seg.p0.x) + 6*u*t*(seg.cp2.x-seg.cp1.x) + 3*t*t*(seg.p1.x-seg.cp2.x);
-  let dy = 3*u*u*(seg.cp1.y-seg.p0.y) + 6*u*t*(seg.cp2.y-seg.cp1.y) + 3*t*t*(seg.p1.y-seg.cp2.y);
-  const len = Math.sqrt(dx*dx+dy*dy) || 1;
-  dx /= len; dy /= len;
+  let dx =
+    3 * u * u * (seg.cp1.x - seg.p0.x) +
+    6 * u * t * (seg.cp2.x - seg.cp1.x) +
+    3 * t * t * (seg.p1.x - seg.cp2.x);
+  let dy =
+    3 * u * u * (seg.cp1.y - seg.p0.y) +
+    6 * u * t * (seg.cp2.y - seg.cp1.y) +
+    3 * t * t * (seg.p1.y - seg.cp2.y);
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  dx /= len;
+  dy /= len;
   return { dx, dy };
 }
 
-interface RoadSample { x: number; y: number; tx: number; ty: number; nx: number; ny: number; }
+interface RoadSample {
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+  nx: number;
+  ny: number;
+}
 
 function sampleCivRoad(road: CivRoad, totalSteps: number): RoadSample[] {
   const result: RoadSample[] = [];
@@ -1167,11 +1745,13 @@ function makeCivRoad(
   style: CivRoad["style"],
   width: number,
   seed: number,
-  idx: number
+  idx: number,
 ): CivRoad {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
-  const ddx = (to.x - from.x) / dist, ddy = (to.y - from.y) / dist;
-  const perpx = -ddy, perpy = ddx;
+  const ddx = (to.x - from.x) / dist,
+    ddy = (to.y - from.y) / dist;
+  const perpx = -ddy,
+    perpy = ddx;
   const maxOff = dist * ORGANIC_ROAD.curviness * 0.28;
 
   if (!ORGANIC_ROAD.useChainedBeziers || dist < 240) {
@@ -1179,28 +1759,44 @@ function makeCivRoad(
     const off1 = (seededRand(idx, seed + 70001) - 0.5) * 2 * maxOff;
     const off2 = (seededRand(idx + 1, seed + 70002) - 0.5) * 2 * maxOff;
     return {
-      segments: [{
-        p0: from,
-        cp1: { x: from.x + ddx*dist*0.33 + perpx*off1, y: from.y + ddy*dist*0.33 + perpy*off1 },
-        cp2: { x: from.x + ddx*dist*0.67 + perpx*off2, y: from.y + ddy*dist*0.67 + perpy*off2 },
-        p1: to,
-      }],
-      width, style,
+      segments: [
+        {
+          p0: from,
+          cp1: {
+            x: from.x + ddx * dist * 0.33 + perpx * off1,
+            y: from.y + ddy * dist * 0.33 + perpy * off1,
+          },
+          cp2: {
+            x: from.x + ddx * dist * 0.67 + perpx * off2,
+            y: from.y + ddy * dist * 0.67 + perpy * off2,
+          },
+          p1: to,
+        },
+      ],
+      width,
+      style,
     };
   }
 
   // Chained two-segment road for longer distances — passes through an offset midpoint
   const midOff = (seededRand(idx + 2, seed + 70003) - 0.5) * 2 * maxOff * 0.6;
-  const M = { x: (from.x + to.x) / 2 + perpx * midOff, y: (from.y + to.y) / 2 + perpy * midOff };
+  const M = {
+    x: (from.x + to.x) / 2 + perpx * midOff,
+    y: (from.y + to.y) / 2 + perpy * midOff,
+  };
 
   const d1 = Math.hypot(M.x - from.x, M.y - from.y) || 1;
-  const d1x = (M.x - from.x) / d1, d1y = (M.y - from.y) / d1;
-  const p1x = -d1y, p1y = d1x;
+  const d1x = (M.x - from.x) / d1,
+    d1y = (M.y - from.y) / d1;
+  const p1x = -d1y,
+    p1y = d1x;
   const d2 = Math.hypot(to.x - M.x, to.y - M.y) || 1;
-  const d2x = (to.x - M.x) / d2, d2y = (to.y - M.y) / d2;
-  const p2x = -d2y, p2y = d2x;
+  const d2x = (to.x - M.x) / d2,
+    d2y = (to.y - M.y) / d2;
+  const p2x = -d2y,
+    p2y = d2x;
 
-  const o1 = (seededRand(idx,     seed + 70001) - 0.5) * 2 * maxOff * 0.45;
+  const o1 = (seededRand(idx, seed + 70001) - 0.5) * 2 * maxOff * 0.45;
   const o2 = (seededRand(idx + 1, seed + 70002) - 0.5) * 2 * maxOff * 0.45;
   const o3 = (seededRand(idx + 3, seed + 70004) - 0.5) * 2 * maxOff * 0.45;
   const o4 = (seededRand(idx + 4, seed + 70005) - 0.5) * 2 * maxOff * 0.45;
@@ -1209,18 +1805,31 @@ function makeCivRoad(
     segments: [
       {
         p0: from,
-        cp1: { x: from.x + d1x*d1*0.35 + p1x*o1, y: from.y + d1y*d1*0.35 + p1y*o1 },
-        cp2: { x: M.x   - d1x*d1*0.35 + p1x*o2, y: M.y   - d1y*d1*0.35 + p1y*o2 },
+        cp1: {
+          x: from.x + d1x * d1 * 0.35 + p1x * o1,
+          y: from.y + d1y * d1 * 0.35 + p1y * o1,
+        },
+        cp2: {
+          x: M.x - d1x * d1 * 0.35 + p1x * o2,
+          y: M.y - d1y * d1 * 0.35 + p1y * o2,
+        },
         p1: M,
       },
       {
         p0: M,
-        cp1: { x: M.x  + d2x*d2*0.35 + p2x*o3, y: M.y  + d2y*d2*0.35 + p2y*o3 },
-        cp2: { x: to.x - d2x*d2*0.35 + p2x*o4, y: to.y - d2y*d2*0.35 + p2y*o4 },
+        cp1: {
+          x: M.x + d2x * d2 * 0.35 + p2x * o3,
+          y: M.y + d2y * d2 * 0.35 + p2y * o3,
+        },
+        cp2: {
+          x: to.x - d2x * d2 * 0.35 + p2x * o4,
+          y: to.y - d2y * d2 * 0.35 + p2y * o4,
+        },
         p1: to,
       },
     ],
-    width, style,
+    width,
+    style,
   };
 }
 
@@ -1228,14 +1837,14 @@ function generateOrganicLayout(
   seed: number,
   size: CivSize,
   hx: number,
-  hy: number
+  hy: number,
 ): { roads: CivRoad[]; anchorPts: Array<{ x: number; y: number }> } {
   const roads: CivRoad[] = [];
   const anchorPts: Array<{ x: number; y: number }> = [{ x: hx, y: hy }];
 
-  const primaryW  = size === "village" ? 18 : size === "town" ? 24 : 32;
+  const primaryW = size === "village" ? 18 : size === "town" ? 24 : 32;
   const secondaryW = size === "village" ? 11 : size === "town" ? 15 : 20;
-  const trackW    = size === "village" ?  7 : 9;
+  const trackW = size === "village" ? 7 : 9;
 
   // ── Anchor buildings: placed at varying distances around hub ──────────────
   const anchorCount = size === "village" ? 3 : size === "town" ? 5 : 7;
@@ -1246,16 +1855,20 @@ function generateOrganicLayout(
     // Start with a base angle and enforce minimum angular separation
     let angle = seededRand(i + 1, seed + 71000) * Math.PI * 2;
     for (let attempt = 0; attempt < 24; attempt++) {
-      const tooClose = usedAngles.some(a => {
+      const tooClose = usedAngles.some((a) => {
         let d = Math.abs(a - angle) % (Math.PI * 2);
         if (d > Math.PI) d = Math.PI * 2 - d;
         return d < minAngleDelta;
       });
       if (!tooClose) break;
-      angle = (angle + minAngleDelta * 1.15 + seededRand(i * 10 + attempt, seed + 71001) * 0.25) % (Math.PI * 2);
+      angle =
+        (angle +
+          minAngleDelta * 1.15 +
+          seededRand(i * 10 + attempt, seed + 71001) * 0.25) %
+        (Math.PI * 2);
     }
     // Extra per-anchor rotation breaks uniform angular spacing (±20°)
-    const extraRot = (seededRand(i + 1, seed + 71010) - 0.5) * 0.70;
+    const extraRot = (seededRand(i + 1, seed + 71010) - 0.5) * 0.7;
     usedAngles.push(angle);
     const finalAngle = angle + extraRot;
     const dist = 130 + seededRand(i + 1, seed + 71002) * 175;
@@ -1267,23 +1880,42 @@ function generateOrganicLayout(
 
   // ── Primary roads: hub → every anchor ────────────────────────────────────
   for (let i = 1; i < anchorPts.length; i++) {
-    roads.push(makeCivRoad(anchorPts[0], anchorPts[i], "primary", primaryW, seed, i * 10));
+    roads.push(
+      makeCivRoad(
+        anchorPts[0],
+        anchorPts[i],
+        "primary",
+        primaryW,
+        seed,
+        i * 10,
+      ),
+    );
   }
 
   // ── Cross-links: connect some anchors to each other (no right angles) ────
-  const crossLinks = size === "village" ? 0 : size === "town" ? 1 : 2 + Math.floor(seededRand(300, seed) * 2);
+  const crossLinks =
+    size === "village"
+      ? 0
+      : size === "town"
+        ? 1
+        : 2 + Math.floor(seededRand(300, seed) * 2);
   for (let c = 0; c < crossLinks; c++) {
-    const ai = 1 + (Math.floor(seededRand(c, seed + 71020) * (anchorPts.length - 1)));
-    let aj = 1 + (Math.floor(seededRand(c + 1, seed + 71021) * (anchorPts.length - 1)));
+    const ai =
+      1 + Math.floor(seededRand(c, seed + 71020) * (anchorPts.length - 1));
+    let aj =
+      1 + Math.floor(seededRand(c + 1, seed + 71021) * (anchorPts.length - 1));
     if (ai === aj) aj = (aj % (anchorPts.length - 1)) + 1;
     // Avoid near-right-angle joins by enforcing angle check
-    const ax = anchorPts[ai], bx = anchorPts[aj];
+    const ax = anchorPts[ai],
+      bx = anchorPts[aj];
     const crossAngle = Math.atan2(bx.y - ax.y, bx.x - ax.x);
     const hubAngleA = Math.atan2(hy - ax.y, hx - ax.x);
     let angDiff = Math.abs(crossAngle - hubAngleA) % Math.PI;
     if (angDiff > Math.PI / 2) angDiff = Math.PI - angDiff;
-    if (angDiff < 0.40) continue; // skip roads that would meet near 90°
-    roads.push(makeCivRoad(ax, bx, "secondary", secondaryW, seed, 100 + c * 10));
+    if (angDiff < 0.4) continue; // skip roads that would meet near 90°
+    roads.push(
+      makeCivRoad(ax, bx, "secondary", secondaryW, seed, 100 + c * 10),
+    );
   }
 
   // ── Exit roads: extend from outermost anchors toward canvas edges ─────────
@@ -1292,114 +1924,179 @@ function generateOrganicLayout(
     const srcIdx = 1 + (e % (anchorPts.length - 1));
     const a = anchorPts[srcIdx];
     // Exit angle = away from hub, with small random wobble to break symmetry
-    const exitBase = Math.atan2(a.y - hy, a.x - hx) + (seededRand(e, seed + 71030) - 0.5) * 0.30;
-    const cos = Math.cos(exitBase), sin = Math.sin(exitBase);
+    const exitBase =
+      Math.atan2(a.y - hy, a.x - hx) +
+      (seededRand(e, seed + 71030) - 0.5) * 0.3;
+    const cos = Math.cos(exitBase),
+      sin = Math.sin(exitBase);
     let te = 1e9;
-    if (Math.abs(cos) > 0.001) te = Math.min(te, cos > 0 ? (W - a.x) / cos : -a.x / cos);
-    if (Math.abs(sin) > 0.001) te = Math.min(te, sin > 0 ? (H - a.y) / sin : -a.y / sin);
-    const exitPt = { x: Math.max(0, Math.min(W, a.x + cos * te)), y: Math.max(0, Math.min(H, a.y + sin * te)) };
+    if (Math.abs(cos) > 0.001)
+      te = Math.min(te, cos > 0 ? (W - a.x) / cos : -a.x / cos);
+    if (Math.abs(sin) > 0.001)
+      te = Math.min(te, sin > 0 ? (H - a.y) / sin : -a.y / sin);
+    const exitPt = {
+      x: Math.max(0, Math.min(W, a.x + cos * te)),
+      y: Math.max(0, Math.min(H, a.y + sin * te)),
+    };
     roads.push(makeCivRoad(a, exitPt, "primary", primaryW, seed, 200 + e * 10));
   }
 
   // ── Wandering spur: a purposeless-looking branch for organic realism ──────
   if (size !== "village") {
-    const spIdx = 1 + Math.floor(seededRand(400, seed) * (anchorPts.length - 1));
+    const spIdx =
+      1 + Math.floor(seededRand(400, seed) * (anchorPts.length - 1));
     const sp = anchorPts[spIdx];
-    const spurAngle = Math.atan2(sp.y - hy, sp.x - hx) + (seededRand(401, seed) - 0.5) * 1.4;
+    const spurAngle =
+      Math.atan2(sp.y - hy, sp.x - hx) + (seededRand(401, seed) - 0.5) * 1.4;
     const spurDist = 65 + seededRand(402, seed) * 85;
-    roads.push(makeCivRoad(sp, {
-      x: Math.max(30, Math.min(W - 30, sp.x + Math.cos(spurAngle) * spurDist)),
-      y: Math.max(30, Math.min(H - 30, sp.y + Math.sin(spurAngle) * spurDist)),
-    }, "track", trackW, seed, 300));
+    roads.push(
+      makeCivRoad(
+        sp,
+        {
+          x: Math.max(
+            30,
+            Math.min(W - 30, sp.x + Math.cos(spurAngle) * spurDist),
+          ),
+          y: Math.max(
+            30,
+            Math.min(H - 30, sp.y + Math.sin(spurAngle) * spurDist),
+          ),
+        },
+        "track",
+        trackW,
+        seed,
+        300,
+      ),
+    );
   }
 
   return { roads, anchorPts };
 }
 
-
-
-
-
-function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): void {
+function renderCastleFootprint(
+  ctx: CanvasRenderingContext2D,
+  b: TownBuilding,
+): void {
   ctx.save();
-  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const cx = b.x + b.w / 2,
+    cy = b.y + b.h / 2;
   const ks = Math.min(b.w, b.h) * 0.88;
   const cseed = ((b.x * 17 + b.y * 11) | 0) + 95000;
   const wallT = ks * 0.11;
 
   // Outer wall fill — fully opaque stone
   ctx.fillStyle = "rgb(142,132,112)";
-  ctx.fillRect(cx - ks/2, cy - ks/2, ks, ks);
+  ctx.fillRect(cx - ks / 2, cy - ks / 2, ks, ks);
 
   // Stone block texture on walls — dense cobblestone pattern
   for (let s = 0; s < 220; s++) {
-    const sx = cx - ks/2 + seededRand(s, cseed + 1) * ks;
-    const sy = cy - ks/2 + seededRand(s, cseed + 2) * ks;
+    const sx = cx - ks / 2 + seededRand(s, cseed + 1) * ks;
+    const sy = cy - ks / 2 + seededRand(s, cseed + 2) * ks;
     const sw = 4 + seededRand(s, cseed + 3) * 10;
     const sh = 3 + seededRand(s, cseed + 4) * 5;
     const rv = (seededRand(s, cseed + 5) * 36 - 18) | 0;
-    ctx.fillStyle = `rgb(${142+rv},${132+rv},${112+rv})`;
-    ctx.strokeStyle = "rgba(28,20,10,0.22)"; ctx.lineWidth = 0.5;
-    ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh);
+    ctx.fillStyle = `rgb(${142 + rv},${132 + rv},${112 + rv})`;
+    ctx.strokeStyle = "rgba(28,20,10,0.22)";
+    ctx.lineWidth = 0.5;
+    ctx.fillRect(sx, sy, sw, sh);
+    ctx.strokeRect(sx, sy, sw, sh);
   }
   // Mortar lines along wall perimeter — horizontal bands
-  ctx.strokeStyle = "rgba(20,14,6,0.14)"; ctx.lineWidth = 0.7;
-  for (let row = cy - ks/2 + 6; row < cy + ks/2; row += 8) {
-    ctx.beginPath(); ctx.moveTo(cx - ks/2, row); ctx.lineTo(cx + ks/2, row); ctx.stroke();
+  ctx.strokeStyle = "rgba(20,14,6,0.14)";
+  ctx.lineWidth = 0.7;
+  for (let row = cy - ks / 2 + 6; row < cy + ks / 2; row += 8) {
+    ctx.beginPath();
+    ctx.moveTo(cx - ks / 2, row);
+    ctx.lineTo(cx + ks / 2, row);
+    ctx.stroke();
   }
 
   // Courtyard (inner open area within walls)
   ctx.fillStyle = "rgb(178,165,135)";
-  ctx.fillRect(cx - ks/2 + wallT, cy - ks/2 + wallT, ks - wallT*2, ks - wallT*2);
+  ctx.fillRect(
+    cx - ks / 2 + wallT,
+    cy - ks / 2 + wallT,
+    ks - wallT * 2,
+    ks - wallT * 2,
+  );
 
   // Inner keep — solid dark stone
   const ki = ks * 0.42;
   ctx.fillStyle = "rgb(78,65,46)";
-  ctx.fillRect(cx - ki/2, cy - ki/2, ki, ki);
+  ctx.fillRect(cx - ki / 2, cy - ki / 2, ki, ki);
   for (let s = 0; s < 40; s++) {
-    const sx = cx - ki/2 + seededRand(s, cseed + 10) * ki;
-    const sy = cy - ki/2 + seededRand(s, cseed + 11) * ki;
+    const sx = cx - ki / 2 + seededRand(s, cseed + 10) * ki;
+    const sy = cy - ki / 2 + seededRand(s, cseed + 11) * ki;
     const rv = (seededRand(s, cseed + 12) * 22 - 11) | 0;
-    ctx.fillStyle = `rgb(${78+rv},${65+rv},${46+rv})`;
-    ctx.fillRect(sx, sy, 5 + seededRand(s, cseed+13)*8, 3 + seededRand(s, cseed+14)*4);
+    ctx.fillStyle = `rgb(${78 + rv},${65 + rv},${46 + rv})`;
+    ctx.fillRect(
+      sx,
+      sy,
+      5 + seededRand(s, cseed + 13) * 8,
+      3 + seededRand(s, cseed + 14) * 4,
+    );
   }
-  ctx.strokeStyle = "rgba(20,12,4,0.95)"; ctx.lineWidth = 2;
-  ctx.strokeRect(cx - ki/2, cy - ki/2, ki, ki);
+  ctx.strokeStyle = "rgba(20,12,4,0.95)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - ki / 2, cy - ki / 2, ki, ki);
 
   // Battlements — merlons along curtain wall edges
-  const mw = 6, mh = 5, mg = 8;
+  const mw = 6,
+    mh = 5,
+    mg = 8;
   ctx.fillStyle = "rgb(148,138,118)";
-  ctx.strokeStyle = "rgba(28,20,10,0.75)"; ctx.lineWidth = 0.7;
-  for (let mx = cx - ks/2 + 2; mx < cx + ks/2 - mw - 2; mx += mw + mg) {
-    ctx.fillRect(mx, cy - ks/2 - mh, mw, mh); ctx.strokeRect(mx, cy - ks/2 - mh, mw, mh);
-    ctx.fillRect(mx, cy + ks/2,      mw, mh); ctx.strokeRect(mx, cy + ks/2,      mw, mh);
+  ctx.strokeStyle = "rgba(28,20,10,0.75)";
+  ctx.lineWidth = 0.7;
+  for (let mx = cx - ks / 2 + 2; mx < cx + ks / 2 - mw - 2; mx += mw + mg) {
+    ctx.fillRect(mx, cy - ks / 2 - mh, mw, mh);
+    ctx.strokeRect(mx, cy - ks / 2 - mh, mw, mh);
+    ctx.fillRect(mx, cy + ks / 2, mw, mh);
+    ctx.strokeRect(mx, cy + ks / 2, mw, mh);
   }
-  for (let my = cy - ks/2 + 2; my < cy + ks/2 - mw - 2; my += mw + mg) {
-    ctx.fillRect(cx - ks/2 - mh, my, mh, mw); ctx.strokeRect(cx - ks/2 - mh, my, mh, mw);
-    ctx.fillRect(cx + ks/2,      my, mh, mw); ctx.strokeRect(cx + ks/2,      my, mh, mw);
+  for (let my = cy - ks / 2 + 2; my < cy + ks / 2 - mw - 2; my += mw + mg) {
+    ctx.fillRect(cx - ks / 2 - mh, my, mh, mw);
+    ctx.strokeRect(cx - ks / 2 - mh, my, mh, mw);
+    ctx.fillRect(cx + ks / 2, my, mh, mw);
+    ctx.strokeRect(cx + ks / 2, my, mh, mw);
   }
 
   // Curtain wall outline
-  ctx.strokeStyle = "rgba(18,12,4,0.96)"; ctx.lineWidth = 4;
-  ctx.strokeRect(cx - ks/2, cy - ks/2, ks, ks);
+  ctx.strokeStyle = "rgba(18,12,4,0.96)";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(cx - ks / 2, cy - ks / 2, ks, ks);
 
   // Corner turrets
   const turretR = Math.max(6, ks * 0.13);
-  for (const [tx, ty] of [[cx-ks/2, cy-ks/2],[cx+ks/2, cy-ks/2],[cx+ks/2, cy+ks/2],[cx-ks/2, cy+ks/2]] as [number,number][]) {
-    ctx.beginPath(); ctx.arc(tx, ty, turretR, 0, Math.PI * 2);
-    ctx.fillStyle = "rgb(112,98,78)"; ctx.fill();
-    ctx.strokeStyle = "rgba(18,12,4,0.95)"; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(tx, ty, turretR * 0.52, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(28,20,10,0.50)"; ctx.lineWidth = 0.8; ctx.stroke();
+  for (const [tx, ty] of [
+    [cx - ks / 2, cy - ks / 2],
+    [cx + ks / 2, cy - ks / 2],
+    [cx + ks / 2, cy + ks / 2],
+    [cx - ks / 2, cy + ks / 2],
+  ] as [number, number][]) {
+    ctx.beginPath();
+    ctx.arc(tx, ty, turretR, 0, Math.PI * 2);
+    ctx.fillStyle = "rgb(112,98,78)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(18,12,4,0.95)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(tx, ty, turretR * 0.52, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(28,20,10,0.50)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
   }
 
   // Gatehouse — solid dark gate arch
   ctx.fillStyle = "rgb(38,28,14)";
-  ctx.fillRect(cx - 7, cy + ks/2 - 14, 14, 14);
-  ctx.strokeStyle = "rgba(18,12,4,0.95)"; ctx.lineWidth = 1;
-  ctx.strokeRect(cx - 7, cy + ks/2 - 14, 14, 14);
-  ctx.beginPath(); ctx.arc(cx, cy + ks/2 - 8, 5, Math.PI, 0);
-  ctx.fillStyle = "rgb(18,12,6)"; ctx.fill();
+  ctx.fillRect(cx - 7, cy + ks / 2 - 14, 14, 14);
+  ctx.strokeStyle = "rgba(18,12,4,0.95)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 7, cy + ks / 2 - 14, 14, 14);
+  ctx.beginPath();
+  ctx.arc(cx, cy + ks / 2 - 8, 5, Math.PI, 0);
+  ctx.fillStyle = "rgb(18,12,6)";
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1407,10 +2104,12 @@ function renderCastleFootprint(ctx: CanvasRenderingContext2D, b: TownBuilding): 
 
 function drawJunctionBlob(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   r: number,
   style: CivRoad["style"],
-  seed: number, idx: number
+  seed: number,
+  idx: number,
 ): void {
   const nPts = 8 + Math.floor(seededRand(idx, seed + 75000) * 5);
   ctx.save();
@@ -1420,10 +2119,12 @@ function drawJunctionBlob(
     const rVar = 0.72 + seededRand(idx * nPts + i, seed + 75001) * 0.52;
     const px = x + Math.cos(angle) * r * rVar;
     const py = y + Math.sin(angle) * r * rVar;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.closePath();
-  ctx.fillStyle = style === "primary" ? "rgba(104,98,84,0.98)" : "rgba(155,128,80,0.92)";
+  ctx.fillStyle =
+    style === "primary" ? "rgba(104,98,84,0.98)" : "rgba(155,128,80,0.92)";
   ctx.fill();
   ctx.restore();
 }
@@ -1432,7 +2133,7 @@ function drawOrganicRoad(
   ctx: CanvasRenderingContext2D,
   road: CivRoad,
   seed: number,
-  idx: number
+  idx: number,
 ): void {
   const pts = sampleCivRoad(road, 64);
   if (pts.length < 2) return;
@@ -1446,26 +2147,38 @@ function drawOrganicRoad(
   const right: Array<{ x: number; y: number }> = [];
   for (let i = 0; i < pts.length; i++) {
     const frac = i / (pts.length - 1);
-    const widthMod = 1 + ORGANIC_ROAD.widthVariance * 0.28 * Math.sin(frac * Math.PI * 2.7);
+    const widthMod =
+      1 + ORGANIC_ROAD.widthVariance * 0.28 * Math.sin(frac * Math.PI * 2.7);
     const hw = baseHW * widthMod;
-    const noiseL = edgeNoise(pts[i].x / W * 9,       pts[i].y / H * 9      ) * wobbleAmpl;
-    const noiseR = edgeNoise(pts[i].x / W * 9 + 100, pts[i].y / H * 9 + 100) * wobbleAmpl;
-    left.push ({x: pts[i].x + pts[i].nx * (hw + noiseL), y: pts[i].y + pts[i].ny * (hw + noiseL)});
-    right.push({x: pts[i].x - pts[i].nx * (hw - noiseR), y: pts[i].y - pts[i].ny * (hw - noiseR)});
+    const noiseL =
+      edgeNoise((pts[i].x / W) * 9, (pts[i].y / H) * 9) * wobbleAmpl;
+    const noiseR =
+      edgeNoise((pts[i].x / W) * 9 + 100, (pts[i].y / H) * 9 + 100) *
+      wobbleAmpl;
+    left.push({
+      x: pts[i].x + pts[i].nx * (hw + noiseL),
+      y: pts[i].y + pts[i].ny * (hw + noiseL),
+    });
+    right.push({
+      x: pts[i].x - pts[i].nx * (hw - noiseR),
+      y: pts[i].y - pts[i].ny * (hw - noiseR),
+    });
   }
 
-  const fillColor = road.style === "primary"
-    ? "rgba(108,102,88,0.97)"
-    : road.style === "secondary"
-    ? "rgba(158,132,82,0.93)"
-    : "rgba(148,118,68,0.85)";
+  const fillColor =
+    road.style === "primary"
+      ? "rgba(108,102,88,0.97)"
+      : road.style === "secondary"
+        ? "rgba(158,132,82,0.93)"
+        : "rgba(148,118,68,0.85)";
 
   // 1. Filled road polygon
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(left[0].x, left[0].y);
   for (const p of left) ctx.lineTo(p.x, p.y);
-  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+  for (let i = right.length - 1; i >= 0; i--)
+    ctx.lineTo(right[i].x, right[i].y);
   ctx.closePath();
   ctx.fillStyle = fillColor;
   ctx.fill();
@@ -1475,20 +2188,29 @@ function drawOrganicRoad(
   ctx.save();
   ctx.globalAlpha = 0.11;
   for (let i = 0; i < pts.length - 1; i++) {
-    const pt0 = pts[i], pt1 = pts[Math.min(i + 1, pts.length - 1)];
+    const pt0 = pts[i],
+      pt1 = pts[Math.min(i + 1, pts.length - 1)];
     const insetW = Math.max(2, baseHW * 0.22);
     ctx.beginPath();
     ctx.moveTo(left[i].x, left[i].y);
-    ctx.lineTo(left[i + 1] ? left[i + 1].x : left[i].x, left[i + 1] ? left[i + 1].y : left[i].y);
+    ctx.lineTo(
+      left[i + 1] ? left[i + 1].x : left[i].x,
+      left[i + 1] ? left[i + 1].y : left[i].y,
+    );
     ctx.lineTo(left[i].x - pt0.nx * insetW, left[i].y - pt0.ny * insetW);
     ctx.closePath();
-    ctx.fillStyle = "rgb(28,16,4)"; ctx.fill();
+    ctx.fillStyle = "rgb(28,16,4)";
+    ctx.fill();
     ctx.beginPath();
     ctx.moveTo(right[i].x, right[i].y);
-    ctx.lineTo(right[i + 1] ? right[i + 1].x : right[i].x, right[i + 1] ? right[i + 1].y : right[i].y);
+    ctx.lineTo(
+      right[i + 1] ? right[i + 1].x : right[i].x,
+      right[i + 1] ? right[i + 1].y : right[i].y,
+    );
     ctx.lineTo(right[i].x + pt1.nx * insetW, right[i].y + pt1.ny * insetW);
     ctx.closePath();
-    ctx.fillStyle = "rgb(28,16,4)"; ctx.fill();
+    ctx.fillStyle = "rgb(28,16,4)";
+    ctx.fill();
   }
   ctx.globalAlpha = 1;
   ctx.restore();
@@ -1498,7 +2220,8 @@ function drawOrganicRoad(
   ctx.beginPath();
   ctx.moveTo(left[0].x, left[0].y);
   for (const p of left) ctx.lineTo(p.x, p.y);
-  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+  for (let i = right.length - 1; i >= 0; i--)
+    ctx.lineTo(right[i].x, right[i].y);
   ctx.closePath();
   ctx.clip();
 
@@ -1506,18 +2229,29 @@ function drawOrganicRoad(
     // Cobblestones — rows of individually stamped stones
     const rowCount = Math.max(2, (road.width / 8) | 0);
     for (let s = 0; s < pts.length; s++) {
-      if (seededRand(s + idx * 200, seed + 71100) > ORGANIC_ROAD.cobbleDensity) continue;
+      if (seededRand(s + idx * 200, seed + 71100) > ORGANIC_ROAD.cobbleDensity)
+        continue;
       for (let row = 0; row < rowCount; row++) {
         const off = (row - rowCount / 2 + 0.5) * 7;
-        const jx = (seededRand(s * rowCount + row + idx * 600,       seed + 71101) - 0.5) * 2.5;
-        const jy = (seededRand(s * rowCount + row + idx * 600 + 100, seed + 71102) - 0.5) * 2.5;
+        const jx =
+          (seededRand(s * rowCount + row + idx * 600, seed + 71101) - 0.5) *
+          2.5;
+        const jy =
+          (seededRand(s * rowCount + row + idx * 600 + 100, seed + 71102) -
+            0.5) *
+          2.5;
         const cx2 = pts[s].x + pts[s].nx * off + jx;
         const cy2 = pts[s].y + pts[s].ny * off + jy;
-        const rv  = (seededRand(s * rowCount + row + idx * 600 + 200, seed + 71103) * 30) | 0;
-        ctx.save(); ctx.translate(cx2, cy2);
-        ctx.fillStyle = `rgb(${102+rv},${96+rv},${86+rv})`;
+        const rv =
+          (seededRand(s * rowCount + row + idx * 600 + 200, seed + 71103) *
+            30) |
+          0;
+        ctx.save();
+        ctx.translate(cx2, cy2);
+        ctx.fillStyle = `rgb(${102 + rv},${96 + rv},${86 + rv})`;
         ctx.fillRect(-3, -2.5, 6, 5);
-        ctx.strokeStyle = "rgba(45,35,22,0.52)"; ctx.lineWidth = 0.5;
+        ctx.strokeStyle = "rgba(45,35,22,0.52)";
+        ctx.lineWidth = 0.5;
         ctx.strokeRect(-3, -2.5, 6, 5);
         ctx.restore();
       }
@@ -1526,12 +2260,18 @@ function drawOrganicRoad(
     // Dirt stipple — short scratched line segments scattered across road surface
     for (let s = 0; s < pts.length; s++) {
       if (seededRand(s + idx * 200, seed + 71200) > 0.22) continue;
-      const off  = (seededRand(s + idx * 200 + 1, seed + 71201) - 0.5) * road.width * 0.60;
+      const off =
+        (seededRand(s + idx * 200 + 1, seed + 71201) - 0.5) * road.width * 0.6;
       const tlen = 2 + seededRand(s + idx * 200 + 2, seed + 71202) * 5;
       ctx.beginPath();
-      ctx.moveTo(pts[s].x + pts[s].nx * off,               pts[s].y + pts[s].ny * off);
-      ctx.lineTo(pts[s].x + pts[s].nx * off + pts[s].tx * tlen, pts[s].y + pts[s].ny * off + pts[s].ty * tlen);
-      ctx.strokeStyle = "rgba(98,74,38,0.22)"; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.moveTo(pts[s].x + pts[s].nx * off, pts[s].y + pts[s].ny * off);
+      ctx.lineTo(
+        pts[s].x + pts[s].nx * off + pts[s].tx * tlen,
+        pts[s].y + pts[s].ny * off + pts[s].ty * tlen,
+      );
+      ctx.strokeStyle = "rgba(98,74,38,0.22)";
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
     }
   }
   ctx.restore();
@@ -1539,14 +2279,19 @@ function drawOrganicRoad(
 
 function drawBuildingRect(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   p: { wr: number; wg: number; wb: number; rr: number; rg: number; rb: number },
-  wt: number, seed: number, idx: number,
+  wt: number,
+  seed: number,
+  idx: number,
   thatch = false,
-  doorSide: "N"|"S"|"E"|"W" = "S"
+  doorSide: "N" | "S" | "E" | "W" = "S",
 ): void {
   // Wall base
-  ctx.fillStyle = `rgb(${Math.min(255,p.wr)},${Math.min(255,p.wg)},${Math.min(255,p.wb)})`;
+  ctx.fillStyle = `rgb(${Math.min(255, p.wr)},${Math.min(255, p.wg)},${Math.min(255, p.wb)})`;
   ctx.fillRect(x, y, w, h);
   // Roof fill
   if (thatch) {
@@ -1557,28 +2302,38 @@ function drawBuildingRect(
   ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
   // Roof gradient (NW bright → SE dark)
   const grd = ctx.createLinearGradient(x + wt, y + wt, x + w - wt, y + h - wt);
-  grd.addColorStop(0,    "rgba(255,255,255,0.16)");
+  grd.addColorStop(0, "rgba(255,255,255,0.16)");
   grd.addColorStop(0.45, "rgba(255,255,255,0.03)");
-  grd.addColorStop(1,    "rgba(0,0,0,0.22)");
+  grd.addColorStop(1, "rgba(0,0,0,0.22)");
   ctx.fillStyle = grd;
   ctx.fillRect(x + wt, y + wt, w - wt * 2, h - wt * 2);
   // Roof texture
   ctx.save();
-  ctx.beginPath(); ctx.rect(x + wt, y + wt, w - wt * 2, h - wt * 2); ctx.clip();
+  ctx.beginPath();
+  ctx.rect(x + wt, y + wt, w - wt * 2, h - wt * 2);
+  ctx.clip();
   if (thatch) {
     // Diagonal hatching for straw/thatch
-    ctx.strokeStyle = "rgba(148,112,32,0.38)"; ctx.lineWidth = 0.75;
+    ctx.strokeStyle = "rgba(148,112,32,0.38)";
+    ctx.lineWidth = 0.75;
     for (let tx2 = x + wt - h; tx2 < x + w - wt + h; tx2 += 5) {
-      ctx.beginPath(); ctx.moveTo(tx2, y + wt); ctx.lineTo(tx2 + h, y + h - wt); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tx2, y + wt);
+      ctx.lineTo(tx2 + h, y + h - wt);
+      ctx.stroke();
     }
   } else {
     // Tile texture — rows of semicircular arcs
-    const tr = (p.rr * 0.58) | 0, tg = (p.rg * 0.52) | 0, tb = (p.rb * 0.48) | 0;
-    ctx.strokeStyle = `rgba(${tr},${tg},${tb},0.32)`; ctx.lineWidth = 0.7;
-    const tileH = 5, tileW = 9;
+    const tr = (p.rr * 0.58) | 0,
+      tg = (p.rg * 0.52) | 0,
+      tb = (p.rb * 0.48) | 0;
+    ctx.strokeStyle = `rgba(${tr},${tg},${tb},0.32)`;
+    ctx.lineWidth = 0.7;
+    const tileH = 5,
+      tileW = 9;
     for (let ty2 = y + wt + tileH; ty2 < y + h - wt; ty2 += tileH) {
       const rowNum = Math.round((ty2 - y - wt) / tileH);
-      const offset = (rowNum % 2 === 0) ? 0 : tileW / 2;
+      const offset = rowNum % 2 === 0 ? 0 : tileW / 2;
       for (let tx2 = x + wt - offset; tx2 < x + w - wt + tileW; tx2 += tileW) {
         ctx.beginPath();
         ctx.arc(tx2 + tileW / 2, ty2, tileW / 2, Math.PI, 0, true);
@@ -1588,20 +2343,28 @@ function drawBuildingRect(
   }
   ctx.restore();
   // Ridge line along long axis
-  ctx.strokeStyle = `rgba(${(p.rr * 0.48) | 0},${(p.rg * 0.44) | 0},${(p.rb * 0.40) | 0},0.85)`;
-  ctx.lineWidth = 1.5; ctx.lineCap = "round";
+  ctx.strokeStyle = `rgba(${(p.rr * 0.48) | 0},${(p.rg * 0.44) | 0},${(p.rb * 0.4) | 0},0.85)`;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = "round";
   ctx.beginPath();
-  if (w >= h) { ctx.moveTo(x + wt + 5, y + h / 2); ctx.lineTo(x + w - wt - 5, y + h / 2); }
-  else        { ctx.moveTo(x + w / 2, y + wt + 5); ctx.lineTo(x + w / 2, y + h - wt - 5); }
+  if (w >= h) {
+    ctx.moveTo(x + wt + 5, y + h / 2);
+    ctx.lineTo(x + w - wt - 5, y + h / 2);
+  } else {
+    ctx.moveTo(x + w / 2, y + wt + 5);
+    ctx.lineTo(x + w / 2, y + h - wt - 5);
+  }
   ctx.stroke();
   // Chimney (35%)
   if (w > 24 && h > 20 && seededRand(idx + 2, seed + 40012) < 0.36) {
     const cs = Math.max(4, (Math.min(w, h) * 0.12) | 0);
     const cpx2 = w >= h ? x + w * 0.38 - cs / 2 : x + wt + 4;
     const cpy2 = w >= h ? y + wt + 4 : y + h * 0.38 - cs / 2;
-    ctx.fillStyle = `rgb(${Math.min(255,p.wr-30)},${Math.min(255,p.wg-24)},${Math.min(255,p.wb-20)})`;
+    ctx.fillStyle = `rgb(${Math.min(255, p.wr - 30)},${Math.min(255, p.wg - 24)},${Math.min(255, p.wb - 20)})`;
     ctx.fillRect(cpx2, cpy2, cs, cs);
-    ctx.strokeStyle = "rgba(42,28,12,0.85)"; ctx.lineWidth = 0.7; ctx.strokeRect(cpx2, cpy2, cs, cs);
+    ctx.strokeStyle = "rgba(42,28,12,0.85)";
+    ctx.lineWidth = 0.7;
+    ctx.strokeRect(cpx2, cpy2, cs, cs);
   }
   // South & east wall shadow for depth
   ctx.fillStyle = "rgba(28,16,4,0.22)";
@@ -1612,10 +2375,14 @@ function drawBuildingRect(
     ctx.fillStyle = "rgba(52,32,14,0.92)";
     const dw = Math.max(4, (w * 0.22) | 0);
     const dh = Math.max(4, (h * 0.22) | 0);
-    if (doorSide === "S" && h > 16) ctx.fillRect(x + w/2 - dw/2, y + h - wt, dw, wt);
-    else if (doorSide === "N" && h > 16) ctx.fillRect(x + w/2 - dw/2, y, dw, wt);
-    else if (doorSide === "E" && w > 16) ctx.fillRect(x + w - wt, y + h/2 - dh/2, wt, dh);
-    else if (doorSide === "W" && w > 16) ctx.fillRect(x, y + h/2 - dh/2, wt, dh);
+    if (doorSide === "S" && h > 16)
+      ctx.fillRect(x + w / 2 - dw / 2, y + h - wt, dw, wt);
+    else if (doorSide === "N" && h > 16)
+      ctx.fillRect(x + w / 2 - dw / 2, y, dw, wt);
+    else if (doorSide === "E" && w > 16)
+      ctx.fillRect(x + w - wt, y + h / 2 - dh / 2, wt, dh);
+    else if (doorSide === "W" && w > 16)
+      ctx.fillRect(x, y + h / 2 - dh / 2, wt, dh);
   }
   // Windows
   if (w > 28 && wt >= 3) {
@@ -1624,48 +2391,97 @@ function drawBuildingRect(
     ctx.fillRect(x + wt / 2 - ws / 2, y + h * 0.38, ws, ws);
     if (w > 38) ctx.fillRect(x + w - wt / 2 - ws / 2, y + h * 0.38, ws, ws);
   }
-  ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9;
+  ctx.strokeStyle = "rgba(42,26,8,0.90)";
+  ctx.lineWidth = 0.9;
   ctx.strokeRect(x, y, w, h);
 }
 
-function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: number, idx: number, isVillage = false): void {
+function drawHouseTopDown(
+  ctx: CanvasRenderingContext2D,
+  b: TownBuilding,
+  seed: number,
+  idx: number,
+  isVillage = false,
+): void {
   const { x, y, w, h } = b;
   const doorSide = b.doorSide ?? "S";
   const thatch = isVillage && seededRand(idx + 9, seed + 40025) < 0.45;
   const pi = (seededRand(idx, seed + 40006) * 3) | 0;
   const rv = (seededRand(idx + 1, seed + 40015) * 18) | 0;
   const palettes = [
-    { wr: 200+rv, wg: 182+rv, wb: 148+rv, rr: Math.min(255,165+rv), rg: 102,             rb: 62  }, // terracotta
-    { wr: 190+rv, wg: 178+rv, wb: 155+rv, rr: Math.min(255,126+rv), rg: Math.min(255,117+rv), rb: Math.min(255,104+rv) }, // slate
-    { wr: 204+rv, wg: 192+rv, wb: 166+rv, rr: Math.min(255,155+rv), rg: Math.min(255,128+rv), rb: Math.min(255,88+rv)  }, // warm ochre
+    {
+      wr: 200 + rv,
+      wg: 182 + rv,
+      wb: 148 + rv,
+      rr: Math.min(255, 165 + rv),
+      rg: 102,
+      rb: 62,
+    }, // terracotta
+    {
+      wr: 190 + rv,
+      wg: 178 + rv,
+      wb: 155 + rv,
+      rr: Math.min(255, 126 + rv),
+      rg: Math.min(255, 117 + rv),
+      rb: Math.min(255, 104 + rv),
+    }, // slate
+    {
+      wr: 204 + rv,
+      wg: 192 + rv,
+      wb: 166 + rv,
+      rr: Math.min(255, 155 + rv),
+      rg: Math.min(255, 128 + rv),
+      rb: Math.min(255, 88 + rv),
+    }, // warm ochre
   ];
   const p = palettes[pi % 3];
   const wt = Math.max(4, Math.min(7, (Math.min(w, h) * 0.14) | 0));
 
   // Drop shadow
-  ctx.fillStyle = "rgba(28,16,4,0.26)"; ctx.fillRect(x + 4, y + 3, w, h);
+  ctx.fillStyle = "rgba(28,16,4,0.26)";
+  ctx.fillRect(x + 4, y + 3, w, h);
 
   // L-shape variant for ~18% of large buildings
   const isL = w > 34 && h > 28 && seededRand(idx + 3, seed + 40017) < 0.18;
   if (isL) {
     // Cut one corner, choosing the side randomly
     const corner = (seededRand(idx + 4, seed + 40018) * 4) | 0; // 0=NE 1=SE 2=SW 3=NW
-    const cutW = ((w * (0.28 + seededRand(idx + 5, seed + 40019) * 0.22)) | 0);
-    const cutH = ((h * (0.28 + seededRand(idx + 6, seed + 40020) * 0.22)) | 0);
+    const cutW = (w * (0.28 + seededRand(idx + 5, seed + 40019) * 0.22)) | 0;
+    const cutH = (h * (0.28 + seededRand(idx + 6, seed + 40020) * 0.22)) | 0;
     ctx.save();
     ctx.beginPath();
-    if (corner === 0) { // NE cut
-      ctx.moveTo(x, y); ctx.lineTo(x + w - cutW, y); ctx.lineTo(x + w - cutW, y + cutH);
-      ctx.lineTo(x + w, y + cutH); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
-    } else if (corner === 1) { // SE cut
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h - cutH);
-      ctx.lineTo(x + w - cutW, y + h - cutH); ctx.lineTo(x + w - cutW, y + h); ctx.lineTo(x, y + h);
-    } else if (corner === 2) { // SW cut
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
-      ctx.lineTo(x + cutW, y + h); ctx.lineTo(x + cutW, y + h - cutH); ctx.lineTo(x, y + h - cutH);
-    } else { // NW cut
-      ctx.moveTo(x + cutW, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
-      ctx.lineTo(x, y + h); ctx.lineTo(x, y + cutH); ctx.lineTo(x + cutW, y + cutH);
+    if (corner === 0) {
+      // NE cut
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w - cutW, y);
+      ctx.lineTo(x + w - cutW, y + cutH);
+      ctx.lineTo(x + w, y + cutH);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
+    } else if (corner === 1) {
+      // SE cut
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h);
+      ctx.lineTo(x, y + h);
+    } else if (corner === 2) {
+      // SW cut
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + cutW, y + h);
+      ctx.lineTo(x + cutW, y + h - cutH);
+      ctx.lineTo(x, y + h - cutH);
+    } else {
+      // NW cut
+      ctx.moveTo(x + cutW, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cutH);
+      ctx.lineTo(x + cutW, y + cutH);
     }
     ctx.closePath();
     ctx.clip();
@@ -1675,78 +2491,144 @@ function drawHouseTopDown(ctx: CanvasRenderingContext2D, b: TownBuilding, seed: 
     ctx.save();
     ctx.beginPath();
     if (corner === 0) {
-      ctx.moveTo(x, y); ctx.lineTo(x + w - cutW, y); ctx.lineTo(x + w - cutW, y + cutH);
-      ctx.lineTo(x + w, y + cutH); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w - cutW, y);
+      ctx.lineTo(x + w - cutW, y + cutH);
+      ctx.lineTo(x + w, y + cutH);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
     } else if (corner === 1) {
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h - cutH);
-      ctx.lineTo(x + w - cutW, y + h - cutH); ctx.lineTo(x + w - cutW, y + h); ctx.lineTo(x, y + h);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h - cutH);
+      ctx.lineTo(x + w - cutW, y + h);
+      ctx.lineTo(x, y + h);
     } else if (corner === 2) {
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
-      ctx.lineTo(x + cutW, y + h); ctx.lineTo(x + cutW, y + h - cutH); ctx.lineTo(x, y + h - cutH);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + cutW, y + h);
+      ctx.lineTo(x + cutW, y + h - cutH);
+      ctx.lineTo(x, y + h - cutH);
     } else {
-      ctx.moveTo(x + cutW, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
-      ctx.lineTo(x, y + h); ctx.lineTo(x, y + cutH); ctx.lineTo(x + cutW, y + cutH);
+      ctx.moveTo(x + cutW, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cutH);
+      ctx.lineTo(x + cutW, y + cutH);
     }
     ctx.closePath();
-    ctx.strokeStyle = "rgba(42,26,8,0.90)"; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.strokeStyle = "rgba(42,26,8,0.90)";
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
     ctx.restore();
   } else {
     drawBuildingRect(ctx, x, y, w, h, p, wt, seed, idx, thatch, doorSide);
   }
 }
 
-
 function drawWell(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   ctx.save();
   // Stone base ring
-  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2);
-  ctx.fillStyle = "rgb(148,135,112)"; ctx.fill();
-  ctx.strokeStyle = "rgba(55,40,20,0.85)"; ctx.lineWidth = 1.8; ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "rgb(148,135,112)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(55,40,20,0.85)";
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
   // Water inside
-  ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(88,130,168,0.80)"; ctx.fill();
-  ctx.strokeStyle = "rgba(55,90,130,0.50)"; ctx.lineWidth = 0.7; ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(88,130,168,0.80)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(55,90,130,0.50)";
+  ctx.lineWidth = 0.7;
+  ctx.stroke();
   // Wooden posts
   ctx.fillStyle = "rgb(108,78,44)";
   ctx.fillRect(cx - 12, cy - 13, 3, 10);
   ctx.fillRect(cx + 9, cy - 13, 3, 10);
-  ctx.strokeStyle = "rgba(55,38,18,0.80)"; ctx.lineWidth = 0.7;
+  ctx.strokeStyle = "rgba(55,38,18,0.80)";
+  ctx.lineWidth = 0.7;
   ctx.strokeRect(cx - 12, cy - 13, 3, 10);
   ctx.strokeRect(cx + 9, cy - 13, 3, 10);
   // Cross beam
-  ctx.beginPath(); ctx.moveTo(cx - 10, cy - 13); ctx.lineTo(cx + 11, cy - 13);
-  ctx.strokeStyle = "rgb(108,78,44)"; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 10, cy - 13);
+  ctx.lineTo(cx + 11, cy - 13);
+  ctx.strokeStyle = "rgb(108,78,44)";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
   // Rope
-  ctx.beginPath(); ctx.moveTo(cx, cy - 13); ctx.lineTo(cx, cy - 6);
-  ctx.strokeStyle = "rgba(148,118,72,0.85)"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 13);
+  ctx.lineTo(cx, cy - 6);
+  ctx.strokeStyle = "rgba(148,118,72,0.85)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
   ctx.restore();
 }
 
-function drawFountain(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+function drawFountain(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
   ctx.save();
   // Outer basin water
-  ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(88,130,168,0.65)"; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(88,130,168,0.65)";
+  ctx.fill();
   // Stone rim
-  ctx.strokeStyle = "rgb(148,135,112)"; ctx.lineWidth = 5; ctx.stroke();
-  ctx.strokeStyle = "rgba(55,42,25,0.70)"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.strokeStyle = "rgb(148,135,112)";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(55,42,25,0.70)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
   // Inner basin
-  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(100,148,185,0.75)"; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(100,148,185,0.75)";
+  ctx.fill();
   // Center column
-  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-  ctx.fillStyle = "rgb(158,145,122)"; ctx.fill();
-  ctx.strokeStyle = "rgba(55,42,25,0.75)"; ctx.lineWidth = 0.8; ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = "rgb(158,145,122)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(55,42,25,0.75)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
   // Water sparkles
   for (let w = 0; w < 6; w++) {
     const wa = (w / 6) * Math.PI * 2;
-    ctx.beginPath(); ctx.arc(cx + Math.cos(wa)*12, cy + Math.sin(wa)*12, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(200,230,255,0.55)"; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(
+      cx + Math.cos(wa) * 12,
+      cy + Math.sin(wa) * 12,
+      1.5,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fillStyle = "rgba(200,230,255,0.55)";
+    ctx.fill();
   }
   ctx.restore();
 }
 
-function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy: number, pondRx: number, pondRy: number, seed: number, pondPoly: Array<{x: number; y: number}> = []): { cx: number; cy: number; r: number } {
+function renderDocksOnPond(
+  ctx: CanvasRenderingContext2D,
+  pondCx: number,
+  pondCy: number,
+  pondRx: number,
+  pondRy: number,
+  seed: number,
+  pondPoly: Array<{ x: number; y: number }> = [],
+): { cx: number; cy: number; r: number } {
   ctx.save();
   const dockAngle = seededRand(800, seed) * Math.PI * 2;
   const dockLen = 28 + seededRand(802, seed) * 22;
@@ -1755,10 +2637,19 @@ function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy
   // Shore point: binary search along dockAngle ray to find organic boundary
   let shoreX: number, shoreY: number;
   if (pondPoly.length > 0) {
-    let lo = 0, hi = Math.max(pondRx, pondRy) * 1.6;
+    let lo = 0,
+      hi = Math.max(pondRx, pondRy) * 1.6;
     for (let iter = 0; iter < 24; iter++) {
       const mid = (lo + hi) / 2;
-      if (pointInPolygon(pondCx + Math.cos(dockAngle)*mid, pondCy + Math.sin(dockAngle)*mid, pondPoly)) lo = mid; else hi = mid;
+      if (
+        pointInPolygon(
+          pondCx + Math.cos(dockAngle) * mid,
+          pondCy + Math.sin(dockAngle) * mid,
+          pondPoly,
+        )
+      )
+        lo = mid;
+      else hi = mid;
     }
     shoreX = pondCx + Math.cos(dockAngle) * lo;
     shoreY = pondCy + Math.sin(dockAngle) * lo;
@@ -1767,120 +2658,226 @@ function renderDocksOnPond(ctx: CanvasRenderingContext2D, pondCx: number, pondCy
     shoreY = pondCy + Math.sin(dockAngle) * pondRy;
   }
   // Direction from shore toward pond center
-  const ddx = pondCx - shoreX, ddy = pondCy - shoreY;
-  const ddlen = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
-  const px = ddx/ddlen, py = ddy/ddlen;
-  const qx = -py, qy = px;
+  const ddx = pondCx - shoreX,
+    ddy = pondCy - shoreY;
+  const ddlen = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
+  const px = ddx / ddlen,
+    py = ddy / ddlen;
+  const qx = -py,
+    qy = px;
 
   // Land ramp (behind shore, on dry ground)
   ctx.fillStyle = "rgba(148,118,78,0.90)";
   ctx.beginPath();
-  ctx.moveTo(shoreX - qx*dockW/2 - px*rampLen, shoreY - qy*dockW/2 - py*rampLen);
-  ctx.lineTo(shoreX + qx*dockW/2 - px*rampLen, shoreY + qy*dockW/2 - py*rampLen);
-  ctx.lineTo(shoreX + qx*dockW/2, shoreY + qy*dockW/2);
-  ctx.lineTo(shoreX - qx*dockW/2, shoreY - qy*dockW/2);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(55,38,18,0.80)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.moveTo(
+    shoreX - (qx * dockW) / 2 - px * rampLen,
+    shoreY - (qy * dockW) / 2 - py * rampLen,
+  );
+  ctx.lineTo(
+    shoreX + (qx * dockW) / 2 - px * rampLen,
+    shoreY + (qy * dockW) / 2 - py * rampLen,
+  );
+  ctx.lineTo(shoreX + (qx * dockW) / 2, shoreY + (qy * dockW) / 2);
+  ctx.lineTo(shoreX - (qx * dockW) / 2, shoreY - (qy * dockW) / 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(55,38,18,0.80)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
 
   // Main dock planks (over water)
   ctx.fillStyle = "rgba(148,118,78,0.96)";
   ctx.beginPath();
-  ctx.moveTo(shoreX - qx*dockW/2, shoreY - qy*dockW/2);
-  ctx.lineTo(shoreX + qx*dockW/2, shoreY + qy*dockW/2);
-  ctx.lineTo(shoreX + qx*dockW/2 + px*dockLen, shoreY + qy*dockW/2 + py*dockLen);
-  ctx.lineTo(shoreX - qx*dockW/2 + px*dockLen, shoreY - qy*dockW/2 + py*dockLen);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(55,38,18,0.82)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.moveTo(shoreX - (qx * dockW) / 2, shoreY - (qy * dockW) / 2);
+  ctx.lineTo(shoreX + (qx * dockW) / 2, shoreY + (qy * dockW) / 2);
+  ctx.lineTo(
+    shoreX + (qx * dockW) / 2 + px * dockLen,
+    shoreY + (qy * dockW) / 2 + py * dockLen,
+  );
+  ctx.lineTo(
+    shoreX - (qx * dockW) / 2 + px * dockLen,
+    shoreY - (qy * dockW) / 2 + py * dockLen,
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(55,38,18,0.82)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
   // Plank lines
-  ctx.strokeStyle = "rgba(55,38,18,0.28)"; ctx.lineWidth = 0.7;
+  ctx.strokeStyle = "rgba(55,38,18,0.28)";
+  ctx.lineWidth = 0.7;
   for (let pl = 4; pl <= dockLen; pl += 7) {
     ctx.beginPath();
-    ctx.moveTo(shoreX - qx*dockW/2 + px*pl, shoreY - qy*dockW/2 + py*pl);
-    ctx.lineTo(shoreX + qx*dockW/2 + px*pl, shoreY + qy*dockW/2 + py*pl);
+    ctx.moveTo(
+      shoreX - (qx * dockW) / 2 + px * pl,
+      shoreY - (qy * dockW) / 2 + py * pl,
+    );
+    ctx.lineTo(
+      shoreX + (qx * dockW) / 2 + px * pl,
+      shoreY + (qy * dockW) / 2 + py * pl,
+    );
     ctx.stroke();
   }
   // Mooring posts
   for (let p2 = 0; p2 < 2; p2++) {
     const pf = (p2 + 1) / 3;
-    const ppx = shoreX + qx*(pf*dockW - dockW/2) + px*dockLen*0.6;
-    const ppy = shoreY + qy*(pf*dockW - dockW/2) + py*dockLen*0.6;
+    const ppx = shoreX + qx * (pf * dockW - dockW / 2) + px * dockLen * 0.6;
+    const ppy = shoreY + qy * (pf * dockW - dockW / 2) + py * dockLen * 0.6;
     ctx.fillStyle = "rgba(90,65,38,0.92)";
     ctx.fillRect(ppx - 2.5, ppy - 3, 5, 6);
-    ctx.strokeStyle = "rgba(45,30,12,0.88)"; ctx.lineWidth = 0.8;
+    ctx.strokeStyle = "rgba(45,30,12,0.88)";
+    ctx.lineWidth = 0.8;
     ctx.strokeRect(ppx - 2.5, ppy - 3, 5, 6);
   }
   // Small boat moored beside dock
-  const boatX = shoreX + qx*(dockW/2 + 14) + px*dockLen*0.55;
-  const boatY = shoreY + qy*(dockW/2 + 14) + py*dockLen*0.55;
-  ctx.save(); ctx.translate(boatX, boatY); ctx.rotate(Math.atan2(py, px));
+  const boatX = shoreX + qx * (dockW / 2 + 14) + px * dockLen * 0.55;
+  const boatY = shoreY + qy * (dockW / 2 + 14) + py * dockLen * 0.55;
+  ctx.save();
+  ctx.translate(boatX, boatY);
+  ctx.rotate(Math.atan2(py, px));
   ctx.fillStyle = "rgba(105,80,52,0.90)";
   ctx.beginPath();
-  ctx.moveTo(-13, 0); ctx.quadraticCurveTo(0, 7, 13, 0);
-  ctx.quadraticCurveTo(13, -5, 0, -6); ctx.quadraticCurveTo(-13, -5, -13, 0);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(45,30,12,0.82)"; ctx.lineWidth = 0.9; ctx.stroke();
+  ctx.moveTo(-13, 0);
+  ctx.quadraticCurveTo(0, 7, 13, 0);
+  ctx.quadraticCurveTo(13, -5, 0, -6);
+  ctx.quadraticCurveTo(-13, -5, -13, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(45,30,12,0.82)";
+  ctx.lineWidth = 0.9;
+  ctx.stroke();
   ctx.restore();
   ctx.restore();
-  return { cx: shoreX + px*dockLen/2, cy: shoreY + py*dockLen/2, r: Math.max(dockLen, dockW) + 20 };
+  return {
+    cx: shoreX + (px * dockLen) / 2,
+    cy: shoreY + (py * dockLen) / 2,
+    r: Math.max(dockLen, dockW) + 20,
+  };
 }
 
-function renderCivRiver(ctx: CanvasRenderingContext2D, seed: number): Array<{ x: number; y: number; tx: number; ty: number }> {
+function renderCivRiver(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+): Array<{ x: number; y: number; tx: number; ty: number }> {
   if (seededRand(908, seed) > 0.38) return [];
   ctx.save();
   const side1 = Math.floor(seededRand(901, seed) * 4);
   const side2 = (side1 + 2) % 4;
   const p1pos = 0.2 + seededRand(902, seed) * 0.6;
   const p2pos = 0.2 + seededRand(903, seed) * 0.6;
-  let startX = 0, startY = 0, endX = 0, endY = 0;
-  if      (side1 === 0) { startX = p1pos*W; startY = 0; }
-  else if (side1 === 1) { startX = W; startY = p1pos*H; }
-  else if (side1 === 2) { startX = p1pos*W; startY = H; }
-  else                  { startX = 0; startY = p1pos*H; }
-  if      (side2 === 0) { endX = p2pos*W; endY = 0; }
-  else if (side2 === 1) { endX = W; endY = p2pos*H; }
-  else if (side2 === 2) { endX = p2pos*W; endY = H; }
-  else                  { endX = 0; endY = p2pos*H; }
-  const cp1x = startX + (endX-startX)*0.30 + (seededRand(904, seed)-0.5)*280;
-  const cp1y = startY + (endY-startY)*0.30 + (seededRand(905, seed)-0.5)*230;
-  const cp2x = startX + (endX-startX)*0.70 + (seededRand(906, seed)-0.5)*280;
-  const cp2y = startY + (endY-startY)*0.70 + (seededRand(907, seed)-0.5)*230;
+  let startX = 0,
+    startY = 0,
+    endX = 0,
+    endY = 0;
+  if (side1 === 0) {
+    startX = p1pos * W;
+    startY = 0;
+  } else if (side1 === 1) {
+    startX = W;
+    startY = p1pos * H;
+  } else if (side1 === 2) {
+    startX = p1pos * W;
+    startY = H;
+  } else {
+    startX = 0;
+    startY = p1pos * H;
+  }
+  if (side2 === 0) {
+    endX = p2pos * W;
+    endY = 0;
+  } else if (side2 === 1) {
+    endX = W;
+    endY = p2pos * H;
+  } else if (side2 === 2) {
+    endX = p2pos * W;
+    endY = H;
+  } else {
+    endX = 0;
+    endY = p2pos * H;
+  }
+  const cp1x =
+    startX + (endX - startX) * 0.3 + (seededRand(904, seed) - 0.5) * 280;
+  const cp1y =
+    startY + (endY - startY) * 0.3 + (seededRand(905, seed) - 0.5) * 230;
+  const cp2x =
+    startX + (endX - startX) * 0.7 + (seededRand(906, seed) - 0.5) * 280;
+  const cp2y =
+    startY + (endY - startY) * 0.7 + (seededRand(907, seed) - 0.5) * 230;
   const riverW = 10;
   // Shadow
-  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
   ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
-  ctx.strokeStyle = "rgba(40,72,110,0.42)"; ctx.lineWidth = riverW + 4;
-  ctx.lineCap = "round"; ctx.stroke();
+  ctx.strokeStyle = "rgba(40,72,110,0.42)";
+  ctx.lineWidth = riverW + 4;
+  ctx.lineCap = "round";
+  ctx.stroke();
   // Main river
-  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
   ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
-  ctx.strokeStyle = "rgba(72,118,162,0.80)"; ctx.lineWidth = riverW;
-  ctx.lineCap = "round"; ctx.stroke();
+  ctx.strokeStyle = "rgba(72,118,162,0.80)";
+  ctx.lineWidth = riverW;
+  ctx.lineCap = "round";
+  ctx.stroke();
   // Highlight
-  ctx.beginPath(); ctx.moveTo(startX, startY);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
   ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
-  ctx.strokeStyle = "rgba(145,195,235,0.18)"; ctx.lineWidth = riverW * 0.38;
+  ctx.strokeStyle = "rgba(145,195,235,0.18)";
+  ctx.lineWidth = riverW * 0.38;
   ctx.stroke();
   ctx.restore();
   // Return sampled center-line points for exclusion
-  const pts: Array<{x: number; y: number; tx: number; ty: number}> = [];
+  const pts: Array<{ x: number; y: number; tx: number; ty: number }> = [];
   for (let s = 0; s <= 60; s++) {
-    const t = s / 60, mt = 1 - t;
-    const x = mt**3*startX + 3*mt**2*t*cp1x + 3*mt*t**2*cp2x + t**3*endX;
-    const y = mt**3*startY + 3*mt**2*t*cp1y + 3*mt*t**2*cp2y + t**3*endY;
-    const dtx = 3*mt**2*(cp1x-startX) + 6*mt*t*(cp2x-cp1x) + 3*t**2*(endX-cp2x);
-    const dty = 3*mt**2*(cp1y-startY) + 6*mt*t*(cp2y-cp1y) + 3*t**2*(endY-cp2y);
-    const tlen = Math.sqrt(dtx*dtx + dty*dty) || 1;
-    pts.push({ x, y, tx: dtx/tlen, ty: dty/tlen });
+    const t = s / 60,
+      mt = 1 - t;
+    const x =
+      mt ** 3 * startX +
+      3 * mt ** 2 * t * cp1x +
+      3 * mt * t ** 2 * cp2x +
+      t ** 3 * endX;
+    const y =
+      mt ** 3 * startY +
+      3 * mt ** 2 * t * cp1y +
+      3 * mt * t ** 2 * cp2y +
+      t ** 3 * endY;
+    const dtx =
+      3 * mt ** 2 * (cp1x - startX) +
+      6 * mt * t * (cp2x - cp1x) +
+      3 * t ** 2 * (endX - cp2x);
+    const dty =
+      3 * mt ** 2 * (cp1y - startY) +
+      6 * mt * t * (cp2y - cp1y) +
+      3 * t ** 2 * (endY - cp2y);
+    const tlen = Math.sqrt(dtx * dtx + dty * dty) || 1;
+    pts.push({ x, y, tx: dtx / tlen, ty: dty / tlen });
   }
   return pts;
 }
 
-function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: FarmArea[], allBuildings: Array<{b: TownBuilding}>): void {
+function renderFarms(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  farmAreas: FarmArea[],
+  allBuildings: Array<{ b: TownBuilding }>,
+): void {
   for (const { fx, fy, fw, fh, f } of farmAreas) {
     // Skip farm if it overlaps any building
-    if (allBuildings.some(({ b }) => fx < b.x + b.w + 10 && fx + fw > b.x - 10 && fy < b.y + b.h + 10 && fy + fh > b.y - 10)) continue;
+    if (
+      allBuildings.some(
+        ({ b }) =>
+          fx < b.x + b.w + 10 &&
+          fx + fw > b.x - 10 &&
+          fy < b.y + b.h + 10 &&
+          fy + fh > b.y - 10,
+      )
+    )
+      continue;
     const farmType = seededRand(f, seed + 82005) < 0.55 ? "crops" : "animal";
-    ctx.fillStyle = farmType === "crops" ? "rgba(158,175,98,0.70)" : "rgba(185,168,122,0.65)";
+    ctx.fillStyle =
+      farmType === "crops" ? "rgba(158,175,98,0.70)" : "rgba(185,168,122,0.65)";
     ctx.fillRect(fx, fy, fw, fh);
     ctx.fillStyle = "rgba(142,105,55,0.92)";
     for (let fp = fx; fp <= fx + fw + 1; fp += 14) {
@@ -1891,28 +2888,45 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
       ctx.fillRect(fx - 5, fp - 1.5, 10, 3);
       ctx.fillRect(fx + fw - 5, fp - 1.5, 10, 3);
     }
-    ctx.strokeStyle = "rgba(142,105,55,0.88)"; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(142,105,55,0.88)";
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(fx, fy, fw, fh);
     if (farmType === "crops") {
-      ctx.strokeStyle = "rgba(55,92,32,0.65)"; ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(55,92,32,0.65)";
+      ctx.lineWidth = 0.8;
       for (let row = fy + 10; row < fy + fh - 5; row += 9) {
-        ctx.beginPath(); ctx.moveTo(fx + 6, row); ctx.lineTo(fx + fw - 6, row); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(fx + 6, row);
+        ctx.lineTo(fx + fw - 6, row);
+        ctx.stroke();
         for (let pc = fx + 11; pc < fx + fw - 6; pc += 12) {
-          const pv = (seededRand((pc | 0) + (row | 0) * 77 + f * 300, seed + 82010) * 16) | 0;
-          ctx.fillStyle = `rgba(${48+pv},${94+pv},${32+pv},0.82)`;
-          ctx.beginPath(); ctx.arc(pc, row, 2.2, 0, Math.PI * 2); ctx.fill();
+          const pv =
+            (seededRand((pc | 0) + (row | 0) * 77 + f * 300, seed + 82010) *
+              16) |
+            0;
+          ctx.fillStyle = `rgba(${48 + pv},${94 + pv},${32 + pv},0.82)`;
+          ctx.beginPath();
+          ctx.arc(pc, row, 2.2, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
     } else {
       // Subtle dirt crosshatch for animal pen
-      ctx.strokeStyle = "rgba(122,90,52,0.22)"; ctx.lineWidth = 0.6;
+      ctx.strokeStyle = "rgba(122,90,52,0.22)";
+      ctx.lineWidth = 0.6;
       for (let row = fy + 8; row < fy + fh; row += 10) {
-        ctx.beginPath(); ctx.moveTo(fx + 4, row); ctx.lineTo(fx + fw - 4, row); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(fx + 4, row);
+        ctx.lineTo(fx + fw - 4, row);
+        ctx.stroke();
       }
       for (let col = fx + 10; col < fx + fw; col += 14) {
-        ctx.beginPath(); ctx.moveTo(col, fy + 4); ctx.lineTo(col, fy + fh - 4); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(col, fy + 4);
+        ctx.lineTo(col, fy + fh - 4);
+        ctx.stroke();
       }
-      const animalCount = 2 + (seededRand(f, seed + 82011) * 5 | 0);
+      const animalCount = 2 + ((seededRand(f, seed + 82011) * 5) | 0);
       for (let a = 0; a < animalCount; a++) {
         const ax = fx + 12 + seededRand(a + f * 10, seed + 82012) * (fw - 24);
         const ay = fy + 10 + seededRand(a + f * 10, seed + 82013) * (fh - 20);
@@ -1920,27 +2934,47 @@ function renderFarms(ctx: CanvasRenderingContext2D, seed: number, farmAreas: Far
         ctx.save();
         ctx.beginPath();
         ctx.ellipse(ax, ay, 7, 5, aAngle, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(228,218,200,0.92)"; ctx.fill();
-        ctx.strokeStyle = "rgba(82,65,38,0.70)"; ctx.lineWidth = 0.8; ctx.stroke();
+        ctx.fillStyle = "rgba(228,218,200,0.92)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(82,65,38,0.70)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
         ctx.beginPath();
-        ctx.arc(ax + Math.cos(aAngle) * 7, ay + Math.sin(aAngle) * 5, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(185,172,148,0.92)"; ctx.fill(); ctx.stroke();
+        ctx.arc(
+          ax + Math.cos(aAngle) * 7,
+          ay + Math.sin(aAngle) * 5,
+          3,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fillStyle = "rgba(185,172,148,0.92)";
+        ctx.fill();
+        ctx.stroke();
         ctx.restore();
       }
     }
   }
 }
 
-
-function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: CivSize): void {
+function renderCivilisation(
+  ctx: CanvasRenderingContext2D,
+  seed: number,
+  size: CivSize,
+): void {
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
   // ── Step 1: Generate organic layout — anchors placed first, roads second ─
-  const { roads: civRoads, anchorPts } = generateOrganicLayout(seed, size, hx, hy);
+  const { roads: civRoads, anchorPts } = generateOrganicLayout(
+    seed,
+    size,
+    hx,
+    hy,
+  );
 
   // ── Road mask — sampled per-road with per-road margin ────────────────────
-  const MASK_W = 200, MASK_H = 134;
+  const MASK_W = 200,
+    MASK_H = 134;
   const roadMask = new Uint8Array(MASK_W * MASK_H);
 
   function paintRoadMask(road: CivRoad): void {
@@ -1951,9 +2985,11 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       const mgy = ((pt.y / H) * MASK_H) | 0;
       for (let dy = -maskR2; dy <= maskR2; dy++) {
         for (let dx = -maskR2; dx <= maskR2; dx++) {
-          if (dx*dx + dy*dy > maskR2*maskR2) continue;
-          const mx = mgx + dx, my = mgy + dy;
-          if (mx >= 0 && mx < MASK_W && my >= 0 && my < MASK_H) roadMask[my * MASK_W + mx] = 1;
+          if (dx * dx + dy * dy > maskR2 * maskR2) continue;
+          const mx = mgx + dx,
+            my = mgy + dy;
+          if (mx >= 0 && mx < MASK_W && my >= 0 && my < MASK_H)
+            roadMask[my * MASK_W + mx] = 1;
         }
       }
     }
@@ -1963,17 +2999,36 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   const isOnRoad = (cpx: number, cpy: number): boolean => {
     const mgx = ((cpx / W) * MASK_W) | 0;
     const mgy = ((cpy / H) * MASK_H) | 0;
-    return mgx >= 0 && mgx < MASK_W && mgy >= 0 && mgy < MASK_H && roadMask[mgy * MASK_W + mgx] === 1;
+    return (
+      mgx >= 0 &&
+      mgx < MASK_W &&
+      mgy >= 0 &&
+      mgy < MASK_H &&
+      roadMask[mgy * MASK_W + mgx] === 1
+    );
   };
-  const rectOnRoad = (rx: number, ry: number, rw: number, rh: number): boolean =>
-    isOnRoad(rx + rw/2, ry + rh/2) || isOnRoad(rx, ry) || isOnRoad(rx+rw, ry) || isOnRoad(rx, ry+rh) || isOnRoad(rx+rw, ry+rh);
+  const rectOnRoad = (
+    rx: number,
+    ry: number,
+    rw: number,
+    rh: number,
+  ): boolean =>
+    isOnRoad(rx + rw / 2, ry + rh / 2) ||
+    isOnRoad(rx, ry) ||
+    isOnRoad(rx + rw, ry) ||
+    isOnRoad(rx, ry + rh) ||
+    isOnRoad(rx + rw, ry + rh);
 
   // ── Pre-compute farm areas (filter out road-overlapping farms) ───────────
   const farmAreas: FarmArea[] = [];
   if (size !== "city") {
-    const farmCount = size === "village" ? 3 + (seededRand(820, seed) * 3 | 0) : 1 + (seededRand(820, seed) * 2 | 0);
+    const farmCount =
+      size === "village"
+        ? 3 + ((seededRand(820, seed) * 3) | 0)
+        : 1 + ((seededRand(820, seed) * 2) | 0);
     for (let f = 0; f < farmCount; f++) {
-      const fa = (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
+      const fa =
+        (f / farmCount) * Math.PI * 2 + seededRand(f, seed + 82001) * 1.0;
       const fd = 200 + seededRand(f, seed + 82002) * 200;
       const fx = Math.max(25, Math.min(W - 135, hx + Math.cos(fa) * fd));
       const fy = Math.max(25, Math.min(H - 110, hy + Math.sin(fa) * fd));
@@ -1984,7 +3039,13 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   }
   const isOnFarm = (bx: number, by2: number, bw: number, bh: number): boolean =>
-    farmAreas.some(fa => bx < fa.fx + fa.fw + 8 && bx + bw > fa.fx - 8 && by2 < fa.fy + fa.fh + 8 && by2 + bh > fa.fy - 8);
+    farmAreas.some(
+      (fa) =>
+        bx < fa.fx + fa.fw + 8 &&
+        bx + bw > fa.fx - 8 &&
+        by2 < fa.fy + fa.fh + 8 &&
+        by2 + bh > fa.fy - 8,
+    );
 
   // ── Pond: every settlement has a nearby water source ─────────────────────
   const pondCx0 = (0.12 + seededRand(760, seed) * 0.76) * W;
@@ -1995,14 +3056,22 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   // Validate pond position — push away from roads (buildings cluster within ~80px of roads)
   let adjustedPondCx = pondCx0;
   let adjustedPondCy = pondCy0;
-  let hasPond = !farmAreas.some(fa => pondCx0 > fa.fx && pondCx0 < fa.fx + fa.fw && pondCy0 > fa.fy && pondCy0 < fa.fy + fa.fh);
+  let hasPond = !farmAreas.some(
+    (fa) =>
+      pondCx0 > fa.fx &&
+      pondCx0 < fa.fx + fa.fw &&
+      pondCy0 > fa.fy &&
+      pondCy0 < fa.fy + fa.fh,
+  );
   if (hasPond) {
     for (let attempt = 0; attempt < 20; attempt++) {
-      let pushX = 0, pushY = 0;
+      let pushX = 0,
+        pushY = 0;
       for (const road of civRoads) {
         const needed = pondMaxR + road.width / 2 + 60;
         for (const pt of sampleCivRoad(road, 40)) {
-          const dx = adjustedPondCx - pt.x, dy = adjustedPondCy - pt.y;
+          const dx = adjustedPondCx - pt.x,
+            dy = adjustedPondCy - pt.y;
           const dist = Math.hypot(dx, dy);
           if (dist < needed) {
             const norm = dist || 1;
@@ -2015,7 +3084,12 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       adjustedPondCx += pushX * 0.35;
       adjustedPondCy += pushY * 0.35;
       const mg = pondMaxR + 20;
-      if (adjustedPondCx < mg || adjustedPondCx > W - mg || adjustedPondCy < mg || adjustedPondCy > H - mg) {
+      if (
+        adjustedPondCx < mg ||
+        adjustedPondCx > W - mg ||
+        adjustedPondCy < mg ||
+        adjustedPondCy > H - mg
+      ) {
         hasPond = false;
         break;
       }
@@ -2023,45 +3097,68 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
   const pondCx = adjustedPondCx;
   const pondCy = adjustedPondCy;
-  let pondPoly: Array<{x: number; y: number}> = [];
+  let pondPoly: Array<{ x: number; y: number }> = [];
 
   // ── Layer 0: Terrain + water ──────────────────────────────────────────────
   renderCivTerrain(ctx, seed, size);
-  if (hasPond) { const pr = renderPond(ctx, seed, pondCx, pondCy); pondPoly = pr.poly; }
+  if (hasPond) {
+    const pr = renderPond(ctx, seed, pondCx, pondCy);
+    pondPoly = pr.poly;
+  }
 
   // ── River (occasional) ────────────────────────────────────────────────────
   const riverPts = renderCivRiver(ctx, seed);
   const riverExR = 18;
   const isOnRiver = (px2: number, py2: number): boolean =>
-    riverPts.some(p => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
+    riverPts.some((p) => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
 
   // ── Layer 1: Docks — only on large water ─────────────────────────────────
   const isLake = hasPond && (pondRx > 56 || pondRy > 42);
   let dockExcl: { cx: number; cy: number; r: number } | null = null;
   if (isLake && size !== "village") {
-    dockExcl = renderDocksOnPond(ctx, pondCx, pondCy, pondRx, pondRy, seed, pondPoly);
+    dockExcl = renderDocksOnPond(
+      ctx,
+      pondCx,
+      pondCy,
+      pondRx,
+      pondRy,
+      seed,
+      pondPoly,
+    );
   }
   const isOnDock = (px2: number, py2: number): boolean =>
-    dockExcl !== null && Math.hypot(px2 - dockExcl.cx, py2 - dockExcl.cy) < dockExcl.r;
+    dockExcl !== null &&
+    Math.hypot(px2 - dockExcl.cx, py2 - dockExcl.cy) < dockExcl.r;
   const isOnPond = (px2: number, py2: number): boolean =>
     hasPond && pointInPolygon(px2, py2, pondPoly);
 
   // ── Layer 2a: Junction blobs at multi-road anchor points ──────────────────
   for (let ai = 0; ai < anchorPts.length; ai++) {
     const { x: ax, y: ay } = anchorPts[ai];
-    const connRoads = civRoads.filter(r => {
-      const p0 = r.segments[0].p0, p1 = r.segments[r.segments.length - 1].p1;
-      return Math.hypot(p0.x - ax, p0.y - ay) < 10 || Math.hypot(p1.x - ax, p1.y - ay) < 10;
+    const connRoads = civRoads.filter((r) => {
+      const p0 = r.segments[0].p0,
+        p1 = r.segments[r.segments.length - 1].p1;
+      return (
+        Math.hypot(p0.x - ax, p0.y - ay) < 10 ||
+        Math.hypot(p1.x - ax, p1.y - ay) < 10
+      );
     });
     if (connRoads.length < 2) continue;
     const maxW = connRoads.reduce((m, r) => Math.max(m, r.width), 0);
-    const jStyle = connRoads.some(r => r.style === "primary") ? "primary" : "secondary";
-    drawJunctionBlob(ctx, ax, ay, maxW * 0.80, jStyle, seed, ai);
+    const jStyle = connRoads.some((r) => r.style === "primary")
+      ? "primary"
+      : "secondary";
+    drawJunctionBlob(ctx, ax, ay, maxW * 0.8, jStyle, seed, ai);
   }
 
   // ── Layer 2b: Road fills — tracks first, secondary next, primary on top ──
-  const styleOrder = { track: 0, secondary: 1, primary: 2 } as Record<string, number>;
-  const sortedForDraw = [...civRoads].sort((a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1));
+  const styleOrder = { track: 0, secondary: 1, primary: 2 } as Record<
+    string,
+    number
+  >;
+  const sortedForDraw = [...civRoads].sort(
+    (a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1),
+  );
   for (let i = 0; i < sortedForDraw.length; i++) {
     drawOrganicRoad(ctx, sortedForDraw[i], seed, i);
   }
@@ -2072,7 +3169,9 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const detectR = riverW / 2 + 8;
     const bridgeDone = new Set<string>();
     // Draw bridges for primary roads first so they appear on top of secondary/track
-    const bridgeRoadOrder = [...civRoads].sort((a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1));
+    const bridgeRoadOrder = [...civRoads].sort(
+      (a, b) => (styleOrder[a.style] ?? 1) - (styleOrder[b.style] ?? 1),
+    );
     for (const road of bridgeRoadOrder) {
       for (const pt of sampleCivRoad(road, 120)) {
         let nearDist = Infinity;
@@ -2104,7 +3203,11 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
         ctx.strokeStyle = "#6B4A2A";
         ctx.lineWidth = 0.9;
         const plankSpacing = 5;
-        for (let px2 = Math.ceil(-bridgeLen / 2 / plankSpacing) * plankSpacing; px2 <= bridgeLen / 2; px2 += plankSpacing) {
+        for (
+          let px2 = Math.ceil(-bridgeLen / 2 / plankSpacing) * plankSpacing;
+          px2 <= bridgeLen / 2;
+          px2 += plankSpacing
+        ) {
           ctx.beginPath();
           ctx.moveTo(px2, -bw / 2);
           ctx.lineTo(px2, bw / 2);
@@ -2131,73 +3234,118 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   }
 
   // ── Hub plaza ─────────────────────────────────────────────────────────────
-  const hubR = size === "village" ? 30 + seededRand(217, seed) * 15 :
-               size === "town"    ? 42 + seededRand(217, seed) * 18 :
-                                    55 + seededRand(217, seed) * 22;
+  const hubR =
+    size === "village"
+      ? 30 + seededRand(217, seed) * 15
+      : size === "town"
+        ? 42 + seededRand(217, seed) * 18
+        : 55 + seededRand(217, seed) * 22;
   ctx.save();
-  ctx.beginPath(); ctx.arc(hx, hy, hubR, 0, Math.PI * 2);
+  ctx.beginPath();
+  ctx.arc(hx, hy, hubR, 0, Math.PI * 2);
   if (size === "village") {
-    ctx.fillStyle = "rgba(172,148,100,0.92)"; ctx.fill();
-    ctx.strokeStyle = "rgba(72,52,28,0.58)"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = "rgba(172,148,100,0.92)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(72,52,28,0.58)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   } else {
-    ctx.fillStyle = "rgba(108,102,90,0.97)"; ctx.fill();
-    ctx.strokeStyle = "rgba(62,50,32,0.68)"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "rgba(108,102,90,0.97)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(62,50,32,0.68)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
     const hubStones = size === "city" ? 200 : 140;
     for (let s = 0; s < hubStones; s++) {
       const angle = seededRand(s, seed + 90001) * Math.PI * 2;
-      const dist = Math.sqrt(seededRand(s + hubStones, seed + 90002)) * (hubR - 4);
+      const dist =
+        Math.sqrt(seededRand(s + hubStones, seed + 90002)) * (hubR - 4);
       const hcx2 = hx + Math.cos(angle) * dist;
       const hcy2 = hy + Math.sin(angle) * dist;
       const rv = (seededRand(s, seed + 90003) * 24) | 0;
-      ctx.fillStyle = `rgb(${100+rv},${93+rv},${83+rv})`;
+      ctx.fillStyle = `rgb(${100 + rv},${93 + rv},${83 + rv})`;
       ctx.fillRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
-      ctx.strokeStyle = "rgba(45,35,22,0.45)"; ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "rgba(45,35,22,0.45)";
+      ctx.lineWidth = 0.5;
       ctx.strokeRect(hcx2 - 3, hcy2 - 2.5, 6, 5);
     }
   }
   ctx.restore();
 
   if (size === "village") drawWell(ctx, hx, hy);
-  else if (size === "town") drawTree(ctx, hx, hy, 38 + seededRand(218, seed) * 10);
+  else if (size === "town")
+    drawTree(ctx, hx, hy, 38 + seededRand(218, seed) * 10);
   else drawFountain(ctx, hx, hy);
 
   // ── Layer 3: Castle (city only) ───────────────────────────────────────────
-  let castleCx = -9999, castleCy = -9999;
-  const castleW = 188, castleH = 168;
+  let castleCx = -9999,
+    castleCy = -9999;
+  const castleW = 188,
+    castleH = 168;
   if (size === "city") {
     const baseAngle = seededRand(220, seed) * Math.PI * 2;
     const castleDist = hubR + 185 + seededRand(221, seed) * 55;
-    let bestAngle = baseAngle, bestHits = Infinity;
+    let bestAngle = baseAngle,
+      bestHits = Infinity;
     for (let ai = 0; ai < 12; ai++) {
       const tryAngle = baseAngle + (ai / 12) * Math.PI * 2;
-      const tryCx = Math.max(castleW/2+32, Math.min(W-castleW/2-32, hx + Math.cos(tryAngle)*castleDist));
-      const tryCy = Math.max(castleH/2+32, Math.min(H-castleH/2-32, hy + Math.sin(tryAngle)*castleDist));
+      const tryCx = Math.max(
+        castleW / 2 + 32,
+        Math.min(W - castleW / 2 - 32, hx + Math.cos(tryAngle) * castleDist),
+      );
+      const tryCy = Math.max(
+        castleH / 2 + 32,
+        Math.min(H - castleH / 2 - 32, hy + Math.sin(tryAngle) * castleDist),
+      );
       let hits = 0;
-      for (let sy = -castleH/2; sy <= castleH/2; sy += 10)
-        for (let sx = -castleW/2; sx <= castleW/2; sx += 10)
+      for (let sy = -castleH / 2; sy <= castleH / 2; sy += 10)
+        for (let sx = -castleW / 2; sx <= castleW / 2; sx += 10)
           if (isOnRoad(tryCx + sx, tryCy + sy)) hits++;
-      if (hits < bestHits) { bestHits = hits; bestAngle = tryAngle; }
+      if (hits < bestHits) {
+        bestHits = hits;
+        bestAngle = tryAngle;
+      }
     }
-    castleCx = Math.max(castleW/2+32, Math.min(W-castleW/2-32, hx + Math.cos(bestAngle)*castleDist));
-    castleCy = Math.max(castleH/2+32, Math.min(H-castleH/2-32, hy + Math.sin(bestAngle)*castleDist));
+    castleCx = Math.max(
+      castleW / 2 + 32,
+      Math.min(W - castleW / 2 - 32, hx + Math.cos(bestAngle) * castleDist),
+    );
+    castleCy = Math.max(
+      castleH / 2 + 32,
+      Math.min(H - castleH / 2 - 32, hy + Math.sin(bestAngle) * castleDist),
+    );
     const castleToHub = Math.atan2(hy - castleCy, hx - castleCx);
     ctx.save();
     ctx.translate(castleCx, castleCy);
     ctx.rotate(castleToHub + Math.PI / 2);
     ctx.translate(-castleCx, -castleCy);
-    renderCastleFootprint(ctx, { x: castleCx-castleW/2, y: castleCy-castleH/2, w: castleW, h: castleH, type: "castle" });
+    renderCastleFootprint(ctx, {
+      x: castleCx - castleW / 2,
+      y: castleCy - castleH / 2,
+      w: castleW,
+      h: castleH,
+      type: "castle",
+    });
     ctx.restore();
     const gateX = castleCx + Math.cos(castleToHub) * (castleH / 2);
     const gateY = castleCy + Math.sin(castleToHub) * (castleH / 2);
     const driveEndX = hx - Math.cos(castleToHub) * (hubR + 1);
     const driveEndY = hy - Math.sin(castleToHub) * (hubR + 1);
-    const driveRoad = makeCivRoad({ x: gateX, y: gateY }, { x: driveEndX, y: driveEndY }, "primary", 20, seed, 998);
+    const driveRoad = makeCivRoad(
+      { x: gateX, y: gateY },
+      { x: driveEndX, y: driveEndY },
+      "primary",
+      20,
+      seed,
+      998,
+    );
     drawOrganicRoad(ctx, driveRoad, seed, 999);
     paintRoadMask(driveRoad);
   }
 
   // ── Layer 4: Buildings — placed along roads, facing road direction ─────────
-  const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> = [];
+  const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> =
+    [];
   const bSteps = size === "village" ? 28 : size === "town" ? 38 : 50;
   const density = size === "village" ? 0.38 : size === "town" ? 0.55 : 0.68;
   const minBSize = size === "village" ? 22 : size === "town" ? 26 : 30;
@@ -2207,78 +3355,149 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const road = civRoads[pi];
     const roadPts = sampleCivRoad(road, bSteps);
     const sideOffset = road.width / 2 + minBSize / 2 + 4;
-    const accessPathColor = (road.style === "track" || size === "village")
-      ? "rgba(148,120,72,0.50)" : "rgba(112,106,93,0.55)";
+    const accessPathColor =
+      road.style === "track" || size === "village"
+        ? "rgba(148,120,72,0.50)"
+        : "rgba(112,106,93,0.55)";
 
     for (let si = 1; si < roadPts.length - 1; si++) {
       const pt = roadPts[si];
-      const ppx = pt.x, ppy = pt.y;
-      const nnx = pt.nx, nny = pt.ny;
+      const ppx = pt.x,
+        ppy = pt.y;
+      const nnx = pt.nx,
+        nny = pt.ny;
 
       for (const side of [1, -1] as const) {
         const placeSeed = pi * 10000 + si * 20 + (side === 1 ? 0 : 1);
         if (seededRand(placeSeed, seed + 41000) > density) continue;
 
         const isSquare = seededRand(placeSeed + 1, seed + 41001) < 0.65;
-        const baseSize = minBSize + seededRand(placeSeed + 2, seed + 41002) * (maxBSize - minBSize);
-        const bw = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 3, seed + 41003) * 0.5)) | 0;
-        const bh = (isSquare ? baseSize : baseSize * (1.2 + seededRand(placeSeed + 4, seed + 41004) * 0.5)) | 0;
+        const baseSize =
+          minBSize +
+          seededRand(placeSeed + 2, seed + 41002) * (maxBSize - minBSize);
+        const bw =
+          (isSquare
+            ? baseSize
+            : baseSize *
+              (1.2 + seededRand(placeSeed + 3, seed + 41003) * 0.5)) | 0;
+        const bh =
+          (isSquare
+            ? baseSize
+            : baseSize *
+              (1.2 + seededRand(placeSeed + 4, seed + 41004) * 0.5)) | 0;
 
         // Compute rotation first so we can guarantee rotated corners clear the road
         const doorSide = getDoorSide(-nnx * side, -nny * side);
         const facingAngle = Math.atan2(-nny * side, -nnx * side);
-        const doorDefaultAngles: Record<string, number> = { S: Math.PI/2, N: -Math.PI/2, E: 0, W: Math.PI };
-        const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI/2;
-        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.20;
-        const buildingAngle = (facingAngle - doorBaseAngle) + extraRot;
+        const doorDefaultAngles: Record<string, number> = {
+          S: Math.PI / 2,
+          N: -Math.PI / 2,
+          E: 0,
+          W: Math.PI,
+        };
+        const doorBaseAngle = doorDefaultAngles[doorSide] ?? Math.PI / 2;
+        const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.2;
+        const buildingAngle = facingAngle - doorBaseAngle + extraRot;
 
         // Projected half-extent of rotated building along road normal — ensures corners clear road
-        const cosA = Math.cos(buildingAngle), sinA = Math.sin(buildingAngle);
+        const cosA = Math.cos(buildingAngle),
+          sinA = Math.sin(buildingAngle);
         const dotX = cosA * nnx * side + sinA * nny * side;
         const dotY = -sinA * nnx * side + cosA * nny * side;
-        const halfExtNormal = Math.abs(bw / 2 * dotX) + Math.abs(bh / 2 * dotY);
-        const baseOff = sideOffset + seededRand(placeSeed + 5, seed + 41005) * 14;
-        const offsetDist = Math.max(baseOff, road.width / 2 + halfExtNormal + 4);
+        const halfExtNormal =
+          Math.abs((bw / 2) * dotX) + Math.abs((bh / 2) * dotY);
+        const baseOff =
+          sideOffset + seededRand(placeSeed + 5, seed + 41005) * 14;
+        const offsetDist = Math.max(
+          baseOff,
+          road.width / 2 + halfExtNormal + 4,
+        );
 
         const bcx = ppx + nnx * side * offsetDist;
         const bcy = ppy + nny * side * offsetDist;
         const bx = (bcx - bw / 2) | 0;
         const by2 = (bcy - bh / 2) | 0;
 
-        if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22) continue;
+        if (bx < 22 || by2 < 22 || bx + bw > W - 22 || by2 + bh > H - 22)
+          continue;
         if (Math.hypot(bcx - hx, bcy - hy) < hubR + 12) continue;
-        if (size === "city" && Math.abs(bcx - castleCx) < castleW/2 + 22 && Math.abs(bcy - castleCy) < castleH/2 + 22) continue;
+        if (
+          size === "city" &&
+          Math.abs(bcx - castleCx) < castleW / 2 + 22 &&
+          Math.abs(bcy - castleCy) < castleH / 2 + 22
+        )
+          continue;
 
         // Check center + all 4 rotated corners against road mask
         if (isOnRoad(bcx, bcy)) continue;
         const corners = [
-          { x: bcx + cosA*bw/2 - sinA*bh/2, y: bcy + sinA*bw/2 + cosA*bh/2 },
-          { x: bcx - cosA*bw/2 - sinA*bh/2, y: bcy - sinA*bw/2 + cosA*bh/2 },
-          { x: bcx - cosA*bw/2 + sinA*bh/2, y: bcy - sinA*bw/2 - cosA*bh/2 },
-          { x: bcx + cosA*bw/2 + sinA*bh/2, y: bcy + sinA*bw/2 - cosA*bh/2 },
+          {
+            x: bcx + (cosA * bw) / 2 - (sinA * bh) / 2,
+            y: bcy + (sinA * bw) / 2 + (cosA * bh) / 2,
+          },
+          {
+            x: bcx - (cosA * bw) / 2 - (sinA * bh) / 2,
+            y: bcy - (sinA * bw) / 2 + (cosA * bh) / 2,
+          },
+          {
+            x: bcx - (cosA * bw) / 2 + (sinA * bh) / 2,
+            y: bcy - (sinA * bw) / 2 - (cosA * bh) / 2,
+          },
+          {
+            x: bcx + (cosA * bw) / 2 + (sinA * bh) / 2,
+            y: bcy + (sinA * bw) / 2 - (cosA * bh) / 2,
+          },
         ];
-        if (corners.some(c => isOnRoad(c.x, c.y))) continue;
+        if (corners.some((c) => isOnRoad(c.x, c.y))) continue;
 
         if (isOnFarm(bx, by2, bw, bh)) continue;
         if (isOnRiver(bcx, bcy) || isOnPond(bcx, bcy)) continue;
-        if (allBuildings.some(({ b }) => bx < b.x + b.w + 6 && bx + bw > b.x - 6 && by2 < b.y + b.h + 6 && by2 + bh > b.y - 6)) continue;
+        if (
+          allBuildings.some(
+            ({ b }) =>
+              bx < b.x + b.w + 6 &&
+              bx + bw > b.x - 6 &&
+              by2 < b.y + b.h + 6 &&
+              by2 + bh > b.y - 6,
+          )
+        )
+          continue;
 
-        const b: TownBuilding = { x: bx, y: by2, w: bw, h: bh, type: "normal", doorSide };
+        const b: TownBuilding = {
+          x: bx,
+          y: by2,
+          w: bw,
+          h: bh,
+          type: "normal",
+          doorSide,
+        };
 
         // Dirt access path from building to road edge when set back far enough
         if (offsetDist > road.width / 2 + 8) {
           const roadEdgeX = ppx + nnx * side * (road.width / 2 + 2);
           const roadEdgeY = ppy + nny * side * (road.width / 2 + 2);
           ctx.save();
-          ctx.beginPath(); ctx.moveTo(bcx, bcy); ctx.lineTo(roadEdgeX, roadEdgeY);
+          ctx.beginPath();
+          ctx.moveTo(bcx, bcy);
+          ctx.lineTo(roadEdgeX, roadEdgeY);
           ctx.strokeStyle = accessPathColor;
-          ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
+          ctx.lineWidth = 5;
+          ctx.lineCap = "round";
+          ctx.stroke();
           ctx.restore();
         }
 
         ctx.save();
-        ctx.translate(bcx, bcy); ctx.rotate(buildingAngle); ctx.translate(-bcx, -bcy);
-        drawHouseTopDown(ctx, b, seed, pi * 200 + si * 2 + (side === 1 ? 0 : 1), size === "village");
+        ctx.translate(bcx, bcy);
+        ctx.rotate(buildingAngle);
+        ctx.translate(-bcx, -bcy);
+        drawHouseTopDown(
+          ctx,
+          b,
+          seed,
+          pi * 200 + si * 2 + (side === 1 ? 0 : 1),
+          size === "village",
+        );
         ctx.restore();
         allBuildings.push({ b, lotCx: bcx, lotCy: bcy });
       }
@@ -2290,23 +3509,44 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
   // ── Layer 5: Trees + bushes — avoid roads, buildings, water, farms, river ─
   const isOnBuilding = (tx: number, ty: number): boolean =>
-    allBuildings.some(({ b }) => tx >= b.x - 5 && tx <= b.x + b.w + 5 && ty >= b.y - 5 && ty <= b.y + b.h + 5);
+    allBuildings.some(
+      ({ b }) =>
+        tx >= b.x - 5 &&
+        tx <= b.x + b.w + 5 &&
+        ty >= b.y - 5 &&
+        ty <= b.y + b.h + 5,
+    );
   const isOnFarmPt = (tx: number, ty: number): boolean =>
-    farmAreas.some(fa => tx >= fa.fx - 4 && tx <= fa.fx + fa.fw + 4 && ty >= fa.fy - 4 && ty <= fa.fy + fa.fh + 4);
+    farmAreas.some(
+      (fa) =>
+        tx >= fa.fx - 4 &&
+        tx <= fa.fx + fa.fw + 4 &&
+        ty >= fa.fy - 4 &&
+        ty <= fa.fy + fa.fh + 4,
+    );
   const treeNoise = makeNoise(seed + 77551);
   let plantIdx = 0;
   for (let py2 = 4; py2 < H - 4; py2 += 8) {
     for (let px2 = 4; px2 < W - 4; px2 += 8) {
-      const nv = fbm(treeNoise, px2 / W * 14, py2 / H * 14, 3);
+      const nv = fbm(treeNoise, (px2 / W) * 14, (py2 / H) * 14, 3);
       // Outskirt boost: trees get denser farther from hub
       const distFromHub = Math.hypot(px2 - hx, py2 - hy);
-      const outerBoost = Math.min(0.50, Math.max(0, (distFromHub / (Math.min(W, H) * 0.42) - 0.55) * 1.0));
+      const outerBoost = Math.min(
+        0.5,
+        Math.max(0, (distFromHub / (Math.min(W, H) * 0.42) - 0.55) * 1.0),
+      );
       const nThreshold = 0.49 - outerBoost * 0.18;
       if (nv < nThreshold) continue;
-      const treeProb = 0.30 + outerBoost * 0.52;
-      if (seededRand(py2 * W / 8 + px2 / 8, seed + 22111) > treeProb) continue;
+      const treeProb = 0.3 + outerBoost * 0.52;
+      if (seededRand((py2 * W) / 8 + px2 / 8, seed + 22111) > treeProb)
+        continue;
       if (distFromHub < hubR + 10) continue;
-      if (size === "city" && Math.abs(px2 - castleCx) < castleW/2 + 8 && Math.abs(py2 - castleCy) < castleH/2 + 8) continue;
+      if (
+        size === "city" &&
+        Math.abs(px2 - castleCx) < castleW / 2 + 8 &&
+        Math.abs(py2 - castleCy) < castleH / 2 + 8
+      )
+        continue;
       if (isOnRoad(px2, py2)) continue;
       if (isOnBuilding(px2, py2)) continue;
       if (isOnFarmPt(px2, py2)) continue;
@@ -2314,9 +3554,21 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
       if (isOnDock(px2, py2)) continue;
       if (isOnRiver(px2, py2)) continue;
       if (nv < 0.56 && seededRand(plantIdx, seed + 44211) < 0.55) {
-        drawBush(ctx, px2, py2, 4 + seededRand(plantIdx, seed + 44212) * 4, seed, plantIdx);
+        drawBush(
+          ctx,
+          px2,
+          py2,
+          4 + seededRand(plantIdx, seed + 44212) * 4,
+          seed,
+          plantIdx,
+        );
       } else {
-        drawTree(ctx, px2, py2, 5 + seededRand(py2 * W / 8 + px2 / 8, seed + 33111) * 5);
+        drawTree(
+          ctx,
+          px2,
+          py2,
+          5 + seededRand((py2 * W) / 8 + px2 / 8, seed + 33111) * 5,
+        );
       }
       plantIdx++;
     }
@@ -2324,20 +3576,49 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
   // ── Layer 7: Special building icons ──────────────────────────────────────
   const sorted = allBuildings
-    .map((entry, i) => ({ i, d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy) }))
+    .map((entry, i) => ({
+      i,
+      d: Math.hypot(entry.lotCx - hx, entry.lotCy - hy),
+    }))
     .sort((a, b) => a.d - b.d);
-  const specialOrder: BuildingType[] = size === "village"
-    ? ["inn", "tavern", "blacksmith", "potions", "merchant"]
-    : size === "town"
-    ? ["church", "inn", "inn", "tavern", "tavern", "blacksmith", "armoury", "potions", "potions", "merchant"]
-    : ["church", "inn", "inn", "tavern", "tavern", "tavern", "blacksmith", "blacksmith", "armoury", "potions", "potions", "merchant", "merchant"];
+  const specialOrder: BuildingType[] =
+    size === "village"
+      ? ["inn", "tavern", "blacksmith", "potions", "merchant"]
+      : size === "town"
+        ? [
+            "church",
+            "inn",
+            "inn",
+            "tavern",
+            "tavern",
+            "blacksmith",
+            "armoury",
+            "potions",
+            "potions",
+            "merchant",
+          ]
+        : [
+            "church",
+            "inn",
+            "inn",
+            "tavern",
+            "tavern",
+            "tavern",
+            "blacksmith",
+            "blacksmith",
+            "armoury",
+            "potions",
+            "potions",
+            "merchant",
+            "merchant",
+          ];
   // Size constraints per type: [minArea, maxArea]
   const sizeRange: Partial<Record<BuildingType, [number, number]>> = {
-    church:     [900, Infinity],
-    inn:        [700, Infinity],
+    church: [900, Infinity],
+    inn: [700, Infinity],
     blacksmith: [600, Infinity],
-    armoury:    [550, Infinity],
-    potions:    [0, 750],
+    armoury: [550, Infinity],
+    potions: [0, 750],
   };
   const usedLots = new Set<string>();
   let si = 0;
@@ -2351,34 +3632,59 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     const [minA, maxA] = sizeRange[specialOrder[si]] ?? [0, Infinity];
     if (area < minA || area > maxA) continue;
     usedLots.add(lotKey);
-    const icx = b.x + b.w / 2, icy = b.y + b.h / 2;
+    const icx = b.x + b.w / 2,
+      icy = b.y + b.h / 2;
     if (specialOrder[si] === "church") {
       // Plain rectangular building — identical style to house/inn; bell badge on roof
       const badgeR = Math.max(5, Math.min(b.w, b.h) * 0.14);
       ctx.save();
-      ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(248,242,225,0.84)"; ctx.fill();
-      ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(248,242,225,0.84)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(55,38,18,0.55)";
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
       const iconS = badgeR / 11;
-      ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
+      ctx.translate(icx, icy);
+      ctx.scale(iconS, iconS);
+      ctx.translate(-icx, -icy);
       drawChurchIcon(ctx, icx, icy);
       ctx.restore();
     } else {
       // Small badge circle with scaled icon
       const badgeR = Math.max(6, Math.min(b.w, b.h) * 0.18);
       ctx.save();
-      ctx.beginPath(); ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(248,242,225,0.84)"; ctx.fill();
-      ctx.strokeStyle = "rgba(55,38,18,0.55)"; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(icx, icy, badgeR, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(248,242,225,0.84)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(55,38,18,0.55)";
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
       const iconS = badgeR / 11;
-      ctx.translate(icx, icy); ctx.scale(iconS, iconS); ctx.translate(-icx, -icy);
+      ctx.translate(icx, icy);
+      ctx.scale(iconS, iconS);
+      ctx.translate(-icx, -icy);
       switch (specialOrder[si]) {
-        case "inn":        drawInnIcon(ctx, icx, icy); break;
-        case "tavern":     drawTavernIcon(ctx, icx, icy); break;
-        case "blacksmith": drawBlacksmithIcon(ctx, icx, icy); break;
-        case "armoury":    drawSwordIcon(ctx, icx, icy); break;
-        case "potions":    drawPotionIcon(ctx, icx, icy); break;
-        case "merchant":   drawMerchantIcon(ctx, icx, icy); break;
+        case "inn":
+          drawInnIcon(ctx, icx, icy);
+          break;
+        case "tavern":
+          drawTavernIcon(ctx, icx, icy);
+          break;
+        case "blacksmith":
+          drawBlacksmithIcon(ctx, icx, icy);
+          break;
+        case "armoury":
+          drawSwordIcon(ctx, icx, icy);
+          break;
+        case "potions":
+          drawPotionIcon(ctx, icx, icy);
+          break;
+        case "merchant":
+          drawMerchantIcon(ctx, icx, icy);
+          break;
       }
       ctx.restore();
     }
@@ -2390,23 +3696,36 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
   if (size === "village") {
     // Hedgerow border — thick dark green line with bush-bump texture
     const mg = 14;
-    ctx.strokeStyle = "rgba(38,68,22,0.88)"; ctx.lineWidth = 9;
+    ctx.strokeStyle = "rgba(38,68,22,0.88)";
+    ctx.lineWidth = 9;
     ctx.strokeRect(mg, mg, W - mg * 2, H - mg * 2);
-    ctx.strokeStyle = "rgba(58,95,34,0.50)"; ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(58,95,34,0.50)";
+    ctx.lineWidth = 4;
     ctx.strokeRect(mg, mg, W - mg * 2, H - mg * 2);
     // Hedge bumps along perimeter
     ctx.fillStyle = "rgba(48,82,28,0.62)";
     const bumps = 88;
     for (let hb = 0; hb < bumps; hb++) {
       const side = hb % 4;
-      const frac = (Math.floor(hb / 4)) / (bumps / 4);
+      const frac = Math.floor(hb / 4) / (bumps / 4);
       let hbx: number, hby: number;
-      if      (side === 0) { hbx = mg + frac * (W - mg*2); hby = mg; }
-      else if (side === 1) { hbx = W - mg; hby = mg + frac * (H - mg*2); }
-      else if (side === 2) { hbx = (W - mg) - frac * (W - mg*2); hby = H - mg; }
-      else                 { hbx = mg; hby = (H - mg) - frac * (H - mg*2); }
+      if (side === 0) {
+        hbx = mg + frac * (W - mg * 2);
+        hby = mg;
+      } else if (side === 1) {
+        hbx = W - mg;
+        hby = mg + frac * (H - mg * 2);
+      } else if (side === 2) {
+        hbx = W - mg - frac * (W - mg * 2);
+        hby = H - mg;
+      } else {
+        hbx = mg;
+        hby = H - mg - frac * (H - mg * 2);
+      }
       const br = 5 + seededRand(hb, seed + 97001) * 5;
-      ctx.beginPath(); ctx.arc(hbx, hby, br, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(hbx, hby, br, 0, Math.PI * 2);
+      ctx.fill();
     }
     // Wooden fence posts
     ctx.fillStyle = "rgba(120,88,48,0.80)";
@@ -2420,14 +3739,24 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
     }
   } else {
     // Stone curtain wall for town/city
-    ctx.strokeStyle = "rgba(45,35,18,0.94)"; ctx.lineWidth = 7;
+    ctx.strokeStyle = "rgba(45,35,18,0.94)";
+    ctx.lineWidth = 7;
     ctx.strokeRect(8, 8, W - 16, H - 16);
-    ctx.strokeStyle = "rgba(88,75,55,0.38)"; ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(88,75,55,0.38)";
+    ctx.lineWidth = 1;
     ctx.strokeRect(22, 22, W - 44, H - 44);
     // Corner towers
-    for (const [tx, ty] of [[8,8],[W-8,8],[W-8,H-8],[8,H-8]] as [number,number][]) {
-      ctx.fillStyle = "rgba(45,35,18,0.95)"; ctx.fillRect(tx - 10, ty - 10, 20, 20);
-      ctx.strokeStyle = "rgba(18,12,6,0.90)"; ctx.lineWidth = 1.0; ctx.strokeRect(tx - 10, ty - 10, 20, 20);
+    for (const [tx, ty] of [
+      [8, 8],
+      [W - 8, 8],
+      [W - 8, H - 8],
+      [8, H - 8],
+    ] as [number, number][]) {
+      ctx.fillStyle = "rgba(45,35,18,0.95)";
+      ctx.fillRect(tx - 10, ty - 10, 20, 20);
+      ctx.strokeStyle = "rgba(18,12,6,0.90)";
+      ctx.lineWidth = 1.0;
+      ctx.strokeRect(tx - 10, ty - 10, 20, 20);
     }
   }
   ctx.restore();
@@ -2440,7 +3769,14 @@ function renderCivilisation(ctx: CanvasRenderingContext2D, seed: number, size: C
 
 // ─── Pin Drawing ──────────────────────────────────────────────────────────────
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -2452,22 +3788,33 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 function drawPins(ctx: CanvasRenderingContext2D, pins: UserPin[]): void {
   for (const pin of pins) {
-    const px = pin.nx * W, py = pin.ny * H;
+    const px = pin.nx * W,
+      py = pin.ny * H;
     ctx.save();
-    ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(185,52,42,0.95)"; ctx.fill();
-    ctx.strokeStyle = "rgba(28,16,8,0.9)"; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,255,0.88)"; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(185,52,42,0.95)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(28,16,8,0.9)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.fill();
     if (pin.label) {
       ctx.font = "bold 12px 'Cinzel', serif";
       const tw = ctx.measureText(pin.label).width;
-      const pad = 5, lh = 14;
-      const lx = px - tw / 2 - pad, ly = py - 22 - lh;
+      const pad = 5,
+        lh = 14;
+      const lx = px - tw / 2 - pad,
+        ly = py - 22 - lh;
       roundRect(ctx, lx, ly, tw + pad * 2, lh + pad, 3);
-      ctx.fillStyle = "rgba(20,12,4,0.84)"; ctx.fill();
+      ctx.fillStyle = "rgba(20,12,4,0.84)";
+      ctx.fill();
       ctx.fillStyle = "rgba(235,220,172,0.96)";
-      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
       ctx.fillText(pin.label, px, ly + 3);
     }
     ctx.restore();
@@ -2484,9 +3831,14 @@ export function DnDMapGenerator() {
   const [pinsLandscape, setPinsLandscape] = useState<UserPin[]>([]);
   const [pinsCivilisation, setPinsCivilisation] = useState<UserPin[]>([]);
   const pins = mode === "landscape" ? pinsLandscape : pinsCivilisation;
-  const setPins = (mode === "landscape" ? setPinsLandscape : setPinsCivilisation) as (v: UserPin[] | ((prev: UserPin[]) => UserPin[])) => void;
+  const setPins = (
+    mode === "landscape" ? setPinsLandscape : setPinsCivilisation
+  ) as (v: UserPin[] | ((prev: UserPin[]) => UserPin[])) => void;
   const [isAddingPin, setIsAddingPin] = useState(false);
-  const [pendingPin, setPendingPin] = useState<{ nx: number; ny: number } | null>(null);
+  const [pendingPin, setPendingPin] = useState<{
+    nx: number;
+    ny: number;
+  } | null>(null);
   const [labelInput, setLabelInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(true);
   const mapRef = useRef<HTMLCanvasElement>(null);
@@ -2498,9 +3850,12 @@ export function DnDMapGenerator() {
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap";
     document.head.appendChild(link);
-    return () => { document.head.removeChild(link); };
+    return () => {
+      document.head.removeChild(link);
+    };
   }, []);
 
   // Crosshair cursor override (site has a global custom cursor)
@@ -2509,7 +3864,9 @@ export function DnDMapGenerator() {
     const style = document.createElement("style");
     style.textContent = ".dnd-overlay { cursor: crosshair !important; }";
     document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
+    return () => {
+      document.head.removeChild(style);
+    };
   }, [isAddingPin]);
 
   // Map generation
@@ -2534,7 +3891,10 @@ export function DnDMapGenerator() {
     const canvas = overlayRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    if (!pendingPin && pins.length === 0) { ctx.clearRect(0, 0, W, H); return; }
+    if (!pendingPin && pins.length === 0) {
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
     let id: number;
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
@@ -2542,13 +3902,17 @@ export function DnDMapGenerator() {
       if (pendingPin) {
         const t = (Date.now() % 1200) / 1200;
         const pulse = Math.sin(t * Math.PI * 2);
-        const px = pendingPin.nx * W, py = pendingPin.ny * H;
+        const px = pendingPin.nx * W,
+          py = pendingPin.ny * H;
         ctx.beginPath();
         ctx.arc(px, py, 14 + pulse * 4, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(220,75,55,${0.45 + pulse * 0.3})`;
-        ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(220,75,55,0.88)"; ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(220,75,55,0.88)";
+        ctx.fill();
       }
       id = requestAnimationFrame(draw);
       animRef.current = id;
@@ -2562,8 +3926,13 @@ export function DnDMapGenerator() {
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) * (W / rect.width);
     const py = (e.clientY - rect.top) * (H / rect.height);
-    const existing = pins.find(p => Math.hypot(p.nx * W - px, p.ny * H - py) < 16);
-    if (existing) { setPins(prev => prev.filter(p => p.id !== existing.id)); return; }
+    const existing = pins.find(
+      (p) => Math.hypot(p.nx * W - px, p.ny * H - py) < 16,
+    );
+    if (existing) {
+      setPins((prev) => prev.filter((p) => p.id !== existing.id));
+      return;
+    }
     setPendingPin({ nx: px / W, ny: py / H });
     setLabelInput("");
     setTimeout(() => labelRef.current?.focus(), 50);
@@ -2571,18 +3940,33 @@ export function DnDMapGenerator() {
 
   const confirmPin = () => {
     if (!pendingPin) return;
-    setPins(prev => [...prev, { id: `p${Date.now()}`, nx: pendingPin.nx, ny: pendingPin.ny, label: labelInput.trim() }]);
-    setPendingPin(null); setLabelInput("");
+    setPins((prev) => [
+      ...prev,
+      {
+        id: `p${Date.now()}`,
+        nx: pendingPin.nx,
+        ny: pendingPin.ny,
+        label: labelInput.trim(),
+      },
+    ]);
+    setPendingPin(null);
+    setLabelInput("");
   };
-  const cancelPin = () => { setPendingPin(null); setLabelInput(""); };
+  const cancelPin = () => {
+    setPendingPin(null);
+    setLabelInput("");
+  };
 
   const handleExport = () => {
-    const mc = mapRef.current, oc = overlayRef.current;
+    const mc = mapRef.current,
+      oc = overlayRef.current;
     if (!mc || !oc) return;
     const out = document.createElement("canvas");
-    out.width = W; out.height = H;
+    out.width = W;
+    out.height = H;
     const ctx = out.getContext("2d")!;
-    ctx.drawImage(mc, 0, 0); ctx.drawImage(oc, 0, 0);
+    ctx.drawImage(mc, 0, 0);
+    ctx.drawImage(oc, 0, 0);
     const a = document.createElement("a");
     a.download = `dnd-map-${seed}.png`;
     a.href = out.toDataURL("image/png");
@@ -2597,11 +3981,17 @@ export function DnDMapGenerator() {
           {(["landscape", "civilisation"] as const).map((m, i) => (
             <button
               key={m}
-              onClick={() => { setMode(m); setPendingPin(null); setIsAddingPin(false); }}
+              onClick={() => {
+                setMode(m);
+                setPendingPin(null);
+                setIsAddingPin(false);
+              }}
               className={cn(
                 "px-3 py-1.5 transition-colors",
                 i > 0 && "border-l border-neutral-800",
-                mode === m ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
+                mode === m
+                  ? "bg-accent text-white"
+                  : "text-neutral-400 hover:bg-neutral-800",
               )}
             >
               {m}
@@ -2618,7 +4008,9 @@ export function DnDMapGenerator() {
                 className={cn(
                   "px-2.5 py-1.5 transition-colors",
                   i > 0 && "border-l border-neutral-800",
-                  scale === s ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
+                  scale === s
+                    ? "bg-accent text-white"
+                    : "text-neutral-400 hover:bg-neutral-800",
                 )}
               >
                 {s}
@@ -2636,7 +4028,9 @@ export function DnDMapGenerator() {
                 className={cn(
                   "px-2.5 py-1.5 transition-colors",
                   i > 0 && "border-l border-neutral-800",
-                  civSize === s ? "bg-accent text-white" : "text-neutral-400 hover:bg-neutral-800"
+                  civSize === s
+                    ? "bg-accent text-white"
+                    : "text-neutral-400 hover:bg-neutral-800",
                 )}
               >
                 {s}
@@ -2646,17 +4040,27 @@ export function DnDMapGenerator() {
         )}
 
         <button
-          onClick={() => { setSeed(Math.floor(Math.random() * 999983)); setPins([]); setPendingPin(null); setIsAddingPin(false); }}
+          onClick={() => {
+            setSeed(Math.floor(Math.random() * 999983));
+            setPins([]);
+            setPendingPin(null);
+            setIsAddingPin(false);
+          }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono border border-neutral-800 rounded hover:border-accent hover:text-accent transition-colors"
         >
           <RefreshCw size={11} /> new map
         </button>
 
         <button
-          onClick={() => { setIsAddingPin(v => !v); setPendingPin(null); }}
+          onClick={() => {
+            setIsAddingPin((v) => !v);
+            setPendingPin(null);
+          }}
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono border rounded transition-colors",
-            isAddingPin ? "border-accent text-accent bg-accent/10" : "border-neutral-800 hover:border-accent hover:text-accent"
+            isAddingPin
+              ? "border-accent text-accent bg-accent/10"
+              : "border-neutral-800 hover:border-accent hover:text-accent",
           )}
         >
           <MapPin size={11} /> {isAddingPin ? "adding pin" : "add pin"}
@@ -2671,15 +4075,29 @@ export function DnDMapGenerator() {
       </div>
 
       {/* Canvas container */}
-      <div className="relative w-full rounded-sm overflow-hidden" style={{ aspectRatio: `${W} / ${H}` }}>
+      <div
+        className="relative w-full rounded-sm overflow-hidden"
+        style={{ aspectRatio: `${W} / ${H}` }}
+      >
         {isGenerating && (
-          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: "rgb(225,210,175)" }}>
-            <span className="font-mono text-xs tracking-widest animate-pulse" style={{ color: "rgb(100,80,48)" }}>
+          <div
+            className="absolute inset-0 flex items-center justify-center z-10"
+            style={{ background: "rgb(225,210,175)" }}
+          >
+            <span
+              className="font-mono text-xs tracking-widest animate-pulse"
+              style={{ color: "rgb(100,80,48)" }}
+            >
               charting unknown lands…
             </span>
           </div>
         )}
-        <canvas ref={mapRef} width={W} height={H} className="absolute inset-0 w-full h-full" />
+        <canvas
+          ref={mapRef}
+          width={W}
+          height={H}
+          className="absolute inset-0 w-full h-full"
+        />
         <canvas
           ref={overlayRef}
           width={W}
@@ -2699,14 +4117,27 @@ export function DnDMapGenerator() {
             <input
               ref={labelRef}
               value={labelInput}
-              onChange={e => setLabelInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") confirmPin(); if (e.key === "Escape") cancelPin(); }}
+              onChange={(e) => setLabelInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") confirmPin();
+                if (e.key === "Escape") cancelPin();
+              }}
               placeholder="add label (optional)"
               maxLength={30}
               className="px-2 py-1 text-xs font-mono rounded border border-neutral-700 bg-neutral-900 text-neutral-100 w-36 outline-none focus:border-accent"
             />
-            <button onClick={confirmPin} className="p-1 bg-accent text-white rounded hover:opacity-80"><Check size={10} /></button>
-            <button onClick={cancelPin} className="p-1 border border-neutral-700 rounded hover:border-accent text-neutral-400"><X size={10} /></button>
+            <button
+              onClick={confirmPin}
+              className="p-1 bg-accent text-white rounded hover:opacity-80"
+            >
+              <Check size={10} />
+            </button>
+            <button
+              onClick={cancelPin}
+              className="p-1 border border-neutral-700 rounded hover:border-accent text-neutral-400"
+            >
+              <X size={10} />
+            </button>
           </div>
         )}
       </div>

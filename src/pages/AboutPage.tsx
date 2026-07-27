@@ -1,7 +1,7 @@
 import { Smile } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
-import { Interests } from "../components/ui/about/Interests";
-import { Bio } from "../components/ui/about/Bio";
+import { Interests } from "../components/about/Interests";
+import { Bio } from "../components/about/Bio";
 
 export function AboutPage() {
   return (

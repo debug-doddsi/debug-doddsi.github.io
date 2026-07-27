@@ -1,12 +1,22 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, Plus, X, Clock, ChevronRight, Pencil, Trash2, Camera, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  X,
+  Clock,
+  ChevronRight,
+  Pencil,
+  Trash2,
+  Camera,
+  Check,
+} from "lucide-react";
 import {
   useSourdoughData,
   computeRatio,
   type FeedingEntry,
   type FeedingImage,
   type FlourType,
-} from "../../../hooks/useSourdoughData";
+} from "../../hooks/useSourdoughData";
 import { BreadShell } from "./BreadShell";
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -73,15 +83,27 @@ function FlourBadge({ type }: { type: FlourType }) {
     Combo: "bg-yellow-100 text-yellow-800",
   };
   return (
-    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${colours[type]}`}>
+    <span
+      className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${colours[type]}`}
+    >
       {type}
     </span>
   );
 }
 
 // collapsed entry row
-function FeedingRow({ entry, onClick }: { entry: FeedingEntry; onClick: () => void }) {
-  const ratio = computeRatio(entry.starterMass, entry.flourMass, entry.waterMass);
+function FeedingRow({
+  entry,
+  onClick,
+}: {
+  entry: FeedingEntry;
+  onClick: () => void;
+}) {
+  const ratio = computeRatio(
+    entry.starterMass,
+    entry.flourMass,
+    entry.waterMass,
+  );
   return (
     <button
       onClick={onClick}
@@ -90,10 +112,17 @@ function FeedingRow({ entry, onClick }: { entry: FeedingEntry; onClick: () => vo
       <span className="font-medium text-neutral-800 shrink-0 w-28">
         {formatDate(entry.date)}
       </span>
-      <span className="shrink-0 w-12" style={{ color: CRUST_MID }}>{entry.time}</span>
-      <span className="flex-1 font-mono" style={{ color: CRUST_MID }}>{ratio}</span>
+      <span className="shrink-0 w-12" style={{ color: CRUST_MID }}>
+        {entry.time}
+      </span>
+      <span className="flex-1 font-mono" style={{ color: CRUST_MID }}>
+        {ratio}
+      </span>
       {entry.peakTime && (
-        <span className="flex items-center gap-0.5 shrink-0" style={{ color: CRUST }}>
+        <span
+          className="flex items-center gap-0.5 shrink-0"
+          style={{ color: CRUST }}
+        >
           <Clock size={10} />
           {entry.peakTime}
         </span>
@@ -129,10 +158,18 @@ function FeedingForm({
 
   const toggleTag = (tag: string) => {
     const current = draft.tags ?? [];
-    set("tags", current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag]);
+    set(
+      "tags",
+      current.includes(tag)
+        ? current.filter((t) => t !== tag)
+        : [...current, tag],
+    );
   };
 
-  const numField = (label: string, key: "starterMass" | "waterMass" | "flourMass") => (
+  const numField = (
+    label: string,
+    key: "starterMass" | "waterMass" | "flourMass",
+  ) => (
     <div className="flex flex-col gap-1">
       <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
         {label}
@@ -155,12 +192,26 @@ function FeedingForm({
     <div className="px-5 py-4 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">Date</label>
-          <input type="date" value={draft.date} onChange={(e) => set("date", e.target.value)} className="bread-input w-full" />
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
+            Date
+          </label>
+          <input
+            type="date"
+            value={draft.date}
+            onChange={(e) => set("date", e.target.value)}
+            className="bread-input w-full"
+          />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">Time</label>
-          <input type="time" value={draft.time} onChange={(e) => set("time", e.target.value)} className="bread-input w-full" />
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
+            Time
+          </label>
+          <input
+            type="time"
+            value={draft.time}
+            onChange={(e) => set("time", e.target.value)}
+            className="bread-input w-full"
+          />
         </div>
       </div>
 
@@ -171,15 +222,27 @@ function FeedingForm({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">Flour type</label>
-        <select value={draft.flourType} onChange={(e) => set("flourType", e.target.value as FlourType)} className="bread-input w-full">
-          {FLOUR_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
+          Flour type
+        </label>
+        <select
+          value={draft.flourType}
+          onChange={(e) => set("flourType", e.target.value as FlourType)}
+          className="bread-input w-full"
+        >
+          {FLOUR_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </div>
 
       {/* quick tags */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">Quick tags</label>
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
+          Quick tags
+        </label>
         <div className="flex flex-wrap gap-1.5">
           {PRESET_TAGS.map((tag) => {
             const active = (draft.tags ?? []).includes(tag);
@@ -191,7 +254,11 @@ function FeedingForm({
                 className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
                   active ? "text-white" : "text-amber-700 hover:bg-amber-200/60"
                 }`}
-                style={active ? { background: CRUST } : { background: "rgba(168,107,24,0.12)" }}
+                style={
+                  active
+                    ? { background: CRUST }
+                    : { background: "rgba(168,107,24,0.12)" }
+                }
               >
                 {tag}
               </button>
@@ -201,7 +268,9 @@ function FeedingForm({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">Notes</label>
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-amber-800/70">
+          Notes
+        </label>
         <textarea
           value={draft.notes}
           onChange={(e) => set("notes", e.target.value)}
@@ -244,7 +313,11 @@ function ImageCard({
   return (
     <div className="flex flex-col gap-1.5 bg-amber-50/60 rounded-lg p-2 border border-amber-200/50">
       <div className="relative">
-        <img src={image.dataUrl} alt="starter photo" className="w-full h-28 object-cover rounded-md" />
+        <img
+          src={image.dataUrl}
+          alt="starter photo"
+          className="w-full h-28 object-cover rounded-md"
+        />
         <button
           onClick={() => onDelete(image.id)}
           className="absolute top-1 right-1 bg-black/40 hover:bg-black/60 text-white rounded-full p-0.5 transition-colors"
@@ -252,7 +325,9 @@ function ImageCard({
           <X size={10} />
         </button>
       </div>
-      <p className="font-mono text-[9px] text-amber-700">{new Date(image.timestamp).toLocaleString("en-GB")}</p>
+      <p className="font-mono text-[9px] text-amber-700">
+        {new Date(image.timestamp).toLocaleString("en-GB")}
+      </p>
       <input
         type="text"
         value={localComment}
@@ -284,14 +359,22 @@ function FeedingDetail({
   const [imageError, setImageError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const ratio = computeRatio(entry.starterMass, entry.flourMass, entry.waterMass);
+  const ratio = computeRatio(
+    entry.starterMass,
+    entry.flourMass,
+    entry.waterMass,
+  );
 
-  const handlePeakBlur = () => onUpdate({ ...entry, peakTime: localPeak || null });
+  const handlePeakBlur = () =>
+    onUpdate({ ...entry, peakTime: localPeak || null });
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageError("");
     Array.from(e.target.files ?? []).forEach((file) => {
-      if (file.size > 8 * 1024 * 1024) { setImageError("Image too large (max 8 MB)"); return; }
+      if (file.size > 8 * 1024 * 1024) {
+        setImageError("Image too large (max 8 MB)");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         const img: FeedingImage = {
@@ -316,8 +399,13 @@ function FeedingDetail({
           { label: "Flour", value: entry.flourMass },
           { label: "Water", value: entry.waterMass },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-amber-50/70 rounded-lg py-2 border border-amber-200/40">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-amber-700/70">{label}</p>
+          <div
+            key={label}
+            className="bg-amber-50/70 rounded-lg py-2 border border-amber-200/40"
+          >
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-amber-700/70">
+              {label}
+            </p>
             <p className="text-lg font-bold text-neutral-800">{value}g</p>
           </div>
         ))}
@@ -330,7 +418,9 @@ function FeedingDetail({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-amber-700/70 font-medium">Ratio:</span>
-          <span className="font-mono" style={{ color: CRUST_MID }}>{ratio}</span>
+          <span className="font-mono" style={{ color: CRUST_MID }}>
+            {ratio}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-amber-700/70 font-medium">Fed:</span>
@@ -351,7 +441,13 @@ function FeedingDetail({
           placeholder="—"
         />
         {localPeak && (
-          <button onClick={() => { setLocalPeak(""); onUpdate({ ...entry, peakTime: null }); }} className="text-amber-600 hover:text-amber-800">
+          <button
+            onClick={() => {
+              setLocalPeak("");
+              onUpdate({ ...entry, peakTime: null });
+            }}
+            className="text-amber-600 hover:text-amber-800"
+          >
             <X size={10} />
           </button>
         )}
@@ -387,10 +483,18 @@ function FeedingDetail({
               key={img.id}
               image={img}
               onCommentChange={(id, comment) =>
-                onUpdate({ ...entry, images: entry.images.map((i) => (i.id === id ? { ...i, comment } : i)) })
+                onUpdate({
+                  ...entry,
+                  images: entry.images.map((i) =>
+                    i.id === id ? { ...i, comment } : i,
+                  ),
+                })
               }
               onDelete={(id) =>
-                onUpdate({ ...entry, images: entry.images.filter((i) => i.id !== id) })
+                onUpdate({
+                  ...entry,
+                  images: entry.images.filter((i) => i.id !== id),
+                })
               }
             />
           ))}
@@ -399,7 +503,14 @@ function FeedingDetail({
 
       {imageError && <p className="text-xs text-red-600">{imageError}</p>}
 
-      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+      />
       <button
         onClick={() => fileRef.current?.click()}
         className="w-full flex items-center justify-center gap-2 py-2 rounded-md border border-dashed border-amber-400/60 text-amber-700 hover:bg-amber-50/60 text-xs font-medium transition-colors"
@@ -426,10 +537,16 @@ function FeedingDetail({
           <div className="flex flex-col items-end gap-1 flex-1">
             <p className="text-xs font-semibold text-red-700">Are you sure?</p>
             <div className="flex gap-1">
-              <button onClick={onDelete} className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors">
+              <button
+                onClick={onDelete}
+                className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
+              >
                 Delete
               </button>
-              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 rounded-md border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-semibold transition-colors">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="px-3 py-1.5 rounded-md border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-semibold transition-colors"
+              >
                 Cancel
               </button>
             </div>
@@ -438,39 +555,52 @@ function FeedingDetail({
       </div>
 
       {/* let's bake today — only for today's entries */}
-      {entry.date === today() && <div className="pb-1">
-        {!confirmBake ? (
-          <button
-            onClick={() => setConfirmBake(true)}
-            className="w-full py-2 rounded-lg text-xs font-medium transition-colors hover:bg-amber-50/60"
-            style={{ border: `1px solid rgba(168,107,24,0.4)`, color: CRUST_MID }}
-          >
-            Let's bake today! 🔥
-          </button>
-        ) : (
-          <div
-            className="flex flex-col items-center gap-2 rounded-xl px-4 py-3 text-center border"
-            style={{ background: "rgba(254,243,199,0.8)", borderColor: "rgba(168,107,24,0.3)" }}
-          >
-            <p className="text-xs font-medium text-amber-900">Ready to start baking?</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setConfirmBake(false); onGoToBake?.(); }}
-                className="px-4 py-1.5 rounded-md text-white text-xs font-semibold transition-colors"
-                style={{ background: CRUST }}
-              >
-                Take me to the instructions!
-              </button>
-              <button
-                onClick={() => setConfirmBake(false)}
-                className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-800 text-xs transition-colors hover:bg-amber-50"
-              >
-                Not yet
-              </button>
+      {entry.date === today() && (
+        <div className="pb-1">
+          {!confirmBake ? (
+            <button
+              onClick={() => setConfirmBake(true)}
+              className="w-full py-2 rounded-lg text-xs font-medium transition-colors hover:bg-amber-50/60"
+              style={{
+                border: `1px solid rgba(168,107,24,0.4)`,
+                color: CRUST_MID,
+              }}
+            >
+              Let's bake today! 🔥
+            </button>
+          ) : (
+            <div
+              className="flex flex-col items-center gap-2 rounded-xl px-4 py-3 text-center border"
+              style={{
+                background: "rgba(254,243,199,0.8)",
+                borderColor: "rgba(168,107,24,0.3)",
+              }}
+            >
+              <p className="text-xs font-medium text-amber-900">
+                Ready to start baking?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setConfirmBake(false);
+                    onGoToBake?.();
+                  }}
+                  className="px-4 py-1.5 rounded-md text-white text-xs font-semibold transition-colors"
+                  style={{ background: CRUST }}
+                >
+                  Take me to the instructions!
+                </button>
+                <button
+                  onClick={() => setConfirmBake(false)}
+                  className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-800 text-xs transition-colors hover:bg-amber-50"
+                >
+                  Not yet
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>}
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -490,15 +620,17 @@ export function FeedingTracker({
   onBack?: () => void;
   onGoToBake?: () => void;
 }) {
-  const { entries, isLoading, addEntry, updateEntry, deleteEntry } = useSourdoughData();
+  const { entries, isLoading, addEntry, updateEntry, deleteEntry } =
+    useSourdoughData();
   const [mode, setMode] = useState<ViewMode>({ kind: "list" });
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
-  const sortedEntries = sortOrder === "newest" ? entries : [...entries].reverse();
+  const sortedEntries =
+    sortOrder === "newest" ? entries : [...entries].reverse();
 
   const activeEntry =
     mode.kind === "detail" || mode.kind === "edit"
-      ? entries.find((e) => e.id === mode.entryId) ?? null
+      ? (entries.find((e) => e.id === mode.entryId) ?? null)
       : null;
 
   // ── dome + action strip ───────────────────────────────────────────────────
@@ -507,7 +639,9 @@ export function FeedingTracker({
 
   if (mode.kind === "list") {
     domeContent = (
-      <span className="font-display text-lg text-amber-900">Sourdough Tracker</span>
+      <span className="font-display text-lg text-amber-900">
+        Sourdough Tracker
+      </span>
     );
     actionStrip = (
       <div className="flex items-center justify-between px-4 py-2 border-b border-amber-200/50">
@@ -524,7 +658,9 @@ export function FeedingTracker({
         <div className="flex items-center gap-3">
           <select
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+            onChange={(e) =>
+              setSortOrder(e.target.value as "newest" | "oldest")
+            }
             className="text-[10px] bg-transparent border-0 outline-none cursor-pointer font-medium"
             style={{ color: CRUST_MID }}
           >
@@ -541,9 +677,15 @@ export function FeedingTracker({
       </div>
     );
   } else if (mode.kind === "new") {
-    domeContent = <span className="font-display text-lg text-amber-900">New Feed</span>;
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">New Feed</span>
+    );
   } else if (mode.kind === "detail" && activeEntry) {
-    domeContent = <span className="font-display text-lg text-amber-900">{formatDate(activeEntry.date)}</span>;
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">
+        {formatDate(activeEntry.date)}
+      </span>
+    );
     actionStrip = (
       <div className="flex px-4 py-2 border-b border-amber-200/50">
         <button
@@ -555,7 +697,9 @@ export function FeedingTracker({
       </div>
     );
   } else if (mode.kind === "edit" && activeEntry) {
-    domeContent = <span className="font-display text-lg text-amber-900">Edit Feed</span>;
+    domeContent = (
+      <span className="font-display text-lg text-amber-900">Edit Feed</span>
+    );
     actionStrip = (
       <div className="flex px-4 py-2 border-b border-amber-200/50">
         <button
@@ -575,7 +719,10 @@ export function FeedingTracker({
       {isLoading ? (
         <div className="flex flex-col gap-2 px-5 py-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-9 rounded-md bg-amber-100/60 animate-pulse" />
+            <div
+              key={i}
+              className="h-9 rounded-md bg-amber-100/60 animate-pulse"
+            />
           ))}
         </div>
       ) : mode.kind === "list" ? (
@@ -597,21 +744,30 @@ export function FeedingTracker({
       ) : mode.kind === "new" ? (
         <FeedingForm
           initial={blankEntry()}
-          onSave={async (e) => { await addEntry(e); setMode({ kind: "list" }); }}
+          onSave={async (e) => {
+            await addEntry(e);
+            setMode({ kind: "list" });
+          }}
           onCancel={() => setMode({ kind: "list" })}
         />
       ) : mode.kind === "detail" && activeEntry ? (
         <FeedingDetail
           entry={activeEntry}
           onUpdate={updateEntry}
-          onDelete={async () => { await deleteEntry(activeEntry.id); setMode({ kind: "list" }); }}
+          onDelete={async () => {
+            await deleteEntry(activeEntry.id);
+            setMode({ kind: "list" });
+          }}
           onEdit={() => setMode({ kind: "edit", entryId: activeEntry.id })}
           onGoToBake={onGoToBake}
         />
       ) : mode.kind === "edit" && activeEntry ? (
         <FeedingForm
           initial={{ ...activeEntry }}
-          onSave={async (e) => { await updateEntry(e); setMode({ kind: "detail", entryId: e.id }); }}
+          onSave={async (e) => {
+            await updateEntry(e);
+            setMode({ kind: "detail", entryId: e.id });
+          }}
           onCancel={() => setMode({ kind: "detail", entryId: activeEntry.id })}
         />
       ) : null}

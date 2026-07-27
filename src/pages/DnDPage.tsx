@@ -1,5 +1,5 @@
 import { Map, ArrowLeft } from "lucide-react";
-import { DnDMapGenerator } from "../components/ui/dnd/DnDMapGenerator";
+import { DnDMapGenerator } from "../components/dnd/DnDMapGenerator";
 
 interface DnDPageProps {
   onBack: () => void;

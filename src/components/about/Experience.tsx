@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/primitives/badge";
+import { Badge } from "@/components/ui/badge";
+import { GlassCard } from "../ui/GlassCard";
 
 interface Job {
   title: string;
@@ -116,7 +117,7 @@ export function Experience() {
             </div>
 
             {/* Card */}
-            <div className="space-y-1.5">
+            <GlassCard className="space-y-1.5 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-body text-sm text-neutral-100 font-medium">
@@ -148,7 +149,7 @@ export function Experience() {
                   </Badge>
                 ))}
               </div>
-            </div>
+            </GlassCard>
           </div>
         ))}
       </div>

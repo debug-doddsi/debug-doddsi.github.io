@@ -6,4 +6,5 @@ export type TabId =
   | "contact"
   | "kitchen"
   | "dnd"
-  | "apps";
+  | "apps"
+  | "persevere";

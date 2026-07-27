@@ -4,8 +4,8 @@ import { FeedingTracker } from "./FeedingTracker";
 import { BakingGuide } from "./BakingGuide";
 import { QuickStartCalculator } from "./QuickStartCalculator";
 import { BreadShell } from "./BreadShell";
-import { useBakeSession } from "../../../hooks/useBakeSession";
-import { SOURDOUGH_VERSION } from "../../../lib/sourdoughVersion";
+import { useBakeSession } from "../../hooks/useBakeSession";
+import { SOURDOUGH_VERSION } from "../../lib/sourdoughVersion";
 
 type SouschefView = "home" | "track" | "bake" | "quickstart";
 
@@ -94,13 +94,19 @@ export function SourdoughSouschef() {
     <div className="bread-view-enter">
       <BreadShell
         dome={
-          <h1 className="handwritten text-3xl tracking-tight" style={{ color: CRUST }}>
+          <h1
+            className="handwritten text-3xl tracking-tight"
+            style={{ color: CRUST }}
+          >
             Sourdough Souschef
           </h1>
         }
         footer={
           <>
-            <p className="text-[10px]" style={{ color: "rgba(168,107,24,0.4)" }}>
+            <p
+              className="text-[10px]"
+              style={{ color: "rgba(168,107,24,0.4)" }}
+            >
               designed with love by iona
             </p>
             <p className="text-[9px]" style={{ color: "rgba(168,107,24,0.3)" }}>
@@ -126,7 +132,10 @@ export function SourdoughSouschef() {
               <span className="text-sm font-bold" style={{ color: CRUST }}>
                 Track
               </span>
-              <span className="text-[11px] text-center max-w-[90px] leading-tight" style={{ color: CRUST_MID }}>
+              <span
+                className="text-[11px] text-center max-w-[90px] leading-tight"
+                style={{ color: CRUST_MID }}
+              >
                 Log starter feedings
               </span>
             </button>
@@ -142,7 +151,10 @@ export function SourdoughSouschef() {
               <span className="text-sm font-bold" style={{ color: CRUST }}>
                 Bake
               </span>
-              <span className="text-[11px] text-center max-w-[90px] leading-tight" style={{ color: CRUST_MID }}>
+              <span
+                className="text-[11px] text-center max-w-[90px] leading-tight"
+                style={{ color: CRUST_MID }}
+              >
                 Recipe + timeline
               </span>
             </button>
@@ -161,7 +173,10 @@ export function SourdoughSouschef() {
                 <span className="text-sm font-bold" style={{ color: CRUST }}>
                   Quick Start
                 </span>
-                <span className="text-[11px] leading-tight" style={{ color: CRUST_MID }}>
+                <span
+                  className="text-[11px] leading-tight"
+                  style={{ color: CRUST_MID }}
+                >
                   Calculate ratios without a recipe
                 </span>
               </span>

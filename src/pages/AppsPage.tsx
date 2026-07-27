@@ -1,57 +1,6 @@
-import { ChefHat, Map, ArrowRight, LayoutGrid } from "lucide-react";
+import { ChefHat, Map, LayoutGrid } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
-
-interface AppCardProps {
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  description: string;
-  placeholder: React.ReactNode;
-  onLaunch: () => void;
-}
-
-function AppCard({
-  icon,
-  title,
-  subtitle,
-  description,
-  placeholder,
-  onLaunch,
-}: AppCardProps) {
-  return (
-    <div className="flex flex-col bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden w-72 shadow-sm hover:shadow-md transition-shadow duration-300">
-      <div className="relative h-52 w-full overflow-hidden">{placeholder}</div>
-
-      {/* Card body */}
-      <div className="flex flex-col gap-3 p-5">
-        <div className="flex items-start gap-3">
-          <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-accent-soft">
-            <span className="text-accent">{icon}</span>
-          </div>
-          <div className="min-w-0">
-            <h2 className="font-display text-neutral-100 text-base leading-tight">
-              {title}
-            </h2>
-            <p className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest mt-0.5">
-              {subtitle}
-            </p>
-          </div>
-        </div>
-
-        <p className="font-body text-xs text-neutral-400 leading-relaxed">
-          {description}
-        </p>
-
-        <button
-          onClick={onLaunch}
-          className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl font-body text-xs font-medium text-white bg-accent transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
-        >
-          Open App <ArrowRight size={12} />
-        </button>
-      </div>
-    </div>
-  );
-}
+import { LaunchCard } from "../components/ui/LaunchCard";
 
 interface AppsPageProps {
   onNavigate: (tab: "kitchen" | "dnd") => void;
@@ -65,7 +14,7 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
       icon={<LayoutGrid size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
-        <AppCard
+        <LaunchCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
           subtitle="Kitchen · Baking"
@@ -77,10 +26,11 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
               className="w-full h-full object-cover"
             />
           }
+          ctaLabel="Open App"
           onLaunch={() => onNavigate("kitchen")}
         />
 
-        <AppCard
+        <LaunchCard
           icon={<Map size={18} />}
           title="D&D Map Maker"
           subtitle="Cartography · Tabletop"
@@ -92,6 +42,7 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
               className="w-full h-full object-cover"
             />
           }
+          ctaLabel="Open App"
           onLaunch={() => onNavigate("dnd")}
         />
       </div>

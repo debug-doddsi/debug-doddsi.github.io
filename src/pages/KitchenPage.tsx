@@ -1,6 +1,6 @@
 import { ChefHat, ArrowLeft } from "lucide-react";
 import { PageShell } from "../components/ui/PageShell";
-import { SourdoughSouschef } from "../components/ui/kitchen/SourdoughSouschef";
+import { SourdoughSouschef } from "../components/kitchen/SourdoughSouschef";
 
 interface KitchenPageProps {
   onBack: () => void;
@@ -15,7 +15,11 @@ export function KitchenPage({ onBack }: KitchenPageProps) {
       >
         <ArrowLeft size={13} /> Back to My Apps
       </button>
-      <PageShell icon={<ChefHat size={22} />} title="Kitchen" subtitle="sourdough tracker & baking guide">
+      <PageShell
+        icon={<ChefHat size={22} />}
+        title="Kitchen"
+        subtitle="sourdough tracker & baking guide"
+      >
         <SourdoughSouschef />
       </PageShell>
     </div>

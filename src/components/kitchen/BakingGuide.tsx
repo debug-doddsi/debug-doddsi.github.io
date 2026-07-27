@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Check, PartyPopper, Timer, Bell } from "lucide-react";
-import { type BakeSession } from "../../../hooks/useBakeSession";
+import { type BakeSession } from "../../hooks/useBakeSession";
 
 interface BakingGuideProps {
   session: BakeSession | null;
@@ -33,7 +33,12 @@ function fmtMs(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function BakingGuide({ session, startBake, toggleStep, completeBake }: BakingGuideProps) {
+export function BakingGuide({
+  session,
+  startBake,
+  toggleStep,
+  completeBake,
+}: BakingGuideProps) {
   const [starterInput, setStarterInput] = useState("");
   const [inputError, setInputError] = useState("");
   const [confirmStop, setConfirmStop] = useState(false);
@@ -91,9 +96,7 @@ export function BakingGuide({ session, startBake, toggleStep, completeBake }: Ba
           />
           <span className="text-sm text-amber-800">g</span>
         </div>
-        {inputError && (
-          <p className="text-xs text-red-600">{inputError}</p>
-        )}
+        {inputError && <p className="text-xs text-red-600">{inputError}</p>}
         <button
           onClick={handleStart}
           className="px-6 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition-colors shadow-sm"
@@ -164,13 +167,17 @@ export function BakingGuide({ session, startBake, toggleStep, completeBake }: Ba
               <div className="flex-1 min-w-0">
                 <p
                   className={`text-sm font-medium ${
-                    step.done ? "line-through text-neutral-400" : "text-neutral-800"
+                    step.done
+                      ? "line-through text-neutral-400"
+                      : "text-neutral-800"
                   }`}
                 >
                   <span className="text-amber-700 mr-1">{i + 1}.</span>
                   {step.label}
                 </p>
-                <p className="text-[10px] text-amber-700/60 mt-0.5">{step.note}</p>
+                <p className="text-[10px] text-amber-700/60 mt-0.5">
+                  {step.note}
+                </p>
               </div>
               {step.timerMinutes !== undefined && !step.done && (
                 <span
@@ -209,7 +216,8 @@ export function BakingGuide({ session, startBake, toggleStep, completeBake }: Ba
             Bake complete! Let it cool.
           </p>
           <p className="text-xs text-amber-800/70">
-            Resist the urge to slice for at least an hour — the crumb is still setting!
+            Resist the urge to slice for at least an hour — the crumb is still
+            setting!
           </p>
           <button
             onClick={completeBake}

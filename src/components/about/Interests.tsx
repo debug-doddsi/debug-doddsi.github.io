@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/primitives/badge";
+import { Badge } from "@/components/ui/badge";
+import { GlassCard } from "../ui/GlassCard";
 
 type Category = "all" | "professional" | "personal";
 
@@ -82,7 +83,7 @@ export function Interests() {
   ).sort((a, b) => a.label.localeCompare(b.label));
 
   return (
-    <div className="space-y-5">
+    <GlassCard className="space-y-5">
       {/* Filter pills */}
       <div className="flex gap-2">
         {FILTERS.map((f) => (
@@ -117,6 +118,6 @@ export function Interests() {
           </Badge>
         ))}
       </div>
-    </div>
+    </GlassCard>
   );
 }

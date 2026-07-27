@@ -1,4 +1,4 @@
-import { LogoLoop } from "../LogoLoop";
+import { LogoLoop } from "../ui/LogoLoop";
 import { TECH_LOGO_ITEMS } from "./techIcons";
 
 export function TechLoop() {

@@ -9,6 +9,7 @@ import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
+import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
 import Grainient from "./components/ui/Grainient";
 
 const TRANSITION_MS = 180;
@@ -63,7 +64,9 @@ export default function App() {
       case "work":
         return <WorkPage />;
       case "caseStudies":
-        return <CaseStudiesPage />;
+        return <CaseStudiesPage onNavigate={setActiveTab} />;
+      case "persevere":
+        return <PersevereCaseStudyPage onBack={() => setActiveTab("caseStudies")} />;
       case "contact":
         return <ContactPage />;
       case "kitchen":
@@ -86,7 +89,7 @@ export default function App() {
             which `position` utility wins on a class clash). */}
         <div className="fixed inset-0 -z-10 pointer-events-none">
           <Grainient
-            color1="#FCEBF1"
+            color1="#FBF0DE"
             color2="#F4C7D0"
             color3="#8B3F56"
             colorBalance={0.15}
