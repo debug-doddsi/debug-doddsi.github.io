@@ -84,6 +84,8 @@ export function Interests() {
 
   return (
     <GlassCard className="space-y-5">
+      <h2 className="font-display text-xl text-neutral-100">Interests</h2>
+
       {/* Filter pills */}
       <div className="flex gap-2">
         {FILTERS.map((f) => (

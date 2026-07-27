@@ -1,5 +1,5 @@
 import { Send, Mail, Linkedin, Link } from "lucide-react";
-import { PageShell } from "../components/ui/PageShell";
+import { PageShell } from "../components/layout/PageShell";
 import { GlassCard } from "../components/ui/GlassCard";
 
 export function ContactPage() {

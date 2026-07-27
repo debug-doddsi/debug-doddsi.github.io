@@ -1,5 +1,5 @@
 import { PenTool } from "lucide-react";
-import { PageShell } from "../ui/PageShell";
+import { PageShell } from "../layout/PageShell";
 import { GlassCard } from "../ui/GlassCard";
 
 /**
@@ -118,7 +118,10 @@ function OptionSwatch({
           </span>
         )}
       </div>
-      <p className="font-body text-xs mt-1" style={{ color: "#F7F3E3", opacity: 0.7 }}>
+      <p
+        className="font-body text-xs mt-1"
+        style={{ color: "#F7F3E3", opacity: 0.7 }}
+      >
         {name}
       </p>
     </div>
@@ -166,12 +169,12 @@ export default function PersevereCaseStudy() {
             Giving a washed-out palette an anchor
           </h3>
           <p className="font-body text-sm leading-relaxed mb-8 text-neutral-400">
-            The founders' original palette - terracotta, coral, plum, gold,
-            and a warm cream - had real charm, but the plum was reading too
-            grey and washed-out to carry the site as its dark anchor. I kept
-            it in the palette as an accent and proposed shortlisting a proper
-            dark from five options. They picked two: oxblood and warm black.
-            Both made it into the final palette.
+            The founders' original palette - terracotta, coral, plum, gold, and
+            a warm cream - had real charm, but the plum was reading too grey and
+            washed-out to carry the site as its dark anchor. I kept it in the
+            palette as an accent and proposed shortlisting a proper dark from
+            five options. They picked two: oxblood and warm black. Both made it
+            into the final palette.
           </p>
 
           {/* Group 1 - the founders' original palette */}

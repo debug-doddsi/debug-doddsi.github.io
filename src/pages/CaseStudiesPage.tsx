@@ -1,5 +1,5 @@
 import { FileText, PenTool } from "lucide-react";
-import { PageShell } from "../components/ui/PageShell";
+import { PageShell } from "../components/layout/PageShell";
 import { LaunchCard } from "../components/ui/LaunchCard";
 import type { TabId } from "../types";
 

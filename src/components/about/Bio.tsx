@@ -5,6 +5,9 @@ export function Bio() {
   return (
     <div className="space-y-6">
       <GlassCard>
+        <h2 className="font-display text-xl text-neutral-100 mb-4">
+          About Me
+        </h2>
         <p className="font-body text-xs text-neutral-400 leading-relaxed">
           After graduating with an MEng in Biomedical Engineering, I joined a
           large company as a Systems Engineer. I enjoyed the high-level

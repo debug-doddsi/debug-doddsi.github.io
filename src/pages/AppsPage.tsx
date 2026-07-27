@@ -1,5 +1,5 @@
 import { ChefHat, Map, LayoutGrid } from "lucide-react";
-import { PageShell } from "../components/ui/PageShell";
+import { PageShell } from "../components/layout/PageShell";
 import { LaunchCard } from "../components/ui/LaunchCard";
 
 interface AppsPageProps {

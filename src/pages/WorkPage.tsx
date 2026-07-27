@@ -1,5 +1,5 @@
 import { Folder, Heart } from "lucide-react";
-import { PageShell } from "../components/ui/PageShell";
+import { PageShell } from "../components/layout/PageShell";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Experience } from "../components/about/Experience";
 
