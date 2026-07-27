@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Sparkles, FolderGit2, Croissant, Mail } from "lucide-react";
+import { Sparkles, FolderGit2, Mail } from "lucide-react";
 import { BentoGrid, BentoCard } from "../components/ui/primitives/bento-grid";
 import { TechLoop } from "../components/ui/about/TechLoop";
 import type { TabId } from "../types";
@@ -84,7 +84,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </div>
 
       {/* Bento grid */}
-      <BentoGrid className="max-w-5xl mx-auto lg:auto-rows-[170px]">
+      <BentoGrid className="max-w-5xl mx-auto">
         {/* What I do */}
         <BentoCard
           name="What I Do"
@@ -95,15 +95,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
         />
 
         {/* Tech stack */}
-        <BentoCard name="tech" className="overflow-hidden">
-          <Sparkles size={20} className="text-accent shrink-0" />
-          <div>
-            <h3 className="font-display text-lg text-neutral-100 mb-2">
-              My Tech Stack
-            </h3>
-            <TechLoop />
-          </div>
-        </BentoCard>
+        <BentoCard
+          name="My Tech Stack"
+          Icon={Sparkles}
+          content={<TechLoop />}
+          className="overflow-hidden"
+        />
 
         {/* Say hello */}
         <BentoCard
