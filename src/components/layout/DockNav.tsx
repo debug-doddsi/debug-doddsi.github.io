@@ -34,7 +34,7 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
       label: item.label,
       onClick: () => onNavigate(item.id),
       className: isActive
-        ? "!bg-[var(--matcha-light)] !border-[var(--matcha)] !text-[var(--strawberry-dark)]"
+        ? "!bg-[var(--matcha-light)] !border-[var(--matcha)] !text-[var(--cream)]"
         : "",
     };
   });

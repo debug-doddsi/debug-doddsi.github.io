@@ -22,7 +22,6 @@ html {
   --strawberry: #c66f80;
   --strawberry-light: #f4c7d0;
   --strawberry-cream: #fcebf1;
-  --strawberry-dark: #7a3f4a;
   --matcha-dark: #4a6644;
   --matcha: #9faa74;
   --matcha-light: #d7dab3;
@@ -195,6 +194,22 @@ header {
 
 .sparkle-twinkle {
   animation: sparkleTwinkle 2.6s ease-in-out infinite;
+}
+
+/* ─── Wave divider ───────────────────────────────────────────
+   The svg draws two identical wave periods back to back; shifting it
+   left by exactly one period (-50% of its own 200% width) loops seamlessly. */
+@keyframes waveDividerWiggle {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.wave-divider-wiggle {
+  animation: waveDividerWiggle linear infinite;
 }
 
 /* ─── Custom cursor ──────────────────────────────────────── */

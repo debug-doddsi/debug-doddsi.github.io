@@ -1,4 +1,5 @@
-import { ChefHat, Map, ArrowRight } from "lucide-react";
+import { ChefHat, Map, ArrowRight, LayoutGrid } from "lucide-react";
+import { PageShell } from "../components/ui/PageShell";
 
 interface AppCardProps {
   icon: React.ReactNode;
@@ -58,17 +59,12 @@ interface AppsPageProps {
 
 export function AppsPage({ onNavigate }: AppsPageProps) {
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-2xl text-neutral-100 leading-tight">
-          My Apps
-        </h1>
-        <p className="font-body text-sm text-neutral-500">
-          Apps I have made for myself and use day-to-day!
-        </p>
-      </div>
-
-      <div className="flex flex-wrap gap-6">
+    <PageShell
+      title="My Apps"
+      subtitle="Apps I have made for myself and use day-to-day!"
+      icon={<LayoutGrid size={28} />}
+    >
+      <div className="flex flex-wrap justify-center gap-6">
         <AppCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
@@ -99,6 +95,6 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
           onLaunch={() => onNavigate("dnd")}
         />
       </div>
-    </div>
+    </PageShell>
   );
 }

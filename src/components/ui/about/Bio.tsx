@@ -1,4 +1,5 @@
 import { TechLoop } from "./TechLoop";
+import { WaveDivider } from "../WaveDivider";
 
 export function Bio() {
   return (
@@ -25,7 +26,7 @@ export function Bio() {
         my husband.
       </p>
 
-      <div className="bg-gradient-to-r from-accent to-transparent mt-4 w-24 h-px" />
+      <WaveDivider length="6rem" className="mt-4" />
 
       {
         <div className="space-y-8">

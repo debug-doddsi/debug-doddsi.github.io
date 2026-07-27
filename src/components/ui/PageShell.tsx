@@ -1,3 +1,5 @@
+import { WaveDivider } from "./WaveDivider";
+
 interface SkeletonBlockProps {
   label?: string;
   height?: string;
@@ -38,7 +40,7 @@ export function PageShell({ title, subtitle, icon, children }: PageShellProps) {
             {subtitle}
           </p>
         )}
-        <div className="bg-gradient-to-r from-accent to-transparent mt-4 w-24 h-px" />
+        <WaveDivider length="6rem" className="mt-4" />
       </div>
 
       {/* Slot for actual content */}
