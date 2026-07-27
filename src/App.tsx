@@ -6,6 +6,7 @@ import { usePinkMode } from "./hooks/usePinkMode";
 import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
+import { CaseStudiesPage } from "./pages/CaseStudiesPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
@@ -62,6 +63,7 @@ export default function App() {
       case "home":       return <HomePage onNavigate={setActiveTab} />;
       case "about":      return <AboutPage />;
       case "work":       return <WorkPage />;
+      case "caseStudies": return <CaseStudiesPage />;
       case "contact":    return <ContactPage />;
       case "kitchen":    return <KitchenPage onBack={() => setActiveTab("apps")} />;
       case "dnd":        return <DnDPage onBack={() => setActiveTab("apps")} />;
