@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties, ReactNode, useMemo } from "react";
 
 interface SkeletonBlockProps {
   label?: string;
@@ -20,13 +20,6 @@ export function SkeletonBlock({
   );
 }
 
-interface PageShellProps {
-  title: string;
-  subtitle?: string;
-  icon?: React.ReactNode;
-  children?: React.ReactNode;
-}
-
 interface SparklePlacement {
   top?: string;
   bottom?: string;
@@ -36,18 +29,42 @@ interface SparklePlacement {
   delay: string;
 }
 
-// Positions are percentages relative to the wordmark's own bounding box, so
-// they scale with it at every breakpoint instead of needing separate mobile
-// coordinates. Kept modest (nothing past ±8%) so they never push past the
-// page's own horizontal padding on narrow screens.
-const SPARKLES: SparklePlacement[] = [
-  { top: "-6%", left: "-2%", size: 16, delay: "0s" },
-  { top: "10%", left: "-8%", size: 10, delay: "0.7s" },
-  { bottom: "12%", left: "-6%", size: 12, delay: "1.3s" },
-  { top: "-8%", right: "0%", size: 14, delay: "0.4s" },
-  { top: "22%", right: "-7%", size: 9, delay: "1.6s" },
-  { bottom: "6%", right: "-3%", size: 13, delay: "1s" },
-];
+const SPARKLE_COUNT = 6;
+
+function randomInRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+// Generates a fresh, randomized sparkle arrangement on each call. Alternates
+// left/right by index so sparkles don't all cluster on one side, and keeps
+// offsets within roughly ±10% so they never push past the title's own
+// padding on narrow screens (same safety margin the original fixed layout
+// used).
+function generateSparkles(count: number): SparklePlacement[] {
+  return Array.from({ length: count }, (_, i) => {
+    const onLeft = i % 2 === 0;
+    const onTop = Math.random() > 0.35;
+
+    const placement: SparklePlacement = {
+      size: Math.round(randomInRange(8, 16)),
+      delay: `${randomInRange(0, 1.8).toFixed(2)}s`,
+    };
+
+    if (onLeft) {
+      placement.left = `${randomInRange(-10, -2).toFixed(1)}%`;
+    } else {
+      placement.right = `${randomInRange(-10, -2).toFixed(1)}%`;
+    }
+
+    if (onTop) {
+      placement.top = `${randomInRange(-10, 20).toFixed(1)}%`;
+    } else {
+      placement.bottom = `${randomInRange(-10, 20).toFixed(1)}%`;
+    }
+
+    return placement;
+  });
+}
 
 function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
   const style: CSSProperties = {
@@ -88,6 +105,14 @@ export function PageShell({
   children,
   sparkles = true,
 }: PageShellProps) {
+  // Regenerated once per mount, so each page you land on gets its own
+  // sparkle arrangement instead of reusing the same fixed positions.
+  // Recalculating on every re-render would make them jitter around
+  // whenever anything else on the page causes PageShell to re-render, so
+  // this is memoized with an empty dependency array to stay stable for the
+  // lifetime of that page visit.
+  const sparklePlacements = useMemo(() => generateSparkles(SPARKLE_COUNT), []);
+
   return (
     <div className="mx-auto max-w-2xl">
       {/* Heading */}
@@ -97,7 +122,9 @@ export function PageShell({
             {title}
           </h1>
           {sparkles &&
-            SPARKLES.map((sparkle, i) => <Sparkle key={i} {...sparkle} />)}
+            sparklePlacements.map((sparkle, i) => (
+              <Sparkle key={i} {...sparkle} />
+            ))}
         </div>
         {subtitle && (
           <p className="mt-2 font-mono text-neutral-500 text-xs leading-relaxed">
