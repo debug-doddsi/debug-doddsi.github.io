@@ -26,7 +26,7 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
     const isActive =
       item.id === active ||
       (item.id === "apps" &&
-        (active === "kitchen" || active === "dnd" || active === "travel"));
+        (active === "kitchen" || active === "dnd"));
 
     return {
       icon: item.icon,

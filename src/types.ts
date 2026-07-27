@@ -5,5 +5,4 @@ export type TabId =
   | "contact"
   | "kitchen"
   | "dnd"
-  | "travel"
   | "apps";

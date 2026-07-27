@@ -1,5 +1,4 @@
-import { ChefHat, Map, Globe, ArrowRight } from "lucide-react";
-import { DottedMap } from "../components/ui/dotted-map";
+import { ChefHat, Map, ArrowRight } from "lucide-react";
 
 interface AppCardProps {
   icon: React.ReactNode;
@@ -54,7 +53,7 @@ function AppCard({
 }
 
 interface AppsPageProps {
-  onNavigate: (tab: "kitchen" | "dnd" | "travel") => void;
+  onNavigate: (tab: "kitchen" | "dnd") => void;
 }
 
 export function AppsPage({ onNavigate }: AppsPageProps) {
@@ -98,32 +97,6 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
             />
           }
           onLaunch={() => onNavigate("dnd")}
-        />
-
-        <AppCard
-          icon={<Globe size={18} />}
-          title="Travel Tracker"
-          subtitle="Travel · World Map"
-          description="A personal map of everywhere I've been. I use this to log cities visited, track how many countries I've explored, and plan where I want to go next."
-          placeholder={
-            <div className="w-full h-full bg-neutral-900 flex items-center justify-center p-4">
-              <DottedMap
-                dotColor="var(--accent)"
-                markerColor="var(--accent)"
-                dotRadius={0.3}
-                markers={[
-                  { lat: 55.95, lng: -3.19, size: 1.2, pulse: true },
-                  { lat: 48.86, lng: 2.35,  size: 1.2, pulse: true },
-                  { lat: 41.90, lng: 12.50, size: 1.2, pulse: true },
-                  { lat: 40.71, lng: -74.01, size: 1.2, pulse: true },
-                  { lat: 41.01, lng: 28.98, size: 1.2, pulse: true },
-                ]}
-                pulse
-                style={{ opacity: 0.85 }}
-              />
-            </div>
-          }
-          onLaunch={() => onNavigate("travel")}
         />
       </div>
     </div>
