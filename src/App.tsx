@@ -11,36 +11,14 @@ import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
 import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
 import Grainient from "./components/ui/Grainient";
+import { TAB_PATHS, getTabFromLocation } from "./lib/routes";
 
 const TRANSITION_MS = 180;
 
-function getInitialTab(): TabId {
-  const { pathname, search } = window.location;
-  // Match both the redirect path (/sourdough kept by SW navigation fallback)
-  // and the query-param path (/?tab=kitchen from the redirect page on first visit)
-  if (
-    pathname === "/sourdough" ||
-    pathname === "/sourdough/" ||
-    new URLSearchParams(search).get("tab") === "kitchen"
-  ) {
-    return "kitchen";
-  }
-  if (
-    pathname === "/dndmapmaker" ||
-    pathname === "/dndmapmaker/" ||
-    pathname === "/mapgenerator" ||
-    pathname === "/mapgenerator/" ||
-    new URLSearchParams(search).get("tab") === "dnd"
-  ) {
-    return "dnd";
-  }
-  return "home";
-}
-
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<TabId>(getTabFromLocation);
 
-  const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
+  const [displayedTab, setDisplayedTab] = useState<TabId>(getTabFromLocation);
   const [isExiting, setIsExiting] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
@@ -55,26 +33,53 @@ export default function App() {
     return () => clearTimeout(t);
   }, [activeTab, displayedTab]);
 
+  // Clean the address bar back to the tab's pretty path on mount - covers
+  // both the redirect stubs' `/?tab=x` round trip and any stale query string.
+  useEffect(() => {
+    const path = TAB_PATHS[activeTab];
+    if (window.location.pathname !== path || window.location.search) {
+      window.history.replaceState({ tab: activeTab }, "", path);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the tab in sync with browser back/forward navigation.
+  useEffect(() => {
+    function onPopState() {
+      setActiveTab(getTabFromLocation());
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  function navigate(tab: TabId) {
+    setActiveTab(tab);
+    const path = TAB_PATHS[tab];
+    if (window.location.pathname !== path) {
+      window.history.pushState({ tab }, "", path);
+    }
+  }
+
   function renderTab(tab: TabId) {
     switch (tab) {
       case "home":
-        return <HomePage onNavigate={setActiveTab} />;
+        return <HomePage onNavigate={navigate} />;
       case "about":
         return <AboutPage />;
       case "work":
         return <WorkPage />;
       case "caseStudies":
-        return <CaseStudiesPage onNavigate={setActiveTab} />;
+        return <CaseStudiesPage onNavigate={navigate} />;
       case "persevere":
-        return <PersevereCaseStudyPage onBack={() => setActiveTab("caseStudies")} />;
+        return <PersevereCaseStudyPage onBack={() => navigate("caseStudies")} />;
       case "contact":
         return <ContactPage />;
       case "kitchen":
-        return <KitchenPage onBack={() => setActiveTab("apps")} />;
+        return <KitchenPage onBack={() => navigate("apps")} />;
       case "dnd":
-        return <DnDPage onBack={() => setActiveTab("apps")} />;
+        return <DnDPage onBack={() => navigate("apps")} />;
       case "apps":
-        return <AppsPage onNavigate={setActiveTab} />;
+        return <AppsPage onNavigate={navigate} />;
     }
   }
 
@@ -102,7 +107,7 @@ export default function App() {
           />
         </div>
 
-        <DockNav active={activeTab} onNavigate={setActiveTab} />
+        <DockNav active={activeTab} onNavigate={navigate} />
 
         {/* Scrollable content */}
         <div className="flex-1 flex flex-col overflow-hidden">
