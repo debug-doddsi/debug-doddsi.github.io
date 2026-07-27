@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode, useMemo } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 interface SkeletonBlockProps {
   label?: string;
@@ -29,42 +29,17 @@ interface SparklePlacement {
   delay: string;
 }
 
-const SPARKLE_COUNT = 6;
-
-function randomInRange(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
-
-// Generates a fresh, randomized sparkle arrangement on each call. Alternates
-// left/right by index so sparkles don't all cluster on one side, and keeps
-// offsets within roughly ±10% so they never push past the title's own
-// padding on narrow screens (same safety margin the original fixed layout
-// used).
-function generateSparkles(count: number): SparklePlacement[] {
-  return Array.from({ length: count }, (_, i) => {
-    const onLeft = i % 2 === 0;
-    const onTop = Math.random() > 0.35;
-
-    const placement: SparklePlacement = {
-      size: Math.round(randomInRange(8, 16)),
-      delay: `${randomInRange(0, 1.8).toFixed(2)}s`,
-    };
-
-    if (onLeft) {
-      placement.left = `${randomInRange(-10, -2).toFixed(1)}%`;
-    } else {
-      placement.right = `${randomInRange(-10, -2).toFixed(1)}%`;
-    }
-
-    if (onTop) {
-      placement.top = `${randomInRange(-10, 20).toFixed(1)}%`;
-    } else {
-      placement.bottom = `${randomInRange(-10, 20).toFixed(1)}%`;
-    }
-
-    return placement;
-  });
-}
+// Fixed sparkle arrangement around the title. Alternates left/right so
+// sparkles don't cluster on one side, and keeps offsets within roughly ±10%
+// so they never push past the title's own padding on narrow screens.
+const SPARKLE_PLACEMENTS: SparklePlacement[] = [
+  { left: "-8%", top: "-8%", size: 14, delay: "0s" },
+  { right: "-6%", top: "5%", size: 10, delay: "0.3s" },
+  { left: "-4%", bottom: "-6%", size: 12, delay: "0.9s" },
+  { right: "-9%", bottom: "10%", size: 16, delay: "1.4s" },
+  { left: "-9%", top: "18%", size: 9, delay: "0.6s" },
+  { right: "-3%", top: "-9%", size: 11, delay: "1.7s" },
+];
 
 function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
   const style: CSSProperties = {
@@ -105,14 +80,6 @@ export function PageShell({
   children,
   sparkles = true,
 }: PageShellProps) {
-  // Regenerated once per mount, so each page you land on gets its own
-  // sparkle arrangement instead of reusing the same fixed positions.
-  // Recalculating on every re-render would make them jitter around
-  // whenever anything else on the page causes PageShell to re-render, so
-  // this is memoized with an empty dependency array to stay stable for the
-  // lifetime of that page visit.
-  const sparklePlacements = useMemo(() => generateSparkles(SPARKLE_COUNT), []);
-
   return (
     <div className="mx-auto max-w-2xl">
       {/* Heading */}
@@ -122,7 +89,7 @@ export function PageShell({
             {title}
           </h1>
           {sparkles &&
-            sparklePlacements.map((sparkle, i) => (
+            SPARKLE_PLACEMENTS.map((sparkle, i) => (
               <Sparkle key={i} {...sparkle} />
             ))}
         </div>
