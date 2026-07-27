@@ -959,7 +959,7 @@ function drawTavernIcon(
   ctx.save();
   ctx.strokeStyle = "rgba(38,28,14,0.82)";
   ctx.lineWidth = 0.85;
-  // Pint glass — wider at top, narrower at base
+  // Pint glass - wider at top, narrower at base
   ctx.beginPath();
   ctx.moveTo(cx - 5.5, cy - 10);
   ctx.lineTo(cx + 5.5, cy - 10); // top rim
@@ -1003,7 +1003,7 @@ function drawMerchantIcon(
   ctx.fillStyle = "rgba(200,163,58,0.90)";
   ctx.fill();
   ctx.stroke();
-  // Front coin — most prominent
+  // Front coin - most prominent
   ctx.beginPath();
   ctx.ellipse(cx - 1, cy + 1, 8, 5, 0, 0, Math.PI * 2);
   ctx.fillStyle = "rgba(218,180,68,0.96)";
@@ -1026,7 +1026,7 @@ function drawChurchIcon(
   ctx.save();
   ctx.strokeStyle = "rgba(38,26,10,0.88)";
   ctx.lineWidth = 0.85;
-  // Bell body — rounded dome
+  // Bell body - rounded dome
   ctx.beginPath();
   ctx.moveTo(cx - 8, cy + 4);
   ctx.bezierCurveTo(cx - 10, cy, cx - 10, cy - 8, cx, cy - 11);
@@ -1755,7 +1755,7 @@ function makeCivRoad(
   const maxOff = dist * ORGANIC_ROAD.curviness * 0.28;
 
   if (!ORGANIC_ROAD.useChainedBeziers || dist < 240) {
-    // Single cubic segment — independent offsets on cp1/cp2 enable natural S-curves
+    // Single cubic segment - independent offsets on cp1/cp2 enable natural S-curves
     const off1 = (seededRand(idx, seed + 70001) - 0.5) * 2 * maxOff;
     const off2 = (seededRand(idx + 1, seed + 70002) - 0.5) * 2 * maxOff;
     return {
@@ -1778,7 +1778,7 @@ function makeCivRoad(
     };
   }
 
-  // Chained two-segment road for longer distances — passes through an offset midpoint
+  // Chained two-segment road for longer distances - passes through an offset midpoint
   const midOff = (seededRand(idx + 2, seed + 70003) - 0.5) * 2 * maxOff * 0.6;
   const M = {
     x: (from.x + to.x) / 2 + perpx * midOff,
@@ -1984,11 +1984,11 @@ function renderCastleFootprint(
   const cseed = ((b.x * 17 + b.y * 11) | 0) + 95000;
   const wallT = ks * 0.11;
 
-  // Outer wall fill — fully opaque stone
+  // Outer wall fill - fully opaque stone
   ctx.fillStyle = "rgb(142,132,112)";
   ctx.fillRect(cx - ks / 2, cy - ks / 2, ks, ks);
 
-  // Stone block texture on walls — dense cobblestone pattern
+  // Stone block texture on walls - dense cobblestone pattern
   for (let s = 0; s < 220; s++) {
     const sx = cx - ks / 2 + seededRand(s, cseed + 1) * ks;
     const sy = cy - ks / 2 + seededRand(s, cseed + 2) * ks;
@@ -2001,7 +2001,7 @@ function renderCastleFootprint(
     ctx.fillRect(sx, sy, sw, sh);
     ctx.strokeRect(sx, sy, sw, sh);
   }
-  // Mortar lines along wall perimeter — horizontal bands
+  // Mortar lines along wall perimeter - horizontal bands
   ctx.strokeStyle = "rgba(20,14,6,0.14)";
   ctx.lineWidth = 0.7;
   for (let row = cy - ks / 2 + 6; row < cy + ks / 2; row += 8) {
@@ -2020,7 +2020,7 @@ function renderCastleFootprint(
     ks - wallT * 2,
   );
 
-  // Inner keep — solid dark stone
+  // Inner keep - solid dark stone
   const ki = ks * 0.42;
   ctx.fillStyle = "rgb(78,65,46)";
   ctx.fillRect(cx - ki / 2, cy - ki / 2, ki, ki);
@@ -2040,7 +2040,7 @@ function renderCastleFootprint(
   ctx.lineWidth = 2;
   ctx.strokeRect(cx - ki / 2, cy - ki / 2, ki, ki);
 
-  // Battlements — merlons along curtain wall edges
+  // Battlements - merlons along curtain wall edges
   const mw = 6,
     mh = 5,
     mg = 8;
@@ -2087,7 +2087,7 @@ function renderCastleFootprint(
     ctx.stroke();
   }
 
-  // Gatehouse — solid dark gate arch
+  // Gatehouse - solid dark gate arch
   ctx.fillStyle = "rgb(38,28,14)";
   ctx.fillRect(cx - 7, cy + ks / 2 - 14, 14, 14);
   ctx.strokeStyle = "rgba(18,12,4,0.95)";
@@ -2184,7 +2184,7 @@ function drawOrganicRoad(
   ctx.fill();
   ctx.restore();
 
-  // 2. Edge shadow vignette — thin dark strip inside each road edge
+  // 2. Edge shadow vignette - thin dark strip inside each road edge
   ctx.save();
   ctx.globalAlpha = 0.11;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -2226,7 +2226,7 @@ function drawOrganicRoad(
   ctx.clip();
 
   if (road.style === "primary") {
-    // Cobblestones — rows of individually stamped stones
+    // Cobblestones - rows of individually stamped stones
     const rowCount = Math.max(2, (road.width / 8) | 0);
     for (let s = 0; s < pts.length; s++) {
       if (seededRand(s + idx * 200, seed + 71100) > ORGANIC_ROAD.cobbleDensity)
@@ -2257,7 +2257,7 @@ function drawOrganicRoad(
       }
     }
   } else {
-    // Dirt stipple — short scratched line segments scattered across road surface
+    // Dirt stipple - short scratched line segments scattered across road surface
     for (let s = 0; s < pts.length; s++) {
       if (seededRand(s + idx * 200, seed + 71200) > 0.22) continue;
       const off =
@@ -2323,7 +2323,7 @@ function drawBuildingRect(
       ctx.stroke();
     }
   } else {
-    // Tile texture — rows of semicircular arcs
+    // Tile texture - rows of semicircular arcs
     const tr = (p.rr * 0.58) | 0,
       tg = (p.rg * 0.52) | 0,
       tb = (p.rb * 0.48) | 0;
@@ -2964,7 +2964,7 @@ function renderCivilisation(
   const hx = W / 2 + (seededRand(200, seed) - 0.5) * 120;
   const hy = H / 2 + (seededRand(201, seed) - 0.5) * 80;
 
-  // ── Step 1: Generate organic layout — anchors placed first, roads second ─
+  // ── Step 1: Generate organic layout - anchors placed first, roads second ─
   const { roads: civRoads, anchorPts } = generateOrganicLayout(
     seed,
     size,
@@ -2972,7 +2972,7 @@ function renderCivilisation(
     hy,
   );
 
-  // ── Road mask — sampled per-road with per-road margin ────────────────────
+  // ── Road mask - sampled per-road with per-road margin ────────────────────
   const MASK_W = 200,
     MASK_H = 134;
   const roadMask = new Uint8Array(MASK_W * MASK_H);
@@ -3053,7 +3053,7 @@ function renderCivilisation(
   const pondRx = 28 + seededRand(762, seed) * 44;
   const pondRy = 22 + seededRand(763, seed) * 35;
   const pondMaxR = Math.max(pondRx, pondRy);
-  // Validate pond position — push away from roads (buildings cluster within ~80px of roads)
+  // Validate pond position - push away from roads (buildings cluster within ~80px of roads)
   let adjustedPondCx = pondCx0;
   let adjustedPondCy = pondCy0;
   let hasPond = !farmAreas.some(
@@ -3112,7 +3112,7 @@ function renderCivilisation(
   const isOnRiver = (px2: number, py2: number): boolean =>
     riverPts.some((p) => Math.hypot(px2 - p.x, py2 - p.y) < riverExR);
 
-  // ── Layer 1: Docks — only on large water ─────────────────────────────────
+  // ── Layer 1: Docks - only on large water ─────────────────────────────────
   const isLake = hasPond && (pondRx > 56 || pondRy > 42);
   let dockExcl: { cx: number; cy: number; r: number } | null = null;
   if (isLake && size !== "village") {
@@ -3151,7 +3151,7 @@ function renderCivilisation(
     drawJunctionBlob(ctx, ax, ay, maxW * 0.8, jStyle, seed, ai);
   }
 
-  // ── Layer 2b: Road fills — tracks first, secondary next, primary on top ──
+  // ── Layer 2b: Road fills - tracks first, secondary next, primary on top ──
   const styleOrder = { track: 0, secondary: 1, primary: 2 } as Record<
     string,
     number
@@ -3214,7 +3214,7 @@ function renderCivilisation(
           ctx.stroke();
         }
         ctx.restore();
-        // Dark 1px border on long edges (parallel to road direction) — drawn outside clip
+        // Dark 1px border on long edges (parallel to road direction) - drawn outside clip
         ctx.save();
         ctx.translate(pt.x, pt.y);
         ctx.rotate(roadAngle);
@@ -3343,7 +3343,7 @@ function renderCivilisation(
     paintRoadMask(driveRoad);
   }
 
-  // ── Layer 4: Buildings — placed along roads, facing road direction ─────────
+  // ── Layer 4: Buildings - placed along roads, facing road direction ─────────
   const allBuildings: Array<{ b: TownBuilding; lotCx: number; lotCy: number }> =
     [];
   const bSteps = size === "village" ? 28 : size === "town" ? 38 : 50;
@@ -3399,7 +3399,7 @@ function renderCivilisation(
         const extraRot = (seededRand(placeSeed + 6, seed + 41006) - 0.5) * 0.2;
         const buildingAngle = facingAngle - doorBaseAngle + extraRot;
 
-        // Projected half-extent of rotated building along road normal — ensures corners clear road
+        // Projected half-extent of rotated building along road normal - ensures corners clear road
         const cosA = Math.cos(buildingAngle),
           sinA = Math.sin(buildingAngle);
         const dotX = cosA * nnx * side + sinA * nny * side;
@@ -3507,7 +3507,7 @@ function renderCivilisation(
   // ── Layer 4.5: Farms ──────────────────────────────────────────────────────
   renderFarms(ctx, seed, farmAreas, allBuildings);
 
-  // ── Layer 5: Trees + bushes — avoid roads, buildings, water, farms, river ─
+  // ── Layer 5: Trees + bushes - avoid roads, buildings, water, farms, river ─
   const isOnBuilding = (tx: number, ty: number): boolean =>
     allBuildings.some(
       ({ b }) =>
@@ -3635,7 +3635,7 @@ function renderCivilisation(
     const icx = b.x + b.w / 2,
       icy = b.y + b.h / 2;
     if (specialOrder[si] === "church") {
-      // Plain rectangular building — identical style to house/inn; bell badge on roof
+      // Plain rectangular building - identical style to house/inn; bell badge on roof
       const badgeR = Math.max(5, Math.min(b.w, b.h) * 0.14);
       ctx.save();
       ctx.beginPath();
@@ -3694,7 +3694,7 @@ function renderCivilisation(
   // ── Perimeter border ─────────────────────────────────────────────────────
   ctx.save();
   if (size === "village") {
-    // Hedgerow border — thick dark green line with bush-bump texture
+    // Hedgerow border - thick dark green line with bush-bump texture
     const mg = 14;
     ctx.strokeStyle = "rgba(38,68,22,0.88)";
     ctx.lineWidth = 9;

@@ -28,7 +28,7 @@ export function SourdoughSouschef() {
     );
   }
 
-  // ── Bake — dome changes once session is active ─────────────────────────────
+  // ── Bake - dome changes once session is active ─────────────────────────────
   if (view === "bake") {
     return (
       <div className="bread-view-enter">
@@ -64,7 +64,7 @@ export function SourdoughSouschef() {
     );
   }
 
-  // ── Quick Start — ratio calculator, nothing saved ──────────────────────────
+  // ── Quick Start - ratio calculator, nothing saved ──────────────────────────
   if (view === "quickstart") {
     return (
       <div className="bread-view-enter">
@@ -89,7 +89,7 @@ export function SourdoughSouschef() {
     );
   }
 
-  // ── Home — title in dome (same vertical position as tracker/bake titles) ──
+  // ── Home - title in dome (same vertical position as tracker/bake titles) ──
   return (
     <div className="bread-view-enter">
       <BreadShell
@@ -160,7 +160,7 @@ export function SourdoughSouschef() {
             </button>
           </div>
 
-          {/* Quick Start — full width of the Track + Bake row above */}
+          {/* Quick Start - full width of the Track + Bake row above */}
           <div className="w-full px-8 pb-5">
             <button
               onClick={() => setView("quickstart")}

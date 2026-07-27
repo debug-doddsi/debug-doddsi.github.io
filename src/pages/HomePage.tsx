@@ -57,7 +57,7 @@ function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
 export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="bento-gradient-bg min-h-[calc(100vh-6rem)] rounded-3xl px-4 sm:px-8 py-10 sm:py-16">
-      {/* Hero — full-size wordmark, sitting above the grid rather than
+      {/* Hero - full-size wordmark, sitting above the grid rather than
           inside a card. */}
       <div className="flex flex-col items-center text-center pb-14 sm:pb-20">
         <div className="relative inline-block">

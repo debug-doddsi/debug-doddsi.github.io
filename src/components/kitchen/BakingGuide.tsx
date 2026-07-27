@@ -216,7 +216,7 @@ export function BakingGuide({
             Bake complete! Let it cool.
           </p>
           <p className="text-xs text-amber-800/70">
-            Resist the urge to slice for at least an hour — the crumb is still
+            Resist the urge to slice for at least an hour - the crumb is still
             setting!
           </p>
           <button

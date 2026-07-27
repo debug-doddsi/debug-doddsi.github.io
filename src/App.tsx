@@ -81,11 +81,11 @@ export default function App() {
   return (
     <>
       <div className="fade-in h-screen overflow-hidden flex">
-        {/* Grainient page background — pale strawberry-cream dominant, with
+        {/* Grainient page background - pale strawberry-cream dominant, with
             soft strawberry-pink/rose blob accents, sitting behind everything.
             Grainient's own root div hardcodes position:relative, so it's
             wrapped here rather than trying to override that via className
-            (Tailwind's utility ordering — not JSX class order — decides
+            (Tailwind's utility ordering - not JSX class order - decides
             which `position` utility wins on a class clash). */}
         <div className="fixed inset-0 -z-10 pointer-events-none">
           <Grainient

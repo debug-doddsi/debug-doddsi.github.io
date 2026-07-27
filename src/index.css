@@ -28,7 +28,7 @@ html {
   --latte: #ece3d2;
   --cream: #faf3e4;
 
-  /* Dedicated text tokens for the default theme — deep wine for
+  /* Dedicated text tokens for the default theme - deep wine for
      headings/body, muted mauve for secondary text. Kept separate from
      the matcha variables above since those are still used for borders,
      the scrapbook page, and notebook accents elsewhere. */
@@ -276,7 +276,7 @@ header {
     rgba(170, 160, 145, 0.3) 32px
   );
 }
-/* Stacked page-edge texture — right spine of notebook */
+/* Stacked page-edge texture - right spine of notebook */
 .book-edge {
   background: repeating-linear-gradient(
     to right,
@@ -316,7 +316,7 @@ header {
   margin: 0 auto;
 }
 
-/* CCD scan-line overlay — horizontal streaks from the scanner pass */
+/* CCD scan-line overlay - horizontal streaks from the scanner pass */
 .np-scanlines {
   position: absolute;
   inset: 0;
@@ -331,7 +331,7 @@ header {
   z-index: 5;
 }
 
-/* Aged newsprint — yellowish, slightly grained */
+/* Aged newsprint - yellowish, slightly grained */
 .np-paper {
   background-color: #f0e6c0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
@@ -630,7 +630,7 @@ header {
   overflow: hidden;
   background-color: #fefcf7;
 }
-/* Left page — stacked pages on outer left edge via layered box-shadow */
+/* Left page - stacked pages on outer left edge via layered box-shadow */
 .scrapbook-page-left {
   border: 1px solid var(--matcha-light);
   border-right: none;
@@ -642,7 +642,7 @@ header {
     -4px 0 0 #d4cec5,
     -5px 0 0 #f0ebe3;
 }
-/* Right page — stacked pages on outer right edge */
+/* Right page - stacked pages on outer right edge */
 .scrapbook-page-right {
   border: 1px solid var(--matcha-light);
   border-left: none;
@@ -920,7 +920,7 @@ header {
   }
 }
 
-/* ─── Sourdough Tracker — Bread Slice Shape ──────────────────────────────── */
+/* ─── Sourdough Tracker - Bread Slice Shape ──────────────────────────────── */
 
 .bread-crust {
   background-image: linear-gradient(
@@ -951,11 +951,11 @@ header {
   flex-direction: column;
 }
 
-/* Curved crown — heading sits toward the bottom of the arc so it reads as
+/* Curved crown - heading sits toward the bottom of the arc so it reads as
    nestled inside the dome rather than floating at the top. */
 .bread-dome {
   flex-shrink: 0;
-  height: 96px; /* matches V-radius — body starts in the safe flat zone */
+  height: 96px; /* matches V-radius - body starts in the safe flat zone */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -964,7 +964,7 @@ header {
   text-align: center;
 }
 
-/* Straight body — scrolls independently; bread-inner clips overflow */
+/* Straight body - scrolls independently; bread-inner clips overflow */
 .bread-body {
   flex: 1;
   min-height: 0; /* required for flex child overflow-y to work */
@@ -973,7 +973,7 @@ header {
   scrollbar-color: rgba(168, 107, 24, 0.3) transparent;
 }
 
-/* Pinned below bread-body, just above the crust — for attribution/version text */
+/* Pinned below bread-body, just above the crust - for attribution/version text */
 .bread-footer {
   flex-shrink: 0;
   display: flex;

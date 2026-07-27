@@ -438,7 +438,7 @@ function FeedingDetail({
           onChange={(e) => setLocalPeak(e.target.value)}
           onBlur={handlePeakBlur}
           className="flex-1 bg-transparent text-xs text-neutral-800 focus:outline-none"
-          placeholder="—"
+          placeholder="-"
         />
         {localPeak && (
           <button
@@ -554,7 +554,7 @@ function FeedingDetail({
         )}
       </div>
 
-      {/* let's bake today — only for today's entries */}
+      {/* let's bake today - only for today's entries */}
       {entry.date === today() && (
         <div className="pb-1">
           {!confirmBake ? (
@@ -729,7 +729,7 @@ export function FeedingTracker({
         <>
           {sortedEntries.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-amber-700/60 italic">
-              No feedings yet — add your first one!
+              No feedings yet - add your first one!
             </p>
           ) : (
             sortedEntries.map((entry) => (

@@ -20,7 +20,7 @@ export type BentoSize = "sm" | "wide" | "tall" | "lg" | "full";
 
 // Span presets, applied at the lg breakpoint (the grid is single/2-column
 // below that, so span classes only matter once there's room for them).
-// "sm" is the default 1x1 tile — every other size is relative to that.
+// "sm" is the default 1x1 tile - every other size is relative to that.
 const SIZE_CLASSES: Record<BentoSize, string> = {
   sm: "lg:col-span-1 lg:row-span-1",
   wide: "lg:col-span-2 lg:row-span-1",
@@ -39,13 +39,13 @@ interface BentoCardProps {
   /** Tile span preset. Defaults to a standard 1x1 card. Combine with
    *  className (e.g. "lg:col-start-3") if you need to pin its position too. */
   size?: BentoSize;
-  /** Drop any component into the card body — sits below the name/description,
+  /** Drop any component into the card body - sits below the name/description,
    *  above the cta, while keeping the standard Icon/name layout. Use this
    *  instead of `children` whenever you just need to embed something like a
    *  ticker or widget without rebuilding the icon/heading markup by hand. */
   content?: ReactNode;
   className?: string;
-  /** Full custom content — overrides the entire default layout (Icon, name,
+  /** Full custom content - overrides the entire default layout (Icon, name,
    *  description, content, cta) when you need something completely bespoke. */
   children?: ReactNode;
 }

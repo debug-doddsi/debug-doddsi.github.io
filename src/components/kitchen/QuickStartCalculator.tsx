@@ -18,7 +18,7 @@ function calculate(starter: number) {
 }
 
 function fmt(n: number): string {
-  return isNaN(n) || n === 0 ? "—" : String(Math.round(n));
+  return isNaN(n) || n === 0 ? "-" : String(Math.round(n));
 }
 
 export function QuickStartCalculator() {

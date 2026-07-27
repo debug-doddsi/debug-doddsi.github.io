@@ -11,7 +11,7 @@ interface LaunchCardProps {
   onLaunch: () => void;
 }
 
-// Shared "launch tile" look — used by both the My Apps grid and the Case
+// Shared "launch tile" look - used by both the My Apps grid and the Case
 // Studies grid so a card reads the same regardless of what it opens.
 export function LaunchCard({
   icon,

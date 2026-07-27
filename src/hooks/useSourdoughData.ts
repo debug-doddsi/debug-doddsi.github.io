@@ -25,7 +25,7 @@ export interface FeedingEntry {
 }
 
 export function computeRatio(s: number, f: number, w: number): string {
-  if (!s || !f || !w) return "—";
+  if (!s || !f || !w) return "-";
   const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
   const g = gcd(gcd(Math.round(s), Math.round(f)), Math.round(w));
   return `${Math.round(s) / g}:${Math.round(f) / g}:${Math.round(w) / g}`;
@@ -33,7 +33,7 @@ export function computeRatio(s: number, f: number, w: number): string {
 
 // IMPORTANT: DB_NAME, STORE_NAME, and DB_VERSION are part of users' stored
 // feeding history. Do not rename DB_NAME/STORE_NAME or bump DB_VERSION without
-// writing an onupgradeneeded migration — changing these can orphan or wipe
+// writing an onupgradeneeded migration - changing these can orphan or wipe
 // data that's already on a user's device.
 const DB_NAME = "sourdough-tracker";
 const DB_VERSION = 1;
