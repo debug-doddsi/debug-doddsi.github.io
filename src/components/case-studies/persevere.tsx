@@ -39,12 +39,33 @@ const colors = {
 // The five dark options I shortlisted as a fix for the plum reading too
 // washed-out to anchor the site. Oxblood and warm black are the two the
 // founders picked - both made it into the final palette.
+// Ordered light to dark.
 const darkOptions = [
-  { hex: "#3A2620", name: "Espresso", picked: false },
-  { hex: "#4A1F1D", name: "Oxblood", picked: true },
   { hex: "#3D2B2E", name: "Aubergine", picked: false },
+  { hex: "#4A1F1D", name: "Oxblood", picked: true },
+  { hex: "#3A2620", name: "Espresso", picked: false },
   { hex: "#1B2A4A", name: "Midnight navy", picked: false },
   { hex: "#241914", name: "Warm black", picked: true },
+];
+
+// Ordered light to dark.
+const originalPalette = [
+  { hex: colors.paper, name: "Cream" },
+  { hex: colors.gold, name: "Gold" },
+  { hex: colors.coral, name: "Coral" },
+  { hex: colors.terracotta, name: "Terracotta" },
+  { hex: colors.plum, name: "Plum", note: "Too washed-out alone" },
+];
+
+// Ordered light to dark.
+const finalPalette = [
+  { hex: colors.paper, name: "Cream" },
+  { hex: colors.gold, name: "Gold" },
+  { hex: colors.coral, name: "Coral" },
+  { hex: colors.terracotta, name: "Terracotta" },
+  { hex: colors.plum, name: "Plum", note: "Accent" },
+  { hex: colors.oxblood, name: "Oxblood", note: "Anchor dark" },
+  { hex: colors.warmBlack, name: "Warm black", note: "Anchor dark" },
 ];
 
 // Section anchors, used by both the contents card and the id'd wrappers
@@ -105,39 +126,6 @@ function ContentsCard() {
   );
 }
 
-function Swatch({
-  hex,
-  name,
-  note,
-  struck,
-}: {
-  hex: string;
-  name: string;
-  note?: string;
-  struck?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-4">
-      <div
-        className="w-14 h-14 rounded-full shrink-0 border border-accent/30"
-        style={{ backgroundColor: hex, opacity: struck ? 0.45 : 1 }}
-      />
-      <div>
-        <p
-          className={`font-body text-sm font-medium ${
-            struck ? "text-neutral-500 line-through" : "text-neutral-100"
-          }`}
-        >
-          {name}
-        </p>
-        {note && (
-          <p className="font-body text-xs text-neutral-400 mt-0.5">{note}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function OptionSwatch({
   hex,
   name,
@@ -150,30 +138,54 @@ function OptionSwatch({
   return (
     <div className="flex flex-col items-center gap-2 text-center">
       <div
-        className="w-16 h-16 rounded-full relative"
+        className="w-9 h-9 rounded-full relative"
         style={{
           backgroundColor: hex,
           boxShadow: picked
-            ? "0 0 0 3px #241914, 0 0 0 5px var(--accent)"
-            : "1px solid rgba(255,255,255,0.2)",
-          border: picked ? "none" : "1px solid rgba(255,255,255,0.2)",
+            ? "0 0 0 3px #faf3e4, 0 0 0 4px var(--accent)"
+            : "none",
+          border: picked ? "none" : "1px solid rgba(0,0,0,0.15)",
         }}
       >
         {picked && (
           <span
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-full whitespace-nowrap text-neutral-950"
+            className="absolute -bottom-2 left-1/2 -translate-x-1/2 font-mono text-[8px] tracking-widest uppercase px-1.5 py-0.5 rounded-full whitespace-nowrap text-neutral-950"
             style={{ backgroundColor: "var(--accent)" }}
           >
             Picked
           </span>
         )}
       </div>
-      <p
-        className="font-body text-xs mt-1"
-        style={{ color: "#F7F3E3", opacity: 0.7 }}
-      >
-        {name}
-      </p>
+      <p className="font-body text-[11px] mt-1 text-neutral-400">{name}</p>
+    </div>
+  );
+}
+
+function MiniSwatch({
+  hex,
+  name,
+  note,
+}: {
+  hex: string;
+  name: string;
+  note?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 text-center w-16">
+      <div
+        className="w-9 h-9 rounded-full shrink-0 border border-accent/30"
+        style={{ backgroundColor: hex }}
+      />
+      <div>
+        <p className="font-body text-[11px] font-medium text-neutral-100 leading-tight">
+          {name}
+        </p>
+        {note && (
+          <p className="font-body text-[10px] text-neutral-500 leading-tight">
+            {note}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -181,7 +193,7 @@ function OptionSwatch({
 export default function PersevereCaseStudy() {
   return (
     <PageShell
-      title="Persevere"
+      title="Persevere Media"
       subtitle="Case Study - In Progress · Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
       icon={<PenTool size={28} />}
     >
@@ -192,7 +204,7 @@ export default function PersevereCaseStudy() {
         <div id="project" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>The Project</SectionLabel>
-            <p className="font-display text-xl sm:text-2xl leading-relaxed text-neutral-100">
+            <p className="font-body text-xl sm:text-2xl leading-relaxed text-neutral-100">
               Persevere is a full-service digital marketing agency -
               videography, photography, content creation, and strategy under one
               roof - run by two best friends whose skillsets fill a gap in the
@@ -222,108 +234,95 @@ export default function PersevereCaseStudy() {
           <GlassCard>
             <SectionLabel>Key Decisions</SectionLabel>
 
-            <h3 className="font-display text-2xl sm:text-3xl mb-3 text-neutral-100">
+            <h3 className="font-body text-2xl sm:text-3xl mb-6 text-neutral-100">
               Giving a washed-out palette an anchor
             </h3>
-            <p className="font-body text-sm leading-relaxed mb-8 text-neutral-400">
-              The founders' original palette - terracotta, coral, plum, gold,
-              and a warm cream - had real charm, but the plum was reading too
-              grey and washed-out to carry the site as its dark anchor. I kept
-              it in the palette as an accent and proposed shortlisting a proper
-              dark from five options. They picked two: oxblood and warm black.
-              Both made it into the final palette.
-            </p>
 
-            {/* Group 1 - the founders' original palette */}
-            <div className="rounded-2xl p-6 sm:p-8 mb-6 border border-accent/20 bg-black/[0.03]">
-              <p className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest mb-5">
-                01 - What the founders provided
-              </p>
-              <div className="grid sm:grid-cols-2 gap-5">
-                <Swatch hex={colors.terracotta} name="Terracotta" />
-                <Swatch hex={colors.coral} name="Coral" />
-                <Swatch
-                  hex={colors.plum}
-                  name="Plum"
-                  note="Too washed-out to anchor alone"
-                />
-                <Swatch hex={colors.gold} name="Gold" />
-                <Swatch hex={colors.paper} name="Cream" />
+            <div className="rounded-2xl border border-accent/20 bg-black/[0.03] grid sm:grid-cols-3 divide-y divide-accent/15 sm:divide-y-0 sm:divide-x sm:divide-accent/15">
+              {/* Issue */}
+              <div className="p-6 flex flex-col items-center text-center">
+                <div className="flex flex-col items-center gap-4 flex-1">
+                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    Issue
+                  </p>
+                  <p className="font-body text-xs leading-relaxed text-neutral-400">
+                    The founders' original palette had real charm, but the plum
+                    was reading too grey and washed-out to carry the site as its
+                    dark anchor.
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-4 mt-2">
+                  <MiniSwatch {...originalPalette[0]} />
+                  <div className="grid grid-cols-2 justify-items-center gap-x-3 gap-y-4">
+                    {originalPalette.slice(1).map((swatch) => (
+                      <MiniSwatch key={swatch.hex} {...swatch} />
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Group 2 - the range of dark options I suggested */}
-            <div
-              className="rounded-2xl p-6 sm:p-8 mb-6"
-              style={{ backgroundColor: colors.warmBlack }}
-            >
-              <p
-                className="font-mono text-[10px] uppercase tracking-widest mb-6"
-                style={{ color: "#F7F3E3", opacity: 0.7 }}
-              >
-                02 - The range I suggested
-              </p>
-              <div className="flex flex-wrap gap-x-8 gap-y-8">
-                {darkOptions.map((opt) => (
+              {/* What I Did */}
+              <div className="p-6 flex flex-col items-center text-center">
+                <div className="flex flex-col items-center gap-4 flex-1">
+                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    What I Did
+                  </p>
+                  <p className="font-body text-xs leading-relaxed text-neutral-400">
+                    Kept plum in the palette as an accent, and shortlisted five
+                    proper darks for the founders to choose from as the new
+                    anchor.
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-6 mt-2">
                   <OptionSwatch
-                    key={opt.hex}
-                    hex={opt.hex}
-                    name={opt.name}
-                    picked={opt.picked}
+                    hex={darkOptions[0].hex}
+                    name={darkOptions[0].name}
+                    picked={darkOptions[0].picked}
                   />
-                ))}
+                  <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-6">
+                    {darkOptions.slice(1).map((opt) => (
+                      <OptionSwatch
+                        key={opt.hex}
+                        hex={opt.hex}
+                        name={opt.name}
+                        picked={opt.picked}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <p
-                className="font-body text-xs mt-8"
-                style={{ color: "#F7F3E3", opacity: 0.55 }}
-              >
-                They picked two - oxblood and warm black - rather than just one.
-              </p>
-            </div>
 
-            {/* Group 3 - the final palette, inclusive of the picked darks */}
-            <div className="rounded-2xl p-6 sm:p-8 border border-accent/20 bg-black/[0.03]">
-              <p className="font-mono text-[10px] text-accent uppercase tracking-widest mb-5">
-                03 - Final palette
-              </p>
-              <div className="grid sm:grid-cols-2 gap-5">
-                <Swatch hex={colors.terracotta} name="Terracotta" />
-                <Swatch hex={colors.coral} name="Coral" />
-                <Swatch hex={colors.plum} name="Plum" note="Accent" />
-                <Swatch hex={colors.gold} name="Gold" />
-                <Swatch hex={colors.paper} name="Cream" />
-                <Swatch
-                  hex={colors.oxblood}
-                  name="Oxblood"
-                  note="New anchor dark"
-                />
-                <Swatch
-                  hex={colors.warmBlack}
-                  name="Warm black"
-                  note="New anchor dark"
-                />
+              {/* Outcome */}
+              <div className="p-6 flex flex-col items-center text-center">
+                <div className="flex flex-col items-center gap-4 flex-1">
+                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    Outcome
+                  </p>
+                  <p className="font-body text-xs leading-relaxed text-neutral-400">
+                    They picked two - oxblood and warm black - rather than just
+                    one. Every colour they walked in with is still in the final
+                    palette.
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-4 mt-2">
+                  <MiniSwatch {...finalPalette[0]} />
+                  <div className="grid grid-cols-2 justify-items-center gap-x-3 gap-y-4">
+                    {finalPalette.slice(1).map((swatch) => (
+                      <MiniSwatch key={swatch.hex} {...swatch} />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* TODO: Decision 2 - building out the full palette around warm black + oxblood */}
             {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
             <p className="font-body text-xs mt-8 italic text-neutral-500">
-              More decisions will be added here as the project progresses.
-            </p>
-          </GlassCard>
-        </div>
-
-        {/* 4. Outcome */}
-        <div id="outcome" className="scroll-mt-28">
-          <GlassCard>
-            <SectionLabel>Outcome</SectionLabel>
-            <p className="font-display text-xl sm:text-2xl leading-relaxed text-neutral-100">
               Anchoring the palette with oxblood and warm black gave the site an
               instantly more polished, professional feel - without losing any of
               the warmth the founders started with. Every colour they walked in
               with is still in the final palette.
             </p>
-            {/* TODO: add metrics / client feedback / launch date once available */}
           </GlassCard>
         </div>
       </div>

@@ -17,21 +17,22 @@ export function CaseStudiesPage({ onNavigate }: CaseStudiesPageProps) {
       <div className="flex flex-wrap justify-center gap-6">
         <LaunchCard
           icon={<PenTool size={18} />}
-          title="Persevere"
+          title="Persevere Media"
           subtitle="Branding · Web Design"
           description="Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
           placeholder={
             <div
               className="flex h-full w-full items-center justify-center"
               style={{
-                background: "linear-gradient(135deg, #5E1A22 0%, #1B1713 100%)",
+                background:
+                  "linear-gradient(135deg, #594157 0%, #d5573b 55%, #edb03e 100%)",
               }}
             >
               <span
                 className="text-2xl text-[#F3EEE6]"
                 style={{ fontFamily: "'DM Serif Display', serif" }}
               >
-                Persevere
+                Persevere Media
               </span>
             </div>
           }
