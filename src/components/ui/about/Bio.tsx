@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { TechLoop } from "./TechLoop";
 
 export function Bio() {
+  const [showMore, setShowMore] = useState(false);
+
   return (
     <div className="space-y-8">
       <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
@@ -27,54 +31,71 @@ export function Bio() {
 
       <div className="bg-gradient-to-r from-accent to-transparent mt-4 w-24 h-px" />
 
-      {/* Education */}
-      <div>
-        <h3 className="font-display text-lg text-neutral-100 mb-3">
-          Education
-        </h3>
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <a
-              href="https://www.strath.ac.uk/courses/undergraduate/biomedicalengineeringmeng/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-sm text-neutral-100 font-medium hover:text-accent hover:underline transition-colors"
-            >
-              MEng Biomedical Engineering
-            </a>
-            <img
-              src="/strath.png"
-              alt="University of Strathclyde"
-              className="h-4 w-auto object-contain"
-            />
-          </div>
-          <p className="font-body text-xs text-accent">
-            Master of Engineering with Distinction
-          </p>
-          <p className="font-mono text-xs text-neutral-500">
-            University of Strathclyde, 2017–2022
-          </p>
-        </div>
-        <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
-          A five-year integrated masters degree covering biomechanics,
-          biomedical materials, electronics, anatomy & physiology, and medical
-          device design, bridging engineering and healthcare. Specialised in
-          electronics, software and instrumentation electives, covering
-          microcontrollers, digital signal processing, image processing, control
-          systems and biomedical electronics. This is where my love of tech
-          began.
-        </p>
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowMore((v) => !v)}
+        aria-expanded={showMore}
+        className="flex items-center gap-1.5 font-mono text-xs text-accent uppercase tracking-widest hover:underline"
+      >
+        {showMore ? "Show less" : "Education & tech stack"}
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 ${showMore ? "rotate-180" : ""}`}
+        />
+      </button>
 
-      {/* Tech Stack */}
-      <div>
-        <div>
-          <h3 className="font-display text-lg text-neutral-100 mb-3">
-            Tech Stack
-          </h3>
-          <TechLoop />
+      {showMore && (
+        <div className="space-y-8">
+          {/* Education */}
+          <div>
+            <h3 className="font-display text-lg text-neutral-100 mb-3">
+              Education
+            </h3>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://www.strath.ac.uk/courses/undergraduate/biomedicalengineeringmeng/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-sm text-neutral-100 font-medium hover:text-accent hover:underline transition-colors"
+                >
+                  MEng Biomedical Engineering
+                </a>
+                <img
+                  src="/images/strath.png"
+                  alt="University of Strathclyde"
+                  className="h-4 w-auto object-contain"
+                />
+              </div>
+              <p className="font-body text-xs text-accent">
+                Master of Engineering with Distinction
+              </p>
+              <p className="font-mono text-xs text-neutral-500">
+                University of Strathclyde, 2017–2022
+              </p>
+            </div>
+            <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
+              A five-year integrated masters degree covering biomechanics,
+              biomedical materials, electronics, anatomy & physiology, and medical
+              device design, bridging engineering and healthcare. Specialised in
+              electronics, software and instrumentation electives, covering
+              microcontrollers, digital signal processing, image processing, control
+              systems and biomedical electronics. This is where my love of tech
+              began.
+            </p>
+          </div>
+
+          {/* Tech Stack */}
+          <div>
+            <div>
+              <h3 className="font-display text-lg text-neutral-100 mb-3">
+                Tech Stack
+              </h3>
+              <TechLoop />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

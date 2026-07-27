@@ -1,4 +1,4 @@
-import { Smile, Folder, Send, LayoutGrid } from "lucide-react";
+import { Home, Smile, Folder, Send, LayoutGrid } from "lucide-react";
 import Dock, { type DockItemData } from "../ui/Dock";
 import type { TabId } from "../../types";
 
@@ -9,6 +9,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "about", label: "About", icon: <Smile size={20} /> },
   { id: "work", label: "Work", icon: <Folder size={20} /> },
   { id: "apps", label: "My Apps", icon: <LayoutGrid size={20} /> },

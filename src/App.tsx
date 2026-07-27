@@ -3,6 +3,7 @@ import { DockNav } from "./components/layout/DockNav";
 import { Topbar } from "./components/layout/Topbar";
 import type { TabId } from "./types";
 import { usePinkMode } from "./hooks/usePinkMode";
+import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
 import { ContactPage } from "./pages/ContactPage";
@@ -35,7 +36,7 @@ function getInitialTab(): TabId {
   ) {
     return "dnd";
   }
-  return "about";
+  return "home";
 }
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
 
   function renderTab(tab: TabId) {
     switch (tab) {
+      case "home":       return <HomePage onNavigate={setActiveTab} />;
       case "about":      return <AboutPage />;
       case "work":       return <WorkPage />;
       case "contact":    return <ContactPage />;

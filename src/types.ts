@@ -1,4 +1,5 @@
 export type TabId =
+  | "home"
   | "about"
   | "work"
   | "contact"

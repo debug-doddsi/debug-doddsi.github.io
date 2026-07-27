@@ -18,6 +18,13 @@ html {
   --matcha: #9faa74;
   --matcha-light: #d7dab3;
   --latte: #ece3d2;
+
+  /* Dedicated text tokens for the default (pink) theme — deep wine for
+     headings/body, muted mauve for secondary text. Kept separate from
+     the matcha variables above since those are still used for borders,
+     the scrapbook page, and notebook accents elsewhere. */
+  --ink: #3d1220;
+  --ink-muted: #8c5568;
 }
 
 /* ─── Base tokens (strawberry matcha) ───────────────────────*/
@@ -116,7 +123,7 @@ html.pink .border-neutral-700 {
 
 /* Strawberry Matcha Colour Palette (default) */
 html:not(.pink) body {
-  color: var(--matcha-dark);
+  color: var(--ink);
 }
 html:not(.pink) .bg-neutral-950 {
   background-color: var(--strawberry-cream) !important;
@@ -133,13 +140,13 @@ html:not(.pink) header {
   border-color: transparent !important;
 }
 html:not(.pink) .text-neutral-100 {
-  color: var(--matcha-dark) !important;
+  color: var(--ink) !important;
 }
 html:not(.pink) .text-neutral-300 {
   color: var(--strawberry) !important;
 }
 html:not(.pink) .text-neutral-400 {
-  color: var(--matcha) !important;
+  color: var(--ink-muted) !important;
 }
 html:not(.pink) .text-neutral-500 {
   color: var(--strawberry) !important;
@@ -224,10 +231,14 @@ html:not(.pink) .nav-item-active {
   animation: starPulse 3s ease-in-out infinite;
 }
 
-
 @keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .typewriter-cursor {
@@ -247,7 +258,10 @@ html:not(.pink) .nav-item-active {
   /* Professional mode: force a black arrow cursor */
   html:not(.pink),
   html:not(.pink) * {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19'%3E%3Cpath d='M0 0L0 15L3.5 11L6 17.5L7.5 17L5 10.5L9 10.5Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E") 0 0, auto !important;
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19'%3E%3Cpath d='M0 0L0 15L3.5 11L6 17.5L7.5 17L5 10.5L9 10.5Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E")
+        0 0,
+      auto !important;
   }
 
   /* Restore pointer cursor on interactive elements */
@@ -256,19 +270,34 @@ html:not(.pink) .nav-item-active {
   html:not(.pink) [role="button"],
   html:not(.pink) select,
   html:not(.pink) label[for] {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='20'%3E%3Cpath d='M4 0L4 12L6 10L8 16L10 15L8 9L11 9L4 0Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E") 4 0, pointer !important;
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='20'%3E%3Cpath d='M4 0L4 12L6 10L8 16L10 15L8 9L11 9L4 0Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E")
+        4 0,
+      pointer !important;
   }
 }
 
 /* ─── Page transitions ────────────────────────────────────── */
 @keyframes pageExit {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-6px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-exit {
@@ -356,8 +385,14 @@ html.pink .book-edge {
 }
 
 @keyframes notebookItemIn {
-  from { opacity: 0; transform: translateX(-5px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .notebook-item {
@@ -848,8 +883,12 @@ html.pink .scrapbook-coil {
   pointer-events: none;
   user-select: none;
 }
-.scrapbook-star-sm { font-size: 10px; }
-.scrapbook-star-lg { font-size: 22px; }
+.scrapbook-star-sm {
+  font-size: 10px;
+}
+.scrapbook-star-lg {
+  font-size: 22px;
+}
 
 html.pink .scrapbook-star {
   color: #ff80c8;
@@ -1080,8 +1119,12 @@ html.pink .scrapbook-dot {
 /* ─── Travel Map ──────────────────────────────────────────────── */
 
 @keyframes oceanWave {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-1000px); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-1000px);
+  }
 }
 
 .travel-map-container {
@@ -1098,9 +1141,9 @@ html.pink .scrapbook-dot {
   max-width: 820px;
   transform: rotate(-0.4deg);
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.08),
-    0 8px 28px rgba(0,0,0,0.22),
-    0 20px 60px rgba(0,0,0,0.10);
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 8px 28px rgba(0, 0, 0, 0.22),
+    0 20px 60px rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 
@@ -1124,7 +1167,11 @@ html.pink .travel-map-paper {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.07) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.07) 100%
+  );
   pointer-events: none;
   z-index: 10;
 }
@@ -1183,10 +1230,22 @@ html.pink .travel-map-paper {
   z-index: 8;
   line-height: 0;
 }
-.travel-map-corner-pin.tl    { top: 6px;    left: 8px;  }
-.travel-map-corner-pin.tr    { top: 6px;    right: 8px; }
-.travel-map-corner-pin.bl    { bottom: 6px; left: 8px;  }
-.travel-map-corner-pin.br-safe { bottom: 6px; right: 56px; }
+.travel-map-corner-pin.tl {
+  top: 6px;
+  left: 8px;
+}
+.travel-map-corner-pin.tr {
+  top: 6px;
+  right: 8px;
+}
+.travel-map-corner-pin.bl {
+  bottom: 6px;
+  left: 8px;
+}
+.travel-map-corner-pin.br-safe {
+  bottom: 6px;
+  right: 56px;
+}
 
 /* ─── Filter bar ──────────────────────────────────── */
 
@@ -1199,15 +1258,15 @@ html.pink .travel-map-paper {
   flex-direction: column;
   gap: 6px;
   z-index: 9;
-  background: rgba(244,237,216,0.82);
-  border: 1px solid rgba(180,160,120,0.35);
+  background: rgba(244, 237, 216, 0.82);
+  border: 1px solid rgba(180, 160, 120, 0.35);
   border-radius: 6px;
   padding: 8px 6px;
   backdrop-filter: blur(2px);
 }
 
 html.pink .travel-map-filter-bar {
-  background: rgba(249,238,224,0.85);
+  background: rgba(249, 238, 224, 0.85);
 }
 
 .travel-map-filter-pin {
@@ -1220,7 +1279,9 @@ html.pink .travel-map-filter-bar {
   cursor: pointer;
   padding: 4px 3px;
   border-radius: 4px;
-  transition: opacity 0.2s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  transition:
+    opacity 0.2s ease,
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   line-height: 0;
 }
 
@@ -1275,7 +1336,7 @@ html.pink .travel-map-filter-label {
   /* 68px × √2 ≈ 96px is the diagonal of the cut corner */
   width: 96px;
   height: 2px;
-  background: linear-gradient(to left, rgba(0,0,0,0.22), transparent);
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.22), transparent);
   transform: rotate(-45deg);
   transform-origin: bottom right;
   pointer-events: none;
@@ -1341,7 +1402,7 @@ html.pink .travel-map-filter-label {
    nestled inside the dome rather than floating at the top. */
 .bread-dome {
   flex-shrink: 0;
-  height: 96px;           /* matches V-radius — body starts in the safe flat zone */
+  height: 96px; /* matches V-radius — body starts in the safe flat zone */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1353,7 +1414,7 @@ html.pink .travel-map-filter-label {
 /* Straight body — scrolls independently; bread-inner clips overflow */
 .bread-body {
   flex: 1;
-  min-height: 0;           /* required for flex child overflow-y to work */
+  min-height: 0; /* required for flex child overflow-y to work */
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(168, 107, 24, 0.3) transparent;
@@ -1394,7 +1455,9 @@ html.pink .bread-inner {
   padding: 5px 10px;
   font-size: 0.8rem;
   color: #3a2a10;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .bread-input:focus {
   outline: none;
@@ -1416,12 +1479,30 @@ select.bread-input {
 /* ─── Steam wisps ─────────────────────────────────────────────────────────── */
 
 @keyframes steam {
-  0%   { transform: translateY(0)    scaleX(1)    translateX(0);    opacity: 0.72; }
-  20%  { transform: translateY(-9px)  scaleX(0.88) translateX(2px);  opacity: 0.58; }
-  40%  { transform: translateY(-18px) scaleX(1.18) translateX(-3px); opacity: 0.42; }
-  60%  { transform: translateY(-27px) scaleX(0.82) translateX(3px);  opacity: 0.26; }
-  80%  { transform: translateY(-35px) scaleX(1.05) translateX(-2px); opacity: 0.12; }
-  100% { transform: translateY(-44px) scaleX(0.7)  translateX(0);    opacity: 0; }
+  0% {
+    transform: translateY(0) scaleX(1) translateX(0);
+    opacity: 0.72;
+  }
+  20% {
+    transform: translateY(-9px) scaleX(0.88) translateX(2px);
+    opacity: 0.58;
+  }
+  40% {
+    transform: translateY(-18px) scaleX(1.18) translateX(-3px);
+    opacity: 0.42;
+  }
+  60% {
+    transform: translateY(-27px) scaleX(0.82) translateX(3px);
+    opacity: 0.26;
+  }
+  80% {
+    transform: translateY(-35px) scaleX(1.05) translateX(-2px);
+    opacity: 0.12;
+  }
+  100% {
+    transform: translateY(-44px) scaleX(0.7) translateX(0);
+    opacity: 0;
+  }
 }
 
 .steam-wisp {
@@ -1436,8 +1517,14 @@ select.bread-input {
 /* ─── Sourdough view transitions ──────────────────────────────────────────── */
 
 @keyframes breadViewEnter {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bread-view-enter {
