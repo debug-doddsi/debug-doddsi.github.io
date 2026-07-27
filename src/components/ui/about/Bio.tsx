@@ -1,5 +1,4 @@
 import { TechLoop } from "./TechLoop";
-import { WaveDivider } from "../WaveDivider";
 
 export function Bio() {
   return (
@@ -25,8 +24,6 @@ export function Bio() {
         When I'm not at my desk, I'm usually baking, gaming, reading or annoying
         my husband.
       </p>
-
-      <WaveDivider length="6rem" className="mt-4" />
 
       {
         <div className="space-y-8">

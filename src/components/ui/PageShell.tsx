@@ -1,5 +1,3 @@
-import { WaveDivider } from "./WaveDivider";
-
 interface SkeletonBlockProps {
   label?: string;
   height?: string;
@@ -40,7 +38,6 @@ export function PageShell({ title, subtitle, icon, children }: PageShellProps) {
             {subtitle}
           </p>
         )}
-        <WaveDivider length="6rem" className="mt-4" />
       </div>
 
       {/* Slot for actual content */}

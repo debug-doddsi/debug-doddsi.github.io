@@ -9,8 +9,6 @@ export function TechLoop() {
       direction="left"
       logoHeight={28}
       gap={40}
-      fadeOut
-      fadeOutColor="var(--bg-base)"
       scaleOnHover
       draggable
       ariaLabel="Tech stack"

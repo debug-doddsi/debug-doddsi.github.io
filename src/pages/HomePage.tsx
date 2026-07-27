@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { ChevronDown } from "lucide-react";
+import type { CSSProperties } from "react";
+import { Sparkles, FolderGit2, Croissant, Mail } from "lucide-react";
+import { BentoGrid, BentoCard } from "../components/ui/primitives/bento-grid";
+import { TechLoop } from "../components/ui/about/TechLoop";
 import type { TabId } from "../types";
 
 interface HomePageProps {
@@ -52,85 +54,17 @@ function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
   );
 }
 
-// Fires once when the element scrolls into view, then disconnects — cards
-// stay revealed rather than re-hiding if the user scrolls back up past them.
-function useRevealOnScroll<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  return { ref, revealed };
-}
-
-interface RevealCardProps {
-  eyebrow: string;
-  title: string;
-  description: string;
-  buttonLabel: string;
-  onClick: () => void;
-}
-
-function RevealCard({
-  eyebrow,
-  title,
-  description,
-  buttonLabel,
-  onClick,
-}: RevealCardProps) {
-  const { ref, revealed } = useRevealOnScroll<HTMLDivElement>();
-
-  return (
-    <div
-      ref={ref}
-      className={`w-full max-w-sm rounded-2xl border border-accent/30 bg-accent-soft px-8 py-10 text-center transition-all duration-700 ease-out ${
-        revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      <p className="font-mono text-[10px] text-accent uppercase tracking-widest mb-3">
-        {eyebrow}
-      </p>
-      <h2 className="font-display text-2xl text-neutral-100 mb-3">{title}</h2>
-      <p className="font-body text-sm text-neutral-400 leading-relaxed mb-6">
-        {description}
-      </p>
-      <button
-        onClick={onClick}
-        className="px-6 py-2.5 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
-      >
-        {buttonLabel}
-      </button>
-    </div>
-  );
-}
-
 export function HomePage({ onNavigate }: HomePageProps) {
   return (
-    <div className="flex flex-col items-center px-6 sm:px-8">
-      {/* Hero */}
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
+    <div className="bento-gradient-bg min-h-[calc(100vh-6rem)] rounded-3xl px-4 sm:px-8 py-10 sm:py-16">
+      {/* Hero — full-size wordmark, sitting above the grid rather than
+          inside a card. */}
+      <div className="flex flex-col items-center text-center pb-14 sm:pb-20">
         <div className="relative inline-block">
           {SPARKLES.map((sparkle, i) => (
             <Sparkle key={i} {...sparkle} />
           ))}
-
-          <h1 className="font-pixie text-6xl sm:text-7xl md:text-8xl lg:text-9xl text-neutral-100 tracking-tight leading-none">
+          <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
             ionaKate.uk
           </h1>
         </div>
@@ -147,31 +81,39 @@ export function HomePage({ onNavigate }: HomePageProps) {
         >
           More about me
         </button>
-
-        <ChevronDown
-          size={20}
-          className="mt-16 text-neutral-400 animate-bounce"
-          aria-hidden="true"
-        />
       </div>
 
-      {/* Scroll-reveal identity cards */}
-      <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 pb-24 sm:pb-32 w-full items-center justify-center">
-        <RevealCard
-          eyebrow="Start here"
-          title="Who am I?"
-          description="Scientifically trained, creatively driven, and a little bit sparkly. Here's the full story."
-          buttonLabel="About me"
-          onClick={() => onNavigate("about")}
-        />
-        <RevealCard
-          eyebrow="The work"
-          title="What do I do?"
-          description="A look at the projects and case studies I've shipped, and the problems they solved."
-          buttonLabel="Case studies"
+      {/* Bento grid */}
+      <BentoGrid className="max-w-5xl mx-auto lg:auto-rows-[170px]">
+        {/* What I do */}
+        <BentoCard
+          name="What I Do"
+          description="Projects and case studies from things I've shipped."
+          Icon={FolderGit2}
+          cta="See my work"
           onClick={() => onNavigate("caseStudies")}
         />
-      </div>
+
+        {/* Tech stack */}
+        <BentoCard name="tech" className="overflow-hidden">
+          <Sparkles size={20} className="text-accent shrink-0" />
+          <div>
+            <h3 className="font-display text-lg text-neutral-100 mb-2">
+              My Tech Stack
+            </h3>
+            <TechLoop />
+          </div>
+        </BentoCard>
+
+        {/* Say hello */}
+        <BentoCard
+          name="Let's Talk!"
+          description="Always happy to chat about a project or an idea."
+          Icon={Mail}
+          cta="hello@ionakate.uk"
+          href="mailto:hello@ionakate.uk"
+        />
+      </BentoGrid>
     </div>
   );
 }

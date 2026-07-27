@@ -1,5 +1,5 @@
-import type { ComponentType, ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 
 interface BentoGridProps {
   children: ReactNode;
@@ -19,7 +19,7 @@ export function BentoGrid({ children, className = "" }: BentoGridProps) {
 interface BentoCardProps {
   name: string;
   description?: string;
-  Icon?: ComponentType<{ size?: number; className?: string }>;
+  Icon?: LucideIcon;
   cta?: string;
   href?: string;
   onClick?: () => void;
@@ -55,7 +55,7 @@ export function BentoCard({
     >
       {children ?? (
         <>
-          {Icon && <Icon size={20} className="text-accent" />}
+          {Icon && <Icon size={20} className="text-accent shrink-0" />}
           <div>
             <h3 className="font-display text-lg text-neutral-100 mb-1">
               {name}
