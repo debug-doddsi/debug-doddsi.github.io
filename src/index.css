@@ -2,12 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "TG PixieDust";
+  src: url("/fonts/TG-PixieDust.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   font-size: 120%;
 }
 
 /* ─── Strawberry Matcha palette ─────────────────────────────
-   The site's default colour palette. Named after the drink: pink
+   The site's default colour palette. Named after the drink:
    "strawberry" tones for accents/highlights, green "matcha" tones for
    secondary surfaces/text, and warm "latte" cream for backgrounds. */
 :root {
@@ -19,7 +27,7 @@ html {
   --matcha-light: #d7dab3;
   --latte: #ece3d2;
 
-  /* Dedicated text tokens for the default (pink) theme — deep wine for
+  /* Dedicated text tokens for the default theme — deep wine for
      headings/body, muted mauve for secondary text. Kept separate from
      the matcha variables above since those are still used for borders,
      the scrapbook page, and notebook accents elsewhere. */
@@ -35,16 +43,6 @@ html {
   --bg-base: var(--strawberry-cream);
   --bg-sidebar: var(--latte);
   --border: oklch(0.922 0 0);
-}
-
-/* ─── Pink mode — full girly pink 🎀 ───────────────────────── */
-html.pink {
-  --accent: #ff6eb4;
-  --accent-soft: #ff6eb430;
-  --accent-rgb: 255, 110, 180;
-  --bg-base: #fff0f7;
-  --bg-sidebar: #ffe4f2;
-  --text-muted: #d63384;
 }
 
 /* ─── Smooth theme transition ─────────────────────────────── */
@@ -75,95 +73,49 @@ body {
   @apply text-neutral-100 antialiased;
 }
 
-/* Pink Colour Palette */
-html.pink body {
-  color: #2d0a1f;
-}
-html.pink .bg-neutral-950 {
-  background-color: #fff0f7 !important;
-}
-html.pink .bg-neutral-900 {
-  background-color: #ffe4f2 !important;
-}
-html.pink aside {
-  background-color: #ffe4f2 !important;
-  border-color: #ffc2e0 !important;
-}
-html.pink header {
-  background-color: #ffe4f2 !important;
-  border-color: #ffc2e0 !important;
-}
-html.pink .text-neutral-100 {
-  color: #2d0a1f !important;
-}
-html.pink .text-neutral-300 {
-  color: #d63384 !important;
-}
-html.pink .text-neutral-400 {
-  color: #b5467a !important;
-}
-html.pink .text-neutral-500 {
-  color: #d63384 !important;
-}
-html.pink .text-neutral-700 {
-  color: #ff6eb4 !important;
-}
-html.pink .border-neutral-800 {
-  border-color: #ffc2e0 !important;
-}
-html.pink .hover\:bg-neutral-800:hover {
-  background-color: #ffe0ef !important;
-}
-html.pink .bg-neutral-900\/40 {
-  background-color: #ffe8f4 !important;
-}
-html.pink .border-neutral-700 {
-  border-color: #ffc2e0 !important;
-}
-
-/* Strawberry Matcha Colour Palette (default) */
-html:not(.pink) body {
+/* Strawberry Matcha Colour Palette */
+body {
   color: var(--ink);
 }
-html:not(.pink) .bg-neutral-950 {
+.bg-neutral-950 {
   background-color: var(--strawberry-cream) !important;
 }
-html:not(.pink) .bg-neutral-900 {
+.bg-neutral-900 {
   background-color: var(--latte) !important;
 }
-html:not(.pink) aside {
+aside {
   background-color: var(--latte) !important;
   border-color: var(--matcha-light) !important;
 }
-html:not(.pink) header {
+header {
   background-color: transparent !important;
   border-color: transparent !important;
 }
-html:not(.pink) .text-neutral-100 {
+.text-neutral-100 {
   color: var(--ink) !important;
 }
-html:not(.pink) .text-neutral-300 {
+.text-neutral-300 {
   color: var(--strawberry) !important;
 }
-html:not(.pink) .text-neutral-400 {
+.text-neutral-400 {
   color: var(--ink-muted) !important;
 }
-html:not(.pink) .text-neutral-500 {
+.text-neutral-500 {
   color: var(--strawberry) !important;
 }
-html:not(.pink) .text-neutral-700 {
+.text-neutral-700 {
   color: var(--strawberry) !important;
 }
-html:not(.pink) .border-neutral-700 {
+.border-neutral-700 {
   border-color: var(--matcha-light) !important;
 }
-html:not(.pink) .border-neutral-800 {
+.border-neutral-800 {
   border-color: var(--matcha-light) !important;
 }
-html:not(.pink) .hover\:bg-neutral-800:hover {
+.hover\:bg-neutral-800:hover {
   background-color: var(--strawberry-light) !important;
 }
-html:not(.pink) .bg-neutral-900\/40 {
+.bg-neutral-900\/40 {
   background-color: var(--latte) !important;
 }
 
@@ -192,10 +144,6 @@ html:not(.pink) .bg-neutral-900\/40 {
 
 /* ─── Nav active state ────────────────────────────────────── */
 .nav-item-active {
-  color: var(--accent);
-  background-color: var(--accent-soft);
-}
-html:not(.pink) .nav-item-active {
   color: var(--strawberry) !important;
   background-color: var(--strawberry-light) !important;
 }
@@ -231,33 +179,26 @@ html:not(.pink) .nav-item-active {
   animation: starPulse 3s ease-in-out infinite;
 }
 
-@keyframes cursorBlink {
+@keyframes sparkleTwinkle {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.3;
+    transform: scale(0.7) rotate(0deg);
   }
   50% {
-    opacity: 0;
+    opacity: 1;
+    transform: scale(1.05) rotate(10deg);
   }
 }
 
-.typewriter-cursor {
-  animation: cursorBlink 1s step-end infinite;
-  color: var(--accent);
+.sparkle-twinkle {
+  animation: sparkleTwinkle 2.6s ease-in-out infinite;
 }
 
 /* ─── Custom cursor ──────────────────────────────────────── */
 @media (pointer: fine) {
-  /* Pink mode: hide system cursor entirely (StarCursor takes over) */
-  html.pink *,
-  html.pink *::before,
-  html.pink *::after {
-    cursor: none !important;
-  }
-
-  /* Professional mode: force a black arrow cursor */
-  html:not(.pink),
-  html:not(.pink) * {
+  html,
+  html * {
     cursor:
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19'%3E%3Cpath d='M0 0L0 15L3.5 11L6 17.5L7.5 17L5 10.5L9 10.5Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E")
         0 0,
@@ -265,11 +206,11 @@ html:not(.pink) .nav-item-active {
   }
 
   /* Restore pointer cursor on interactive elements */
-  html:not(.pink) a[href],
-  html:not(.pink) button,
-  html:not(.pink) [role="button"],
-  html:not(.pink) select,
-  html:not(.pink) label[for] {
+  a[href],
+  button,
+  [role="button"],
+  select,
+  label[for] {
     cursor:
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='20'%3E%3Cpath d='M4 0L4 12L6 10L8 16L10 15L8 9L11 9L4 0Z' fill='black' stroke='white' stroke-width='.8'/%3E%3C/svg%3E")
         4 0,
@@ -313,38 +254,18 @@ html:not(.pink) .nav-item-active {
 .notebook-paper {
   background-color: #fefcf7;
 }
-html.pink .notebook-paper {
-  background-color: #fff8fc;
-}
-
 .notebook-tab-inactive {
   background-color: #ede9e2;
 }
-html.pink .notebook-tab-inactive {
-  background-color: #fce8f4;
-}
-
 .notebook-text {
   color: #3d3530;
 }
-html.pink .notebook-text {
-  color: #5a1535;
-}
-
 .notebook-muted {
   color: #8a817b;
 }
-html.pink .notebook-muted {
-  color: #b06090;
-}
-
 .notebook-header {
   color: #2a2420;
 }
-html.pink .notebook-header {
-  color: #3d0a20;
-}
-
 .notebook-rule {
   background-image: repeating-linear-gradient(
     to bottom,
@@ -354,16 +275,6 @@ html.pink .notebook-header {
     rgba(170, 160, 145, 0.3) 32px
   );
 }
-html.pink .notebook-rule {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 31px,
-    rgba(255, 120, 180, 0.15) 31px,
-    rgba(255, 120, 180, 0.15) 32px
-  );
-}
-
 /* Stacked page-edge texture — right spine of notebook */
 .book-edge {
   background: repeating-linear-gradient(
@@ -374,16 +285,6 @@ html.pink .notebook-rule {
     #d9d3c8 3px
   );
 }
-html.pink .book-edge {
-  background: repeating-linear-gradient(
-    to right,
-    #fde8f4 0px,
-    #fde8f4 2px,
-    #f0c8e0 2px,
-    #f0c8e0 3px
-  );
-}
-
 @keyframes notebookItemIn {
   from {
     opacity: 0;
@@ -728,10 +629,6 @@ html.pink .book-edge {
   overflow: hidden;
   background-color: #fefcf7;
 }
-html.pink .scrapbook-page {
-  background-color: #fff8fc;
-}
-
 /* Left page — stacked pages on outer left edge via layered box-shadow */
 .scrapbook-page-left {
   border: 1px solid var(--matcha-light);
@@ -744,16 +641,6 @@ html.pink .scrapbook-page {
     -4px 0 0 #d4cec5,
     -5px 0 0 #f0ebe3;
 }
-html.pink .scrapbook-page-left {
-  border-color: #f0d0e4;
-  box-shadow:
-    -1px 0 0 #fce8f4,
-    -2px 0 0 #f5d5ea,
-    -3px 0 0 #fce8f4,
-    -4px 0 0 #f0c8e0,
-    -5px 0 0 #fce8f4;
-}
-
 /* Right page — stacked pages on outer right edge */
 .scrapbook-page-right {
   border: 1px solid var(--matcha-light);
@@ -766,16 +653,6 @@ html.pink .scrapbook-page-left {
     4px 0 0 #d4cec5,
     5px 0 0 #f0ebe3;
 }
-html.pink .scrapbook-page-right {
-  border-color: #f0d0e4;
-  box-shadow:
-    1px 0 0 #fce8f4,
-    2px 0 0 #f5d5ea,
-    3px 0 0 #fce8f4,
-    4px 0 0 #f0c8e0,
-    5px 0 0 #fce8f4;
-}
-
 /* Spiral binding strip */
 .scrapbook-binding {
   width: 28px;
@@ -796,17 +673,6 @@ html.pink .scrapbook-page-right {
   border-bottom: 1px solid #ccc7c0;
   z-index: 5;
 }
-html.pink .scrapbook-binding {
-  background: linear-gradient(
-    to right,
-    #f5d5ea 0%,
-    #fce8f4 35%,
-    #fce8f4 65%,
-    #f5d5ea 100%
-  );
-  border-color: #f0c8e0;
-}
-
 /* Individual coil ring */
 .scrapbook-coil {
   width: 22px;
@@ -826,22 +692,6 @@ html.pink .scrapbook-binding {
     inset 0 1px 2px rgba(255, 255, 255, 0.45),
     0 2px 5px rgba(0, 0, 0, 0.28);
 }
-html.pink .scrapbook-coil {
-  border-color: #c880b8;
-  background: linear-gradient(
-    155deg,
-    #f8d0e8 0%,
-    #d090c0 28%,
-    #f0c0dc 46%,
-    #b870a8 68%,
-    #e0b0d0 84%,
-    #906080 100%
-  );
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    0 2px 5px rgba(180, 80, 140, 0.25);
-}
-
 /* ── Page-flip animations ── */
 @keyframes scrapbookFlipNext {
   from {
@@ -890,11 +740,6 @@ html.pink .scrapbook-coil {
   font-size: 22px;
 }
 
-html.pink .scrapbook-star {
-  color: #ff80c8;
-  filter: drop-shadow(0 0 3px rgba(255, 110, 180, 0.55));
-}
-
 /* ── Polaroid ── */
 .scrapbook-polaroid {
   background: #ffffff;
@@ -933,10 +778,6 @@ html.pink .scrapbook-star {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-html.pink .scrapbook-polaroid-caption {
-  color: #882060;
-}
-
 /* ── Page numbers ── */
 .scrapbook-page-num {
   position: absolute;
@@ -945,10 +786,6 @@ html.pink .scrapbook-polaroid-caption {
   color: #a09890;
   pointer-events: none;
 }
-html.pink .scrapbook-page-num {
-  color: #c080b0;
-}
-
 /* ── Right page typography ── */
 .scrapbook-year {
   font-family: "DM Mono", monospace;
@@ -958,10 +795,6 @@ html.pink .scrapbook-page-num {
   color: #9a9189;
   margin-bottom: 4px;
 }
-html.pink .scrapbook-year {
-  color: #b870a0;
-}
-
 .scrapbook-title {
   font-family: "Caveat", cursive;
   font-size: 30px;
@@ -970,10 +803,6 @@ html.pink .scrapbook-year {
   line-height: 1.1;
   margin-bottom: 3px;
 }
-html.pink .scrapbook-title {
-  color: #3d0a20;
-}
-
 .scrapbook-subtitle {
   font-family: "Caveat", cursive;
   font-size: 17px;
@@ -981,10 +810,6 @@ html.pink .scrapbook-title {
   font-style: italic;
   margin-bottom: 8px;
 }
-html.pink .scrapbook-subtitle {
-  color: #a05080;
-}
-
 .scrapbook-wavy {
   font-family: "Caveat", cursive;
   font-size: 14px;
@@ -1001,10 +826,6 @@ html.pink .scrapbook-subtitle {
   line-height: 1.55;
   margin-bottom: 10px;
 }
-html.pink .scrapbook-desc {
-  color: #5a1535;
-}
-
 .scrapbook-notes {
   font-family: "Caveat", cursive;
   font-size: 14px;
@@ -1014,10 +835,6 @@ html.pink .scrapbook-desc {
   padding-left: 8px;
   margin-bottom: 10px;
 }
-html.pink .scrapbook-notes {
-  color: #b870a0;
-}
-
 .scrapbook-tech-tag {
   font-family: "DM Mono", monospace;
   font-size: 9px;
@@ -1063,10 +880,6 @@ html.pink .scrapbook-notes {
 .scrapbook-nav-btn:hover {
   color: var(--accent);
 }
-html.pink .scrapbook-nav-btn {
-  color: #b06090;
-}
-
 .scrapbook-dot {
   width: 7px;
   height: 7px;
@@ -1081,10 +894,6 @@ html.pink .scrapbook-nav-btn {
   background: var(--accent);
   transform: scale(1.35);
 }
-html.pink .scrapbook-dot {
-  background: #f0c0e0;
-}
-
 /* ── Responsive: stack pages on mobile ── */
 @media (max-width: 639px) {
   .scrapbook-book {
@@ -1102,20 +911,13 @@ html.pink .scrapbook-dot {
     min-height: 240px;
     box-shadow: none;
   }
-  html.pink .scrapbook-page-left {
-    border-color: #f0d0e4;
-  }
   .scrapbook-page-right {
     border-left: 1px solid var(--matcha-light);
     border-top: 2px dashed var(--matcha-light);
     border-radius: 0 0 6px 6px;
     box-shadow: none;
   }
-  html.pink .scrapbook-page-right {
-    border-color: #f0d0e4;
-  }
 }
-
 
 /* ─── Sourdough Tracker — Bread Slice Shape ──────────────────────────────── */
 
@@ -1177,24 +979,6 @@ html.pink .scrapbook-dot {
   flex-direction: column;
   align-items: center;
   padding: 4px 0 2px;
-}
-
-/* Pink-mode override — bread stays warm regardless of theme */
-html.pink .bread-crust {
-  background-image: linear-gradient(
-    to bottom,
-    #c8882a 0%,
-    #d4953a 18%,
-    #bf7e22 40%,
-    #a86b18 60%,
-    #9a5e10 80%,
-    #8a5210 100%
-  );
-  border-radius: 58% 58% 6px 6px / 100px 100px 6px 6px;
-}
-html.pink .bread-inner {
-  background-image: linear-gradient(to bottom, #fdf6e8, #f9eecc);
-  border-radius: 52% 52% 4px 4px / 88px 88px 4px 4px;
 }
 
 /* bread form inputs */

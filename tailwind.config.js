@@ -8,6 +8,7 @@ export default {
         display: ['"DM Serif Display"', "serif"],
         body: ['"DM Sans"', "sans-serif"],
         mono: ['"DM Mono"', "monospace"],
+        pixie: ['"TG PixieDust"', "cursive"],
       },
       colors: {
         accent: {

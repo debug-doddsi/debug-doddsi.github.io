@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { DockNav } from "./components/layout/DockNav";
 import { Topbar } from "./components/layout/Topbar";
 import type { TabId } from "./types";
-import { usePinkMode } from "./hooks/usePinkMode";
 import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
@@ -11,7 +10,6 @@ import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
 import { AppsPage } from "./pages/AppsPage";
-import { StarCursor } from "./components/ui/StarCursor";
 import Grainient from "./components/ui/Grainient";
 
 const TRANSITION_MS = 180;
@@ -41,7 +39,6 @@ function getInitialTab(): TabId {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
-  const { isPink, toggle } = usePinkMode();
 
   const [displayedTab, setDisplayedTab] = useState<TabId>(getInitialTab);
   const [isExiting, setIsExiting] = useState(false);
@@ -95,8 +92,7 @@ export default function App() {
           />
         </div>
 
-        {isPink && <StarCursor isPink={isPink} />}
-        <Topbar isPink={isPink} onPinkToggle={toggle} />
+        <Topbar />
         <DockNav active={activeTab} onNavigate={setActiveTab} />
 
         {/* Scrollable content */}

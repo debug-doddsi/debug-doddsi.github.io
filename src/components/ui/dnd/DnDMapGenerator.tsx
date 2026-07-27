@@ -2503,7 +2503,7 @@ export function DnDMapGenerator() {
     return () => { document.head.removeChild(link); };
   }, []);
 
-  // Crosshair cursor override (site has global cursor:none from StarCursor)
+  // Crosshair cursor override (site has a global custom cursor)
   useEffect(() => {
     if (!isAddingPin) return;
     const style = document.createElement("style");
