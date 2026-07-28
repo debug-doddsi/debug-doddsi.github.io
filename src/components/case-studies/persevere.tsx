@@ -54,7 +54,7 @@ const originalPalette = [
   { hex: colors.gold, name: "Gold" },
   { hex: colors.coral, name: "Coral" },
   { hex: colors.terracotta, name: "Terracotta" },
-  { hex: colors.plum, name: "Plum", note: "Too washed-out alone" },
+  { hex: colors.plum, name: "Plum" },
 ];
 
 // Ordered light to dark.
@@ -63,24 +63,24 @@ const finalPalette = [
   { hex: colors.gold, name: "Gold" },
   { hex: colors.coral, name: "Coral" },
   { hex: colors.terracotta, name: "Terracotta" },
-  { hex: colors.plum, name: "Plum", note: "Accent" },
-  { hex: colors.oxblood, name: "Oxblood", note: "Anchor dark" },
-  { hex: colors.warmBlack, name: "Warm black", note: "Anchor dark" },
+  { hex: colors.plum, name: "Plum" },
+  { hex: colors.oxblood, name: "Oxblood" },
+  { hex: colors.warmBlack, name: "Warm black" },
 ];
 
 // Section anchors, used by both the contents card and the id'd wrappers
 // below. Keeping this as a single source of truth means adding a new
 // section only requires updating it in one place.
 const SECTIONS = [
-  { id: "project", label: "The Project" },
-  { id: "role", label: "My Role" },
-  { id: "decisions", label: "Key Decisions" },
-  { id: "outcome", label: "Outcome" },
+  { id: "project", label: "the project" },
+  { id: "role", label: "my role" },
+  { id: "decisions", label: "key decisions" },
+  { id: "outcome", label: "outcome" },
 ];
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="font-mono text-[10px] text-accent uppercase tracking-widest mb-4">
+    <p className="font-mono text-xs text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
   );
@@ -105,15 +105,10 @@ function ContentsCard() {
             key={section.id}
             href={`#${section.id}`}
             onClick={(e) => jumpToSection(e, section.id)}
-            className="group flex items-center justify-between py-3 first:pt-0 last:pb-0"
+            className="group flex items-center justify-between py-3 pl-8 first:pt-0 last:pb-0"
           >
-            <span className="flex items-center gap-3">
-              <span className="font-mono text-[11px] text-accent/70">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="font-body text-sm text-neutral-100 group-hover:text-accent transition-colors">
-                {section.label}
-              </span>
+            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colors">
+              {section.label}
             </span>
             <ArrowRight
               size={14}
@@ -126,66 +121,46 @@ function ContentsCard() {
   );
 }
 
-function OptionSwatch({
+// Picks legible text ink (warm black or cream) based on a swatch's own
+// luminance, so the colour name sits directly on the bar the way the
+// reference palette graphic does.
+function getContrastInk(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? colors.warmBlack : colors.paper;
+}
+
+function PaletteBar({
   hex,
   name,
   picked,
 }: {
   hex: string;
   name: string;
-  picked: boolean;
+  picked?: boolean;
 }) {
+  const ink = getContrastInk(hex);
   return (
-    <div className="flex flex-col items-center gap-2 text-center">
-      <div
-        className="w-9 h-9 rounded-full relative"
-        style={{
-          backgroundColor: hex,
-          boxShadow: picked
-            ? "0 0 0 3px #faf3e4, 0 0 0 4px var(--accent)"
-            : "none",
-          border: picked ? "none" : "1px solid rgba(0,0,0,0.15)",
-        }}
+    <div
+      className="w-full rounded-md px-3 py-2 flex items-center justify-between gap-2"
+      style={{ backgroundColor: hex }}
+    >
+      <span
+        className="font-mono text-[10px] tracking-wide truncate"
+        style={{ color: ink }}
       >
-        {picked && (
-          <span
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 font-mono text-[8px] tracking-widest uppercase px-1.5 py-0.5 rounded-full whitespace-nowrap text-neutral-950"
-            style={{ backgroundColor: "var(--accent)" }}
-          >
-            Picked
-          </span>
-        )}
-      </div>
-      <p className="font-body text-[11px] mt-1 text-neutral-400">{name}</p>
-    </div>
-  );
-}
-
-function MiniSwatch({
-  hex,
-  name,
-  note,
-}: {
-  hex: string;
-  name: string;
-  note?: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1.5 text-center w-16">
-      <div
-        className="w-9 h-9 rounded-full shrink-0 border border-accent/30"
-        style={{ backgroundColor: hex }}
-      />
-      <div>
-        <p className="font-body text-[11px] font-medium text-neutral-100 leading-tight">
-          {name}
-        </p>
-        {note && (
-          <p className="font-body text-[10px] text-neutral-500 leading-tight">
-            {note}
-          </p>
-        )}
-      </div>
+        {name}
+      </span>
+      {picked && (
+        <span
+          className="font-mono text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full shrink-0 text-neutral-950"
+          style={{ backgroundColor: "var(--accent)" }}
+        >
+          Picked
+        </span>
+      )}
     </div>
   );
 }
@@ -194,7 +169,7 @@ export default function PersevereCaseStudy() {
   return (
     <PageShell
       title="Persevere Media"
-      subtitle="Case Study - In Progress · Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
+      subtitle="Designing a website for a digital marketing agency that has to deliver personality, reliability and stand out from the crowd."
       icon={<PenTool size={28} />}
     >
       <div className="flex flex-col gap-8">
@@ -204,7 +179,7 @@ export default function PersevereCaseStudy() {
         <div id="project" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>The Project</SectionLabel>
-            <p className="font-body text-xl sm:text-2xl leading-relaxed text-neutral-100">
+            <p className="font-body text-sm leading-relaxed text-neutral-400">
               Persevere is a full-service digital marketing agency -
               videography, photography, content creation, and strategy under one
               roof - run by two best friends whose skillsets fill a gap in the
@@ -234,8 +209,8 @@ export default function PersevereCaseStudy() {
           <GlassCard>
             <SectionLabel>Key Decisions</SectionLabel>
 
-            <h3 className="font-body text-2xl sm:text-3xl mb-6 text-neutral-100">
-              Giving a washed-out palette an anchor
+            <h3 className="font-display text-2xl sm:text-3xl mb-6 text-neutral-100">
+              Enhancing the Colour Palette
             </h3>
 
             <div className="rounded-2xl border border-accent/20 bg-black/[0.03] grid sm:grid-cols-3 divide-y divide-accent/15 sm:divide-y-0 sm:divide-x sm:divide-accent/15">
@@ -245,19 +220,16 @@ export default function PersevereCaseStudy() {
                   <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
                     Issue
                   </p>
-                  <p className="font-body text-xs leading-relaxed text-neutral-400">
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
                     The founders' original palette had real charm, but the plum
                     was reading too grey and washed-out to carry the site as its
                     dark anchor.
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-2">
-                  <MiniSwatch {...originalPalette[0]} />
-                  <div className="grid grid-cols-2 justify-items-center gap-x-3 gap-y-4">
-                    {originalPalette.slice(1).map((swatch) => (
-                      <MiniSwatch key={swatch.hex} {...swatch} />
-                    ))}
-                  </div>
+                <div className="w-full flex flex-col gap-1.5 mt-2">
+                  {originalPalette.map((swatch) => (
+                    <PaletteBar key={swatch.hex} {...swatch} />
+                  ))}
                 </div>
               </div>
 
@@ -267,28 +239,16 @@ export default function PersevereCaseStudy() {
                   <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
                     What I Did
                   </p>
-                  <p className="font-body text-xs leading-relaxed text-neutral-400">
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
                     Kept plum in the palette as an accent, and shortlisted five
                     proper darks for the founders to choose from as the new
                     anchor.
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-6 mt-2">
-                  <OptionSwatch
-                    hex={darkOptions[0].hex}
-                    name={darkOptions[0].name}
-                    picked={darkOptions[0].picked}
-                  />
-                  <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-6">
-                    {darkOptions.slice(1).map((opt) => (
-                      <OptionSwatch
-                        key={opt.hex}
-                        hex={opt.hex}
-                        name={opt.name}
-                        picked={opt.picked}
-                      />
-                    ))}
-                  </div>
+                <div className="w-full flex flex-col gap-1.5 mt-2">
+                  {darkOptions.map((opt) => (
+                    <PaletteBar key={opt.hex} {...opt} />
+                  ))}
                 </div>
               </div>
 
@@ -298,26 +258,24 @@ export default function PersevereCaseStudy() {
                   <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
                     Outcome
                   </p>
-                  <p className="font-body text-xs leading-relaxed text-neutral-400">
-                    They picked two - oxblood and warm black - rather than just
-                    one. Every colour they walked in with is still in the final
-                    palette.
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    They picked two - oxblood and warm black. Every colour they
+                    walked in with is still in the final palette. It now feels
+                    complete and rounded.
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-4 mt-2">
-                  <MiniSwatch {...finalPalette[0]} />
-                  <div className="grid grid-cols-2 justify-items-center gap-x-3 gap-y-4">
-                    {finalPalette.slice(1).map((swatch) => (
-                      <MiniSwatch key={swatch.hex} {...swatch} />
-                    ))}
-                  </div>
+                <div className="w-full flex flex-col gap-1.5 mt-2">
+                  {finalPalette.map((swatch) => (
+                    <PaletteBar key={swatch.hex} {...swatch} />
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* TODO: Decision 2 - building out the full palette around warm black + oxblood */}
             {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
-            <p className="font-body text-xs mt-8 italic text-neutral-500">
+            <br />
+            <p className="font-body text-sm leading-relaxed text-neutral-400">
               Anchoring the palette with oxblood and warm black gave the site an
               instantly more polished, professional feel - without losing any of
               the warmth the founders started with. Every colour they walked in
