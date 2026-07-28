@@ -100,7 +100,7 @@ function ContentsCard() {
     <GlassCard>
       <SectionLabel>Contents</SectionLabel>
       <nav className="flex flex-col divide-y divide-accent/10">
-        {SECTIONS.map((section, i) => (
+        {SECTIONS.map((section) => (
           <a
             key={section.id}
             href={`#${section.id}`}
