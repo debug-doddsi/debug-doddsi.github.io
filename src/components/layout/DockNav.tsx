@@ -26,8 +26,7 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
   const items: DockItemData[] = NAV_ITEMS.map((item) => {
     const isActive =
       item.id === active ||
-      (item.id === "apps" &&
-        (active === "kitchen" || active === "dnd")) ||
+      (item.id === "apps" && (active === "kitchen" || active === "dnd")) ||
       (item.id === "caseStudies" && active === "persevere");
 
     return {
@@ -43,7 +42,12 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
   return (
     <div className="bottom-0 left-0 z-[1001] fixed w-full h-24 pointer-events-none">
       <div className="relative mx-auto w-fit h-full pointer-events-auto">
-        <Dock items={items} panelHeight={64} baseItemSize={48} magnification={64} />
+        <Dock
+          items={items}
+          panelHeight={64}
+          baseItemSize={48}
+          magnification={64}
+        />
       </div>
     </div>
   );
