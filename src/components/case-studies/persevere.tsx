@@ -183,7 +183,7 @@ function PaletteCircleRow({
             className="h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125"
             style={{ backgroundColor: swatch.hex }}
           />
-          <span className="font-mono text-[10px] tracking-wide text-neutral-400 truncate max-w-full">
+          <span className="font-mono text-xs tracking-wide text-neutral-400 truncate max-w-full">
             {swatch.name}
           </span>
         </div>
@@ -300,12 +300,12 @@ export default function PersevereCaseStudy() {
 
               <DecisionItem
                 number={2}
-                title="Decision title TBD"
+                title="Made Blog Publishing Self-Serve"
                 summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication, giving the founders a self-serve publishing flow that still runs through automated review before anything goes live."
               >
                 <div className="flex flex-col gap-4">
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
@@ -320,17 +320,18 @@ export default function PersevereCaseStudy() {
                   </div>
 
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Solution
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       I integrated Decap CMS into the site, giving the client a
                       simple login portal where they can write and publish blog
-                      posts themselves, no code, no waiting on me. Behind the
+                      posts themselves. No code, no waiting on me. Behind the
                       scenes, I set it up so every change still goes through a
-                      proper review process: each new post opens as a pull
-                      request, runs through automated checks, and only goes live
-                      once approved. I also deployed and configured the
+                      proper review process so nothing caught fire in my
+                      absence: each new post opens as a pull request, runs
+                      through automated checks, and only goes live once
+                      approved. I also deployed and configured the
                       authentication layer needed to connect the CMS securely to
                       the site’s GitHub repository, all without touching the
                       site’s existing custom design or performance.
@@ -338,7 +339,7 @@ export default function PersevereCaseStudy() {
                   </div>
 
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Impact
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
