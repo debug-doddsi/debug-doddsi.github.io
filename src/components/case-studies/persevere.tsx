@@ -176,20 +176,21 @@ function PaletteCircleRow({
   swatches: { hex: string; name: string; picked?: boolean }[];
 }) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex w-full items-start justify-between">
       {swatches.map((swatch) => (
         <div
           key={swatch.hex}
-          className="flex w-10 flex-col items-center gap-1.5"
+          className="flex flex-1 flex-col items-center gap-1.5 min-w-0"
         >
           <div
             className={cn(
-              "h-10 w-10 rounded-full ring-1 ring-black/10",
-              swatch.picked && "ring-2 ring-accent ring-offset-2 ring-offset-transparent"
+              "h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125",
+              swatch.picked &&
+                "ring-2 ring-accent ring-offset-2 ring-offset-transparent",
             )}
             style={{ backgroundColor: swatch.hex }}
           />
-          <span className="font-mono text-[8px] tracking-wide text-neutral-400 truncate max-w-full">
+          <span className="font-mono text-[10px] tracking-wide text-neutral-400 truncate max-w-full">
             {swatch.name}
           </span>
         </div>
@@ -245,8 +246,8 @@ export default function PersevereCaseStudy() {
             <Accordion type="single" collapsible defaultValue="decision-1">
               <DecisionItem
                 number={1}
-                title="Enhancing the Colour Palette"
-                summary="The founders' plum read as too grey to anchor the site alone, so I shortlisted five proper darks for them to choose from - they picked oxblood and warm black, and every original colour still made the final cut."
+                title="Optimised the Colour Palette"
+                summary="Strengthened the design integrity of the brand's palette by proposing new dark anchor options, giving the founders' branding a more intentional, sophisticated feel while keeping every original colour of their identity intact."
               >
                 <div className="flex flex-col gap-4">
                   {/* Issue */}
