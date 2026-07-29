@@ -109,6 +109,8 @@ export interface ProfessionalTimelineProps {
   emptyState?: React.ReactNode;
   className?: string;
   itemClassName?: string;
+  /** Vertical gap between item cards. Any Tailwind `gap-*` class. Defaults to `gap-16`. */
+  itemGapClassName?: string;
   lineClassName?: string;
   markerClassName?: string;
   /** aria-label for the outer <ol>. */
@@ -282,6 +284,7 @@ export function ProfessionalTimeline({
   emptyState,
   className = "",
   itemClassName,
+  itemGapClassName = "gap-8",
   lineClassName = "",
   markerClassName,
   ariaLabel = "Timeline",
@@ -337,7 +340,10 @@ export function ProfessionalTimeline({
   }
 
   return (
-    <ol className={`relative ${className}`} aria-label={ariaLabel}>
+    <ol
+      className={`relative flex flex-col ${itemGapClassName} ${className}`}
+      aria-label={ariaLabel}
+    >
       {/* Vertical timeline line */}
       <div
         className={`absolute left-4 top-0 bottom-0 w-0.5 bg-accent/30 ${lineClassName}`}

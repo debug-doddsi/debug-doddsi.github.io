@@ -103,10 +103,6 @@ const TIMELINE_ITEMS: TimelineItemData[] = JOBS.map((job, index) => ({
 
 export function Experience() {
   return (
-    <ProfessionalTimeline
-      items={TIMELINE_ITEMS}
-      defaultExpandedIds={[]}
-      itemClassName="pb-10 last:pb-0"
-    />
+    <ProfessionalTimeline items={TIMELINE_ITEMS} defaultExpandedIds={[]} />
   );
 }
