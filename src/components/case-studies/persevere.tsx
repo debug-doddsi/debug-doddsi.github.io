@@ -146,7 +146,7 @@ function DecisionItem({
     <AccordionItem value={`decision-${number}`}>
       <AccordionTrigger className="items-start py-5 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5">
         <div className="flex gap-4 text-left">
-          <span className="font-pixie text-4xl sm:text-4xl leading-none text-accent/40 shrink-0">
+          <span className="font-pixie text-6xl sm:text-7xl leading-none text-accent shrink-0">
             {String(number).padStart(2, "0")}
           </span>
           <div className="flex flex-col gap-1.5 pt-0.5">
