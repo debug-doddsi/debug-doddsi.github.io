@@ -5,7 +5,9 @@ interface PersevereCaseStudyPageProps {
   onBack: () => void;
 }
 
-export function PersevereCaseStudyPage({ onBack }: PersevereCaseStudyPageProps) {
+export function PersevereCaseStudyPage({
+  onBack,
+}: PersevereCaseStudyPageProps) {
   return (
     <div className="flex flex-col gap-6">
       <button

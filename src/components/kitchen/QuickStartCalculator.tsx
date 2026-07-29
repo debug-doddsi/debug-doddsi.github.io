@@ -82,7 +82,11 @@ export function QuickStartCalculator() {
         {/* Ratio key */}
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 px-3 py-2.5 bg-amber-50/80 border-t border-amber-200/40">
           {ratioKey.map(({ label, val }) => (
-            <span key={label} className="text-[11px]" style={{ color: CRUST_MID }}>
+            <span
+              key={label}
+              className="text-[11px]"
+              style={{ color: CRUST_MID }}
+            >
               <span className="font-bold" style={{ color: CRUST }}>
                 {label}:
               </span>{" "}
@@ -92,8 +96,12 @@ export function QuickStartCalculator() {
         </div>
       </div>
 
-      <p className="text-[10px] text-center px-2" style={{ color: "rgba(168,107,24,0.55)" }}>
-        Based on a classic sourdough formula. Adjust hydration to taste, wetter doughs yield a more open crumb.
+      <p
+        className="text-[10px] text-center px-2"
+        style={{ color: "rgba(168,107,24,0.55)" }}
+      >
+        Based on a classic sourdough formula. Adjust hydration to taste, wetter
+        doughs yield a more open crumb.
       </p>
     </div>
   );
