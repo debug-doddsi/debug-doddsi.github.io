@@ -210,6 +210,7 @@ const useAnimationLoop = (
       }
       lastTimestampRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trackRef is a ref access, not meant to retrigger the effect
   }, [
     targetVelocity,
     seqWidth,

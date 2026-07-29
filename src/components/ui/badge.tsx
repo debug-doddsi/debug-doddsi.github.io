@@ -46,4 +46,5 @@ function Badge({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- shadcn/ui pattern: component + its cva variants
 export { Badge, badgeVariants };
