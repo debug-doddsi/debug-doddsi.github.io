@@ -21,18 +21,18 @@ import {
  *                           out on its own to anchor the site as a dark)
  *   gold        #EDB03E   - original palette, accent
  *   paper       #F7F3E3   - original palette, page background
- *   oxblood     #4A1F1D   - added dark, picked by the founders
- *   warmBlack   #241914   - added dark, picked by the founders
+ *   oxblood     #4A1F1D   - added dark, picked by the clients
+ *   warmBlack   #241914   - added dark, picked by the clients
  *
  * Both darks were shortlisted from a set of five options as a fix for the
- * plum reading as too grey/dull to anchor the site alone. The founders
+ * plum reading as too grey/dull to anchor the site alone. The clients
  * picked both oxblood and warm black rather than just one.
  *
  * These are Persevere's own brand colours - kept as literal swatch values
  * since they're the subject of the case study. Everything else (type,
  * section chrome, card surfaces) uses this site's own theme.
  */
-const colors = {
+const colours = {
   terracotta: "#D5573B",
   coral: "#DF7F68",
   plum: "#594157",
@@ -44,7 +44,7 @@ const colors = {
 
 // The five dark options I shortlisted as a fix for the plum reading too
 // washed-out to anchor the site. Oxblood and warm black are the two the
-// founders picked - both made it into the final palette.
+// clients picked - both made it into the final palette.
 // Ordered light to dark.
 const darkOptions = [
   { hex: "#3D2B2E", name: "Aubergine" },
@@ -56,22 +56,22 @@ const darkOptions = [
 
 // Ordered light to dark.
 const originalPalette = [
-  { hex: colors.paper, name: "Cream" },
-  { hex: colors.gold, name: "Gold" },
-  { hex: colors.coral, name: "Coral" },
-  { hex: colors.terracotta, name: "Terracotta" },
-  { hex: colors.plum, name: "Plum" },
+  { hex: colours.paper, name: "Cream" },
+  { hex: colours.gold, name: "Gold" },
+  { hex: colours.coral, name: "Coral" },
+  { hex: colours.terracotta, name: "Terracotta" },
+  { hex: colours.plum, name: "Plum" },
 ];
 
 // Ordered light to dark.
 const finalPalette = [
-  { hex: colors.paper, name: "Cream" },
-  { hex: colors.gold, name: "Gold" },
-  { hex: colors.coral, name: "Coral" },
-  { hex: colors.terracotta, name: "Terracotta" },
-  { hex: colors.plum, name: "Plum" },
-  { hex: colors.oxblood, name: "Oxblood" },
-  { hex: colors.warmBlack, name: "Warm black" },
+  { hex: colours.paper, name: "Cream" },
+  { hex: colours.gold, name: "Gold" },
+  { hex: colours.coral, name: "Coral" },
+  { hex: colours.terracotta, name: "Terracotta" },
+  { hex: colours.plum, name: "Plum" },
+  { hex: colours.oxblood, name: "Oxblood" },
+  { hex: colours.warmBlack, name: "Warm black" },
 ];
 
 // Section anchors, used by both the contents card and the id'd wrappers
@@ -113,7 +113,7 @@ function ContentsCard() {
             onClick={(e) => jumpToSection(e, section.id)}
             className="group flex items-center justify-between py-3 pl-8 first:pt-0 last:pb-0"
           >
-            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colors">
+            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colours">
               {section.label}
             </span>
             <ArrowRight
@@ -146,7 +146,7 @@ function DecisionItem({
     <AccordionItem value={`decision-${number}`}>
       <AccordionTrigger className="items-start py-5 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5">
         <div className="flex gap-4 text-left">
-          <span className="font-pixie text-3xl sm:text-4xl leading-none text-accent/40 shrink-0">
+          <span className="font-pixie text-4xl sm:text-4xl leading-none text-accent/40 shrink-0">
             {String(number).padStart(2, "0")}
           </span>
           <div className="flex flex-col gap-1.5 pt-0.5">
@@ -159,9 +159,7 @@ function DecisionItem({
           </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="pl-[calc(2.25rem+1rem)] sm:pl-[calc(2.75rem+1rem)]">
-        {children}
-      </AccordionContent>
+      <AccordionContent>{children}</AccordionContent>
     </AccordionItem>
   );
 }
@@ -226,8 +224,8 @@ export default function PersevereCaseStudy() {
               I'm the designer behind the site from the ground up - setting the
               visual tone, proposing the colour system, and shaping how the
               brand feels before a single page goes live. I'm working directly
-              with the two founders, translating their personalities and the gap
-              they fill in the market into something visual.
+              with the clients, translating their personalities and the gap they
+              fill in the market into something visual.
             </p>
             {/* TODO: confirm scope (design only vs. design + build) once brief lands */}
           </GlassCard>
@@ -242,52 +240,120 @@ export default function PersevereCaseStudy() {
               <DecisionItem
                 number={1}
                 title="Optimised the Colour Palette"
-                summary="Strengthened the design integrity of the brand's palette by proposing new dark anchor options, giving the founders' branding a more intentional, sophisticated feel while keeping every original colour of their identity intact."
+                summary="Introduced warm chromatic neutrals as intentional dark anchors, giving structure to the layout and elevating visual hierarchy without compromising the clients' original palette."
               >
                 <div className="flex flex-col gap-4">
                   {/* Issue */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-s text-accent uppercase tracking-widest">
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The founders' original palette had real charm, but the
-                      plum was reading too grey and washed-out to carry the site
-                      as its dark anchor.
+                      I noticed the plum was reading grey and washed-out next to
+                      the palette's rich terracotta and gold tones. Since the
+                      clients loved the purple, I wanted to keep it as an
+                      accent, but the page still needed a proper dark anchor to
+                      hold everything together.
                     </p>
                     <PaletteCircleRow swatches={originalPalette} />
                   </div>
 
                   {/* Solution */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-s text-accent uppercase tracking-widest">
                       Solution
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      Kept plum in the palette as an accent, and shortlisted
-                      five proper darks for the founders to choose from as the
-                      new anchor.
+                      I ruled out true-black early because its absolute
+                      desaturation creates a harsh, clinical contrast that
+                      clashes with the brand's warm personality. From a colour
+                      theory perspective, pure black absorbs all light and lacks
+                      a colour temperature, so I instead proposed warm chromatic
+                      neutrals like oxblood and espresso to maintain a unified
+                      colour temperature with the sunset-inspired palette. I
+                      also tested a navy blue option after one of the clients
+                      enquired about its possible use. I lay all five choices
+                      out side by side so they could compare them directly
+                      against the existing colours.
                     </p>
+
                     <PaletteCircleRow swatches={darkOptions} />
                   </div>
 
                   {/* Impact */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                    <p className="font-mono text-s text-accent uppercase tracking-widest">
                       Impact
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      They picked two - oxblood and warm black. Every colour
-                      they walked in with is still in the final palette, and the
-                      site now feels complete, polished and professional without
-                      losing any of the original warmth.
+                      The clients picked two dark colours - oxblood and warm
+                      black. Every colour they selected is still in the final
+                      palette, and introducing these dark anchors establishes a
+                      clear visual hierarchy that will anchor the layout,
+                      naturally guiding user attention to key conversion points
+                      across the site.
                     </p>
                     <PaletteCircleRow swatches={finalPalette} />
                   </div>
                 </div>
               </DecisionItem>
 
-              {/* TODO: Decision 2 - building out the full palette around warm black + oxblood */}
+              <DecisionItem
+                number={2}
+                title="Decision title TBD"
+                summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication, giving the founders a self-serve publishing flow that still runs through automated review before anything goes live."
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Issue
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      Persevere’s site owners needed to publish blog posts
+                      regularly, but every update meant sending it to me first.
+                      A simple text change turned into a queue: write the copy,
+                      send it over, wait for me to code it in, review, deploy.
+                      For a business that wanted to post often, that bottleneck
+                      slowed them down and made me a dependency for something
+                      that should have been quick and easy on their end.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Solution
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      I integrated Decap CMS into the site, giving the client a
+                      simple login portal where they can write and publish blog
+                      posts themselves, no code, no waiting on me. Behind the
+                      scenes, I set it up so every change still goes through a
+                      proper review process: each new post opens as a pull
+                      request, runs through automated checks, and only goes live
+                      once approved. I also deployed and configured the
+                      authentication layer needed to connect the CMS securely to
+                      the site’s GitHub repository, all without touching the
+                      site’s existing custom design or performance.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Impact
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      The client now has full independence to publish content on
+                      their own schedule, while the site retains the safety net
+                      of a proper review pipeline, so nothing goes live broken
+                      or unreviewed. For any client, this kind of setup means
+                      faster content turnaround, no developer bottleneck for
+                      routine updates, and peace of mind that their site stays
+                      stable even as they manage it themselves.
+                    </p>
+                  </div>
+                </div>
+              </DecisionItem>
+
               {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
             </Accordion>
           </GlassCard>
