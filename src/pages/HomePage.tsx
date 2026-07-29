@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
-import { Sparkles, FolderGit2, Mail } from "lucide-react";
+import { FolderGit2, Mail, Heart, Pen } from "lucide-react";
 import { BentoGrid, BentoCard } from "../components/ui/bento-grid";
-import { TechLoop } from "../components/about/TechLoop";
 import type { TabId } from "../types";
 
 interface HomePageProps {
@@ -86,28 +85,48 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <BentoGrid className="max-w-5xl mx-auto">
         {/* What I do */}
         <BentoCard
+          size="wide"
           name="What I Do"
-          description="Projects and case studies from things I've shipped."
+          description="Where I've been and what I've been up to since graduation!"
           Icon={FolderGit2}
-          cta="See my work"
-          onClick={() => onNavigate("caseStudies")}
+          cta="Have a nosey"
+          onClick={() => onNavigate("work")}
         />
 
-        {/* Tech stack */}
         <BentoCard
-          name="My Tech Stack"
-          Icon={Sparkles}
-          content={<TechLoop />}
-          className="overflow-hidden"
+          size="sm"
+          name="My Current Project "
+          description="My hobby outside of work! I am creating a website for my husband's business."
+          Icon={Pen}
+          cta="See my work"
+          onClick={() => onNavigate("persevere")}
         />
 
-        {/* Say hello */}
+        {/* Contact */}
         <BentoCard
           name="Let's Talk!"
           description="Always happy to chat about a project or an idea."
           Icon={Mail}
-          cta="hello@ionakate.uk"
-          href="mailto:hello@ionakate.uk"
+          cta="Get in touch"
+          onClick={() => onNavigate("contact")}
+        />
+
+        <BentoCard
+          size="wide"
+          name="Placeholder"
+          description="Placeholder"
+          Icon={Heart}
+          cta="Placeholder"
+          href="Placeholder"
+        />
+
+        <BentoCard
+          size="full"
+          name="Placeholder"
+          description="Placeholder"
+          Icon={Heart}
+          cta="Placeholder"
+          href="Placeholder"
         />
       </BentoGrid>
     </div>
