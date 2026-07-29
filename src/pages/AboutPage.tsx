@@ -1,5 +1,4 @@
 import { PageShell } from "../components/layout/PageShell";
-import { Interests } from "../components/about/Interests";
 import { Bio } from "../components/about/Bio";
 
 export function AboutPage() {
@@ -11,7 +10,6 @@ export function AboutPage() {
       >
         <div className="space-y-8">
           <Bio />
-          <Interests />
         </div>
       </PageShell>
     </div>
