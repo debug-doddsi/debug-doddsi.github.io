@@ -5,7 +5,11 @@ import { Experience } from "../components/about/Experience";
 
 export function WorkPage() {
   return (
-    <PageShell title="Work" icon={<Folder size={28} />}>
+    <PageShell
+      title="Work"
+      subtitle="Places I have honed my craft"
+      icon={<Folder size={28} />}
+    >
       {/* Personality note */}
       <GlassCard className="flex items-start gap-3 mb-8 p-4">
         <Heart size={15} className="mt-0.5 text-accent shrink-0" />

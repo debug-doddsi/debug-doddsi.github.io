@@ -11,7 +11,7 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
   return (
     <PageShell
       title="My Apps"
-      subtitle="Apps I have made for myself and use day-to-day!"
+      subtitle="Silly little apps I have made for my friends and I!"
       icon={<LayoutGrid size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
@@ -19,7 +19,7 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
           subtitle="Kitchen · Baking"
-          description="I use this app to track my sourdough starter feedings, generate a step-by-step baking guide, and calculate dough ratios for my loaves."
+          description="I used this app to throughly document and track my sourdough starter feedings, generate a step-by-step baking guide, and quickly calculate flour / water / starter / salt ratios for my loaves."
           placeholder={
             <CutoutCardImage
               src="/sourdough/sourdough.jpg"
@@ -34,7 +34,7 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
           icon={<Map size={18} />}
           title="D&D Map Maker"
           subtitle="Cartography · Tabletop"
-          description="I created this app with my DM in mind. This app generates landscape and civilisation maps, and populates them with all your usual locations."
+          description="I created this app with my DM in mind. This app generates landscape and civilisation maps, and populates them with all your usual locations. Also allows for custom pins to be added. Skyrim inspired."
           placeholder={
             <CutoutCardImage src="/dndmapmaker/dnd.jpg" alt="D&D map" />
           }
