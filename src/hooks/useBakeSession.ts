@@ -21,20 +21,57 @@ const STORAGE_KEY = "sourdough-bake-session";
 
 function buildSteps(): BakeStep[] {
   const steps: Array<{ label: string; note: string; timerMinutes?: number }> = [
-    { label: "Autolyse", note: "Mix flour + water, rest 45 min", timerMinutes: 45 },
-    { label: "Add starter + salt", note: "Mix thoroughly until fully incorporated" },
-    { label: "Stretch & fold - set 1", note: "30 min after mixing", timerMinutes: 30 },
+    {
+      label: "Autolyse",
+      note: "Mix flour + water, rest 45 min",
+      timerMinutes: 45,
+    },
+    {
+      label: "Add starter + salt",
+      note: "Mix thoroughly until fully incorporated",
+    },
+    {
+      label: "Stretch & fold - set 1",
+      note: "30 min after mixing",
+      timerMinutes: 30,
+    },
     { label: "Stretch & fold - set 2", note: "30 min later", timerMinutes: 30 },
     { label: "Stretch & fold - set 3", note: "30 min later", timerMinutes: 30 },
     { label: "Stretch & fold - set 4", note: "30 min later", timerMinutes: 30 },
-    { label: "Bulk fermentation", note: "Rest until dough has doubled, ~3–4 h" },
-    { label: "Pre-shape & bench rest", note: "Shape loosely, rest 20 min", timerMinutes: 20 },
+    {
+      label: "Bulk fermentation",
+      note: "Rest until dough has doubled, ~3–4 h",
+    },
+    {
+      label: "Pre-shape & bench rest",
+      note: "Shape loosely, rest 20 min",
+      timerMinutes: 20,
+    },
     { label: "Final shape", note: "Shape tightly into a boule or batard" },
-    { label: "Proof", note: "Cold proof overnight 8–16 h, or warm proof 2–3 h" },
-    { label: "Preheat oven", note: "250 °C / 480 °F with Dutch oven inside, 30–45 min", timerMinutes: 40 },
-    { label: "Score & bake covered", note: "20 min at 250 °C with lid on", timerMinutes: 20 },
-    { label: "Bake uncovered", note: "20–25 min at 230 °C until deep golden", timerMinutes: 22 },
-    { label: "Cool on rack", note: "At least 1 h before slicing", timerMinutes: 60 },
+    {
+      label: "Proof",
+      note: "Cold proof overnight 8–16 h, or warm proof 2–3 h",
+    },
+    {
+      label: "Preheat oven",
+      note: "250 °C / 480 °F with Dutch oven inside, 30–45 min",
+      timerMinutes: 40,
+    },
+    {
+      label: "Score & bake covered",
+      note: "20 min at 250 °C with lid on",
+      timerMinutes: 20,
+    },
+    {
+      label: "Bake uncovered",
+      note: "20–25 min at 230 °C until deep golden",
+      timerMinutes: 22,
+    },
+    {
+      label: "Cool on rack",
+      note: "At least 1 h before slicing",
+      timerMinutes: 60,
+    },
   ];
   return steps.map((s, i) => ({
     id: String(i + 1),
@@ -87,7 +124,7 @@ export function useBakeSession() {
     const updated: BakeSession = {
       ...session,
       steps: session.steps.map((s) =>
-        s.id === stepId ? { ...s, done: !s.done } : s
+        s.id === stepId ? { ...s, done: !s.done } : s,
       ),
     };
     save(updated);
