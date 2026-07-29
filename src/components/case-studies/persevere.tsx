@@ -7,7 +7,6 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "../ui/accordion";
-import { cn } from "../../lib/utils";
 
 /**
  * Persevere - Case Study
@@ -48,11 +47,11 @@ const colors = {
 // founders picked - both made it into the final palette.
 // Ordered light to dark.
 const darkOptions = [
-  { hex: "#3D2B2E", name: "Aubergine", picked: false },
-  { hex: "#4A1F1D", name: "Oxblood", picked: true },
-  { hex: "#3A2620", name: "Espresso", picked: false },
-  { hex: "#1B2A4A", name: "Midnight navy", picked: false },
-  { hex: "#241914", name: "Warm black", picked: true },
+  { hex: "#3D2B2E", name: "Aubergine" },
+  { hex: "#4A1F1D", name: "Oxblood" },
+  { hex: "#3A2620", name: "Espresso" },
+  { hex: "#1B2A4A", name: "Midnight navy" },
+  { hex: "#241914", name: "Warm black" },
 ];
 
 // Ordered light to dark.
@@ -173,7 +172,7 @@ function DecisionItem({
 function PaletteCircleRow({
   swatches,
 }: {
-  swatches: { hex: string; name: string; picked?: boolean }[];
+  swatches: { hex: string; name: string }[];
 }) {
   return (
     <div className="flex w-full items-start justify-between">
@@ -183,11 +182,7 @@ function PaletteCircleRow({
           className="flex flex-1 flex-col items-center gap-1.5 min-w-0"
         >
           <div
-            className={cn(
-              "h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125",
-              swatch.picked &&
-                "ring-2 ring-accent ring-offset-2 ring-offset-transparent",
-            )}
+            className="h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125"
             style={{ backgroundColor: swatch.hex }}
           />
           <span className="font-mono text-[10px] tracking-wide text-neutral-400 truncate max-w-full">
