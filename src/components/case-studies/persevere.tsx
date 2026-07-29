@@ -1,6 +1,13 @@
 import { PenTool, ArrowRight } from "lucide-react";
 import { PageShell } from "../layout/PageShell";
 import { GlassCard } from "../ui/GlassCard";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "../ui/accordion";
+import { cn } from "../../lib/utils";
 
 /**
  * Persevere - Case Study
@@ -80,7 +87,7 @@ const SECTIONS = [
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="font-mono text-xs text-accent lowercase tracking-widest mb-4">
+    <p className="font-mono text-sm text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
   );
@@ -121,46 +128,72 @@ function ContentsCard() {
   );
 }
 
-// Picks legible text ink (warm black or cream) based on a swatch's own
-// luminance, so the colour name sits directly on the bar the way the
-// reference palette graphic does.
-function getContrastInk(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55 ? colors.warmBlack : colors.paper;
+// A single numbered, collapsible "Key Decision" - the number + title +
+// summary stay visible as the tl;dr, and the chevron expands to the full
+// issue/what-I-did/outcome breakdown. New decisions just add another
+// DecisionItem with the next number.
+function DecisionItem({
+  number,
+  title,
+  summary,
+  children,
+}: {
+  number: number;
+  title: string;
+  summary: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <AccordionItem value={`decision-${number}`}>
+      <AccordionTrigger className="items-start py-5 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5">
+        <div className="flex gap-4 text-left">
+          <span className="font-pixie text-3xl sm:text-4xl leading-none text-accent/40 shrink-0">
+            {String(number).padStart(2, "0")}
+          </span>
+          <div className="flex flex-col gap-1.5 pt-0.5">
+            <h3 className="font-display text-xl sm:text-2xl text-neutral-100">
+              {title}
+            </h3>
+            <p className="font-body text-sm font-normal leading-relaxed text-neutral-400">
+              {summary}
+            </p>
+          </div>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="pl-[calc(2.25rem+1rem)] sm:pl-[calc(2.75rem+1rem)]">
+        {children}
+      </AccordionContent>
+    </AccordionItem>
+  );
 }
 
-function PaletteBar({
-  hex,
-  name,
-  picked,
+// Fixed-size circles (not a share of the row width), so a palette always
+// reads at the same scale whether the card holds 5 swatches or 7 - they
+// just wrap onto a second line if the row runs out of space.
+function PaletteCircleRow({
+  swatches,
 }: {
-  hex: string;
-  name: string;
-  picked?: boolean;
+  swatches: { hex: string; name: string; picked?: boolean }[];
 }) {
-  const ink = getContrastInk(hex);
   return (
-    <div
-      className="w-full rounded-md px-3 py-2 flex items-center justify-between gap-2"
-      style={{ backgroundColor: hex }}
-    >
-      <span
-        className="font-mono text-[10px] tracking-wide truncate"
-        style={{ color: ink }}
-      >
-        {name}
-      </span>
-      {picked && (
-        <span
-          className="font-mono text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-full shrink-0 text-neutral-950"
-          style={{ backgroundColor: "var(--accent)" }}
+    <div className="flex flex-wrap gap-3">
+      {swatches.map((swatch) => (
+        <div
+          key={swatch.hex}
+          className="flex w-10 flex-col items-center gap-1.5"
         >
-          Picked
-        </span>
-      )}
+          <div
+            className={cn(
+              "h-10 w-10 rounded-full ring-1 ring-black/10",
+              swatch.picked && "ring-2 ring-accent ring-offset-2 ring-offset-transparent"
+            )}
+            style={{ backgroundColor: swatch.hex }}
+          />
+          <span className="font-mono text-[8px] tracking-wide text-neutral-400 truncate max-w-full">
+            {swatch.name}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -209,78 +242,58 @@ export default function PersevereCaseStudy() {
           <GlassCard>
             <SectionLabel>Key Decisions</SectionLabel>
 
-            <h3 className="font-display text-2xl sm:text-3xl mb-6 text-neutral-100">
-              Enhancing the Colour Palette
-            </h3>
+            <Accordion type="single" collapsible defaultValue="decision-1">
+              <DecisionItem
+                number={1}
+                title="Enhancing the Colour Palette"
+                summary="The founders' plum read as too grey to anchor the site alone, so I shortlisted five proper darks for them to choose from - they picked oxblood and warm black, and every original colour still made the final cut."
+              >
+                <div className="flex flex-col gap-4">
+                  {/* Issue */}
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Issue
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      The founders' original palette had real charm, but the
+                      plum was reading too grey and washed-out to carry the site
+                      as its dark anchor.
+                    </p>
+                    <PaletteCircleRow swatches={originalPalette} />
+                  </div>
 
-            <div className="rounded-2xl border border-accent/20 bg-black/[0.03] grid sm:grid-cols-3 divide-y divide-accent/15 sm:divide-y-0 sm:divide-x sm:divide-accent/15">
-              {/* Issue */}
-              <div className="p-6 flex flex-col items-center text-center">
-                <div className="flex flex-col items-center gap-4 flex-1">
-                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
-                    Issue
-                  </p>
-                  <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    The founders' original palette had real charm, but the plum
-                    was reading too grey and washed-out to carry the site as its
-                    dark anchor.
-                  </p>
-                </div>
-                <div className="w-full flex flex-col gap-1.5 mt-2">
-                  {originalPalette.map((swatch) => (
-                    <PaletteBar key={swatch.hex} {...swatch} />
-                  ))}
-                </div>
-              </div>
+                  {/* Solution */}
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Solution
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      Kept plum in the palette as an accent, and shortlisted
+                      five proper darks for the founders to choose from as the
+                      new anchor.
+                    </p>
+                    <PaletteCircleRow swatches={darkOptions} />
+                  </div>
 
-              {/* What I Did */}
-              <div className="p-6 flex flex-col items-center text-center">
-                <div className="flex flex-col items-center gap-4 flex-1">
-                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
-                    What I Did
-                  </p>
-                  <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    Kept plum in the palette as an accent, and shortlisted five
-                    proper darks for the founders to choose from as the new
-                    anchor.
-                  </p>
+                  {/* Impact */}
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
+                      Impact
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      They picked two - oxblood and warm black. Every colour
+                      they walked in with is still in the final palette, and the
+                      site now feels complete, polished and professional without
+                      losing any of the original warmth.
+                    </p>
+                    <PaletteCircleRow swatches={finalPalette} />
+                  </div>
                 </div>
-                <div className="w-full flex flex-col gap-1.5 mt-2">
-                  {darkOptions.map((opt) => (
-                    <PaletteBar key={opt.hex} {...opt} />
-                  ))}
-                </div>
-              </div>
+              </DecisionItem>
 
-              {/* Outcome */}
-              <div className="p-6 flex flex-col items-center text-center">
-                <div className="flex flex-col items-center gap-4 flex-1">
-                  <p className="font-mono text-[10px] text-accent uppercase tracking-widest">
-                    Outcome
-                  </p>
-                  <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    They picked two - oxblood and warm black. Every colour they
-                    walked in with is still in the final palette. It now feels
-                    complete and rounded.
-                  </p>
-                </div>
-                <div className="w-full flex flex-col gap-1.5 mt-2">
-                  {finalPalette.map((swatch) => (
-                    <PaletteBar key={swatch.hex} {...swatch} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* TODO: Decision 2 - building out the full palette around warm black + oxblood */}
-            {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
-            <br />
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
-              Anchoring the palette with oxblood and warm black gave the site an
-              instantly more polished, professional feel - without losing any of
-              the warmth the founders started with. Every colour they walked in
-              with is still in the final palette.
-            </p>
+              {/* TODO: Decision 2 - building out the full palette around warm black + oxblood */}
+              {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
+            </Accordion>
           </GlassCard>
         </div>
       </div>

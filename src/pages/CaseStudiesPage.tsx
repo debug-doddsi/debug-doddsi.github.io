@@ -1,6 +1,6 @@
 import { FileText, PenTool } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
-import { LaunchCard } from "../components/ui/LaunchCard";
+import { CutoutLaunchCard } from "../components/ui/CutoutLaunchCard";
 import type { TabId } from "../types";
 
 interface CaseStudiesPageProps {
@@ -15,7 +15,7 @@ export function CaseStudiesPage({ onNavigate }: CaseStudiesPageProps) {
       icon={<FileText size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
-        <LaunchCard
+        <CutoutLaunchCard
           icon={<PenTool size={18} />}
           title="Persevere Media"
           subtitle="Branding · Web Design"

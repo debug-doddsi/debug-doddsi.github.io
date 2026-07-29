@@ -1,6 +1,7 @@
 import { ChefHat, Map, LayoutGrid } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
-import { LaunchCard } from "../components/ui/LaunchCard";
+import { CutoutLaunchCard } from "../components/ui/CutoutLaunchCard";
+import { CutoutCardImage } from "../components/ui/cutout-card";
 
 interface AppsPageProps {
   onNavigate: (tab: "kitchen" | "dnd") => void;
@@ -14,34 +15,22 @@ export function AppsPage({ onNavigate }: AppsPageProps) {
       icon={<LayoutGrid size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
-        <LaunchCard
+        <CutoutLaunchCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
           subtitle="Kitchen · Baking"
           description="I use this app to track my sourdough starter feedings, generate a step-by-step baking guide, and calculate dough ratios for my loaves."
-          placeholder={
-            <img
-              src="/sourdough/sourdough.jpg"
-              alt="Sourdough bread"
-              className="w-full h-full object-cover"
-            />
-          }
+          placeholder={<CutoutCardImage src="/sourdough/sourdough.jpg" alt="Sourdough bread" />}
           ctaLabel="Open App"
           onLaunch={() => onNavigate("kitchen")}
         />
 
-        <LaunchCard
+        <CutoutLaunchCard
           icon={<Map size={18} />}
           title="D&D Map Maker"
           subtitle="Cartography · Tabletop"
           description="I created this app with my DM in mind. This app generates landscape and civilisation maps, and populates them with all youur usual locations."
-          placeholder={
-            <img
-              src="/dndmapmaker/dnd.jpg"
-              alt="D&D map"
-              className="w-full h-full object-cover"
-            />
-          }
+          placeholder={<CutoutCardImage src="/dndmapmaker/dnd.jpg" alt="D&D map" />}
           ctaLabel="Open App"
           onLaunch={() => onNavigate("dnd")}
         />
