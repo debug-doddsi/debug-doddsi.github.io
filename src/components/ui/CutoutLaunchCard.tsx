@@ -10,8 +10,8 @@ import {
   CutoutCardContent,
   CutoutCorner,
   CutoutCardAction,
-  useCutoutContentStaggerVariants,
 } from "./cutout-card";
+import { useCutoutContentStaggerVariants } from "./cutout-card-shared";
 
 interface CutoutLaunchCardProps {
   icon: ReactNode;

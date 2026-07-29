@@ -1,7 +1,4 @@
-import {
-  ProfessionalTimeline,
-  type TimelineItemData,
-} from "../ui/timeline";
+import { ProfessionalTimeline, type TimelineItemData } from "../ui/timeline";
 
 interface Job {
   title: string;
