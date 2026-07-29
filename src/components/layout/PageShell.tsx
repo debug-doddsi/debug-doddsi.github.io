@@ -70,7 +70,7 @@ interface PageShellProps {
   subtitle?: string;
   icon?: ReactNode;
   children?: ReactNode;
-  /** Opt-in decorative sparkles around the title. Off by default. */
+  /** Opt-in decorative sparkles around the title. On by default. */
   sparkles?: boolean;
 }
 
@@ -94,7 +94,7 @@ export function PageShell({
             ))}
         </div>
         {subtitle && (
-          <p className="mt-2 font-mono text-neutral-500 text-xs leading-relaxed">
+          <p className="mt-5 font-mono text-neutral-500 text-sm leading-relaxed">
             {subtitle}
           </p>
         )}
