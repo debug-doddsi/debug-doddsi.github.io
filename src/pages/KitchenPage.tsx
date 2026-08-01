@@ -13,7 +13,7 @@ export function KitchenPage({ onBack }: KitchenPageProps) {
         onClick={onBack}
         className="flex items-center gap-1.5 self-start font-body text-xs text-neutral-500 hover:text-accent transition-colors duration-150"
       >
-        <ArrowLeft size={13} /> Back to My Apps
+        <ArrowLeft size={13} /> Back to Projects
       </button>
       <PageShell
         icon={<ChefHat size={22} />}

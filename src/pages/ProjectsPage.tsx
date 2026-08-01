@@ -1,20 +1,46 @@
-import { ChefHat, Map, LayoutGrid } from "lucide-react";
+import { ChefHat, Map, PenTool, LayoutGrid } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
 import { CutoutLaunchCard } from "../components/ui/CutoutLaunchCard";
 import { CutoutCardImage } from "../components/ui/cutout-card";
+import type { TabId } from "../types";
 
-interface AppsPageProps {
-  onNavigate: (tab: "kitchen" | "dnd") => void;
+interface ProjectsPageProps {
+  onNavigate: (tab: TabId) => void;
 }
 
-export function AppsPage({ onNavigate }: AppsPageProps) {
+export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
   return (
     <PageShell
-      title="My Apps"
-      subtitle="Silly little apps I have made for my friends and I!"
+      title="Projects"
+      subtitle="Case studies, side projects, and silly little apps I've made for my friends and I"
       icon={<LayoutGrid size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
+        <CutoutLaunchCard
+          icon={<PenTool size={18} />}
+          title="Persevere Media"
+          subtitle="Branding · Web Design"
+          description="Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
+          placeholder={
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{
+                background:
+                  "linear-gradient(135deg, #594157 0%, #d5573b 55%, #edb03e 100%)",
+              }}
+            >
+              <span
+                className="text-2xl text-[#F3EEE6]"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                Persevere Media
+              </span>
+            </div>
+          }
+          ctaLabel="Read case study"
+          onLaunch={() => onNavigate("persevere")}
+        />
+
         <CutoutLaunchCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"

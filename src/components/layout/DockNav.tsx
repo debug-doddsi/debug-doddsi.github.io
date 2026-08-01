@@ -1,4 +1,4 @@
-import { Home, Smile, Folder, FileText, Send, LayoutGrid } from "lucide-react";
+import { Home, Smile, Folder, Send, LayoutGrid } from "lucide-react";
 import Dock, { type DockItemData } from "../ui/Dock";
 import type { TabId } from "../../types";
 
@@ -12,8 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "about", label: "About", icon: <Smile size={20} /> },
   { id: "work", label: "Work", icon: <Folder size={20} /> },
-  { id: "caseStudies", label: "Case Studies", icon: <FileText size={20} /> },
-  { id: "apps", label: "My Apps", icon: <LayoutGrid size={20} /> },
+  { id: "projects", label: "Projects", icon: <LayoutGrid size={20} /> },
   { id: "contact", label: "Contact", icon: <Send size={20} /> },
 ];
 
@@ -26,8 +25,8 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
   const items: DockItemData[] = NAV_ITEMS.map((item) => {
     const isActive =
       item.id === active ||
-      (item.id === "apps" && (active === "kitchen" || active === "dnd")) ||
-      (item.id === "caseStudies" && active === "persevere");
+      (item.id === "projects" &&
+        (active === "kitchen" || active === "dnd" || active === "persevere"));
 
     return {
       icon: item.icon,

@@ -12,7 +12,7 @@ export function DnDPage({ onBack }: DnDPageProps) {
         onClick={onBack}
         className="flex items-center gap-1.5 self-start font-body text-xs text-neutral-500 hover:text-accent transition-colors duration-150"
       >
-        <ArrowLeft size={13} /> Back to My Apps
+        <ArrowLeft size={13} /> Back to Projects
       </button>
       <div className="flex items-center gap-3 border-b border-neutral-800 pb-4">
         <Map size={20} className="text-accent shrink-0" />

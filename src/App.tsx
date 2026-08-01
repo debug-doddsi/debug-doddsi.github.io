@@ -4,11 +4,10 @@ import type { TabId } from "./types";
 import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
 import { WorkPage } from "./pages/WorkPage";
-import { CaseStudiesPage } from "./pages/CaseStudiesPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
 import { DnDPage } from "./pages/DnDPage";
-import { AppsPage } from "./pages/AppsPage";
 import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
 import Grainient from "./components/ui/Grainient";
 import { TAB_PATHS, getTabFromLocation } from "./lib/routes";
@@ -68,20 +67,18 @@ export default function App() {
         return <AboutPage />;
       case "work":
         return <WorkPage />;
-      case "caseStudies":
-        return <CaseStudiesPage onNavigate={navigate} />;
+      case "projects":
+        return <ProjectsPage onNavigate={navigate} />;
       case "persevere":
         return (
-          <PersevereCaseStudyPage onBack={() => navigate("caseStudies")} />
+          <PersevereCaseStudyPage onBack={() => navigate("projects")} />
         );
       case "contact":
         return <ContactPage />;
       case "kitchen":
-        return <KitchenPage onBack={() => navigate("apps")} />;
+        return <KitchenPage onBack={() => navigate("projects")} />;
       case "dnd":
-        return <DnDPage onBack={() => navigate("apps")} />;
-      case "apps":
-        return <AppsPage onNavigate={navigate} />;
+        return <DnDPage onBack={() => navigate("projects")} />;
     }
   }
 

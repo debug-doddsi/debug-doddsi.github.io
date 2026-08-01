@@ -2,9 +2,8 @@ export type TabId =
   | "home"
   | "about"
   | "work"
-  | "caseStudies"
+  | "projects"
   | "contact"
   | "kitchen"
   | "dnd"
-  | "apps"
   | "persevere";

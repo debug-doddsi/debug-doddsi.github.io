@@ -23,8 +23,8 @@ interface CutoutLaunchCardProps {
   onLaunch: () => void;
 }
 
-// Shared "launch tile" for both the My Apps grid and the Case Studies grid,
-// built on cult-ui's CutoutCard: a bottom-left inset label and a top-right
+// Shared "launch tile" for the Projects grid, built on cult-ui's CutoutCard:
+// a bottom-left inset label and a top-right
 // icon pin, each stitched into the media with concave CutoutCorner accents
 // (coloured to match whatever they sit on) instead of a plain rectangle
 // photo, plus a hover-reveal CTA floating over the card corner.

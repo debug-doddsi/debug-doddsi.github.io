@@ -8,10 +8,9 @@ export const TAB_PATHS: Record<TabId, string> = {
   home: "/",
   about: "/about",
   work: "/work",
-  caseStudies: "/case-studies",
-  persevere: "/case-studies/persevere",
+  projects: "/projects",
+  persevere: "/projects/persevere",
   contact: "/contact",
-  apps: "/apps",
   kitchen: "/sourdough",
   dnd: "/dndmapmaker",
 };
