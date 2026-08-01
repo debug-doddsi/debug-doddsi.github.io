@@ -10,7 +10,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm format && pnpm format:check && pnpm test && pnpm build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
@@ -41,6 +43,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "husky": "^9.1.7",
     "postcss": "^8.4.38",
     "prettier": "^3.9.6",
     "tailwindcss": "^3.4.3",
