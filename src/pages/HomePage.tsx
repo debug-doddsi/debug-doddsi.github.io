@@ -58,29 +58,41 @@ export function HomePage({ onNavigate }: HomePageProps) {
     <div className="bento-gradient-bg min-h-[calc(100vh-6rem)] rounded-3xl px-4 sm:px-8 py-10 sm:py-16">
       {/* Hero - full-size wordmark, sitting above the grid rather than
           inside a card. */}
-      <div className="flex flex-col items-center text-center pb-14 sm:pb-20">
-        <p> Hi, I'm </p>
-        <div className="relative inline-block">
-          {SPARKLES.map((sparkle, i) => (
-            <Sparkle key={i} {...sparkle} />
-          ))}
-          <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
-            iona kate
-          </h1>
-        </div>
-
-        <p className="font-body text-base sm:text-lg text-neutral-400 mt-8 max-w-md leading-relaxed mx-auto">
-          Software Engineer & UX Designer.
-          <br />I craft intuitive, accessible, delightful web experiences — and
-          freelance on the side just for fun.
+      <div className="flex flex-col items-start text-left pb-14 sm:pb-20">
+        <p className="font-mono text-sm sm:text-base lowercase tracking-[0.3em] text-neutral-400">
+          Hi, I'm
         </p>
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-32">
+          <div className="relative inline-block shrink-0">
+            {SPARKLES.map((sparkle, i) => (
+              <Sparkle key={i} {...sparkle} />
+            ))}
+            <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
+              iona kate
+            </h1>
 
-        <button
-          onClick={() => onNavigate("about")}
-          className="mt-10 px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
-        >
-          More about me
-        </button>
+            <div className="flex w-full gap-4 mt-10">
+              <button
+                onClick={() => onNavigate("about")}
+                className="flex-1 px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
+              >
+                More about me
+              </button>
+              <button className="flex-1 px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300">
+                Placeholder
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col max-w-xs">
+            <p className="font-mono text-base sm:text-lg text-neutral-400 leading-relaxed">
+              Software Engineer 
+              <br/> & UX Designer.
+              <br />
+              I build apps engineers actually want to use.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Bento grid */}
