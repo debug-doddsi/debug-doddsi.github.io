@@ -4,11 +4,6 @@ import { useMotionValueEvent, useScroll } from "motion/react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
-const backgroundColors = [
-  "#3d1220", // ink (deep wine)
-  "#4a6644", // matcha-dark
-  "#3d1220", // ink (deep wine)
-];
 const linearGradients = [
   "linear-gradient(to bottom right, #c66f80, #4a6644)", // strawberry to matcha-dark
   "linear-gradient(to bottom right, #9faa74, #c66f80)", // matcha to strawberry
@@ -60,11 +55,8 @@ export const StickyScroll = ({
   }, [activeCard]);
 
   return (
-    <motion.div
-      animate={{
-        backgroundColor: backgroundColors[activeCard % backgroundColors.length],
-      }}
-      className="relative flex h-[30rem] justify-center space-x-10 overflow-y-auto rounded-2xl p-10"
+    <div
+      className="relative flex h-[30rem] justify-center space-x-10 overflow-y-auto rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-10 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
       ref={ref}
     >
       <div className="div relative flex items-start px-4">
@@ -78,7 +70,7 @@ export const StickyScroll = ({
                 animate={{
                   opacity: activeCard === index ? 1 : 0.3,
                 }}
-                className="font-display text-lg text-slate-100"
+                className="font-display text-lg text-neutral-100"
               >
                 {item.title}
               </motion.h2>
@@ -89,7 +81,7 @@ export const StickyScroll = ({
                 animate={{
                   opacity: activeCard === index ? 1 : 0.3,
                 }}
-                className="font-body text-xs mt-2 max-w-sm leading-relaxed text-slate-300"
+                className="font-body text-xs mt-2 max-w-sm leading-relaxed text-neutral-400"
               >
                 {item.description}
               </motion.p>
@@ -107,6 +99,6 @@ export const StickyScroll = ({
       >
         {content[activeCard].content ?? null}
       </div>
-    </motion.div>
+    </div>
   );
 };
