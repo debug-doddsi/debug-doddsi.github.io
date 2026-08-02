@@ -67,19 +67,6 @@ html {
   border-radius: 2px;
 }
 
-/* Lighter, thinner scrollbar for the journey-scroll text column - it sits
-   right next to the reader, so the default solid-accent thumb is too loud. */
-.journey-scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--accent-rgb), 0.3) transparent;
-}
-.journey-scroll-thin::-webkit-scrollbar {
-  width: 3px;
-}
-.journey-scroll-thin::-webkit-scrollbar-thumb {
-  background: rgba(var(--accent-rgb), 0.3);
-}
-
 /* ─── Typography base ─────────────────────────────────────── */
 body {
   font-family: "DM Sans", sans-serif;

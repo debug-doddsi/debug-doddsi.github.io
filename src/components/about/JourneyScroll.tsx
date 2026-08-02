@@ -1,5 +1,5 @@
 import { Gallery } from "../ui/gallery";
-import { StickyScroll } from "../ui/sticky-scroll-reveal";
+import { PagedReveal } from "../ui/paged-reveal";
 
 // Blank solid-colour swatch (no baked-in text/caption) - used as a stand-in
 // until a real photo is dropped into a card's `imageUrl`.
@@ -106,5 +106,5 @@ const content = [
 ];
 
 export function JourneyScroll() {
-  return <StickyScroll content={content} />;
+  return <PagedReveal items={content} />;
 }
