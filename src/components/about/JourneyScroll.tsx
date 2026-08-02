@@ -14,7 +14,7 @@ const content = [
   {
     title: "Dad Was Right",
     description:
-      "I have always gravitated towards technology. I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I. I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the \"magical\", invisible parts that power everything we know and love. That curiosity has never really left, and it's turned out to be a pretty useful tool.",
+      'I have always gravitated towards technology. I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I. I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the "magical", invisible parts that power everything we know and love. That curiosity has never really left, and it\'s turned out to be a pretty useful tool.',
     content: (
       <Gallery
         compact
@@ -37,7 +37,8 @@ const content = [
   {
     title: "Biomedical Engineering",
     description:
-"Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too afraid of blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew my anxieties would not be capable of doing a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",    content: (
+      "Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too afraid of blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew my anxieties would not be capable of doing a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",
+    content: (
       <Gallery
         compact
         autoplayDelay={0}

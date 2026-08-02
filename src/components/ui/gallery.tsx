@@ -309,7 +309,9 @@ function Card({ card, index, activeIndex, totalCards, compact }: CardProps) {
   return (
     <motion.div
       className={
-        compact ? "absolute inset-0 w-full h-full" : "absolute w-1/2 md:w-1/3 h-[95%]"
+        compact
+          ? "absolute inset-0 w-full h-full"
+          : "absolute w-1/2 md:w-1/3 h-[95%]"
       }
       style={{
         transformStyle: "preserve-3d",
