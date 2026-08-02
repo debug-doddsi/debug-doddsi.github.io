@@ -44,9 +44,10 @@ export const StickyScroll = ({
     <div className="relative flex h-[22rem] justify-center space-x-10 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
       <div
         ref={ref}
-        className="div relative flex items-start px-4 overflow-y-auto"
+        dir="rtl"
+        className="journey-scroll-thin div relative flex items-start px-4 overflow-y-auto"
       >
-        <div className="max-w-2xl">
+        <div dir="ltr" className="max-w-2xl">
           {content.map((item, index) => (
             <div key={item.title + index} className="my-4">
               <motion.h2
@@ -73,7 +74,7 @@ export const StickyScroll = ({
               </motion.p>
             </div>
           ))}
-          <div className="h-16" />
+          <div className="h-4" />
         </div>
       </div>
       <div

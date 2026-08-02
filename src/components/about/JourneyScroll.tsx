@@ -37,8 +37,7 @@ const content = [
   {
     title: "Biomedical Engineering",
     description:
-      "Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too squeamish around blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew I'd never get over the squeamishness enough to do a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",
-    content: (
+"Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too afraid of blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew my anxieties would not be capable of doing a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",    content: (
       <Gallery
         compact
         autoplayDelay={0}

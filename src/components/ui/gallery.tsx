@@ -171,7 +171,8 @@ export function Gallery({
   return (
     <section
       className={cn(
-        "w-full flex-col items-center justify-center font-sans overflow-hidden",
+        "w-full flex-col items-center justify-center font-sans",
+        compact ? "overflow-visible" : "overflow-hidden",
         className,
       )}
     >
@@ -201,7 +202,7 @@ export function Gallery({
             className={cn(
               "relative w-full flex items-center justify-center overflow-hidden",
               compact
-                ? "h-44 rounded-2xl bg-neutral-800"
+                ? "h-60 rounded-2xl bg-neutral-800"
                 : "h-[280px] md:h-[400px]",
               badgeLabel && "pt-12",
             )}
