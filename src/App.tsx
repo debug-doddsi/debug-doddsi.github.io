@@ -70,9 +70,7 @@ export default function App() {
       case "projects":
         return <ProjectsPage onNavigate={navigate} />;
       case "persevere":
-        return (
-          <PersevereCaseStudyPage onBack={() => navigate("projects")} />
-        );
+        return <PersevereCaseStudyPage onBack={() => navigate("projects")} />;
       case "contact":
         return <ContactPage />;
       case "kitchen":

@@ -59,18 +59,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* Hero - full-size wordmark, sitting above the grid rather than
           inside a card. */}
       <div className="flex flex-col items-center text-center pb-14 sm:pb-20">
+        <p> Hi, I'm </p>
         <div className="relative inline-block">
           {SPARKLES.map((sparkle, i) => (
             <Sparkle key={i} {...sparkle} />
           ))}
           <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
-            ionaKate.uk
+            iona kate
           </h1>
         </div>
 
         <p className="font-body text-base sm:text-lg text-neutral-400 mt-8 max-w-md leading-relaxed mx-auto">
-          Software Engineer with a Biomedical Engineering background, building
-          thoughtful, well-crafted things just for fun.
+          Software Engineer & UX Designer.
+          <br />I craft intuitive, accessible, delightful web experiences — and
+          freelance on the side just for fun.
         </p>
 
         <button
