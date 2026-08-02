@@ -86,10 +86,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
           <div className="flex flex-col max-w-xs">
             <p className="font-mono text-base sm:text-lg text-neutral-400 leading-relaxed">
-              Software Engineer 
-              <br/> & UX Designer.
-              <br />
-              I build apps engineers actually want to use.
+              Software Engineer
+              <br /> & UX Designer.
+              <br />I build apps engineers actually want to use.
             </p>
           </div>
         </div>

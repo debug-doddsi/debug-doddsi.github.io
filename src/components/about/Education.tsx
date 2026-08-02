@@ -3,9 +3,7 @@ import { GlassCard } from "../ui/GlassCard";
 export function Education() {
   return (
     <GlassCard>
-      <h3 className="font-display text-lg text-neutral-100 mb-3">
-        Education
-      </h3>
+      <h3 className="font-display text-lg text-neutral-100 mb-3">Education</h3>
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <a
@@ -30,13 +28,12 @@ export function Education() {
         </p>
       </div>
       <p className="font-body text-xs text-neutral-400 mt-1 leading-relaxed">
-        A five-year integrated masters degree covering biomechanics,
-        biomedical materials, electronics, anatomy & physiology, and medical
-        device design, bridging engineering and healthcare. Specialised in
-        electronics, software and instrumentation electives, covering
-        microcontrollers, digital signal processing, image processing, control
-        systems and biomedical electronics. This is where my love of tech
-        began.
+        A five-year integrated masters degree covering biomechanics, biomedical
+        materials, electronics, anatomy & physiology, and medical device design,
+        bridging engineering and healthcare. Specialised in electronics,
+        software and instrumentation electives, covering microcontrollers,
+        digital signal processing, image processing, control systems and
+        biomedical electronics. This is where my love of tech began.
       </p>
     </GlassCard>
   );

@@ -110,12 +110,10 @@ export function Gallery({
   autoplayDelay = 3000,
   className,
 }: GalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(
-    Math.floor(cards.length / 2)
-  );
+  const [activeIndex, setActiveIndex] = useState(Math.floor(cards.length / 2));
   const [isPaused, setIsPaused] = useState(false);
   const autoplayIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
+    null,
   );
 
   const goToNext = () => {
@@ -147,7 +145,7 @@ export function Gallery({
 
   const onDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
     const dragThreshold = 75;
     const dragOffset = info.offset.x;
@@ -166,7 +164,7 @@ export function Gallery({
     <section
       className={cn(
         "w-full flex-col items-center justify-center font-sans overflow-hidden",
-        className
+        className,
       )}
     >
       <div
@@ -187,7 +185,7 @@ export function Gallery({
           <div
             className={cn(
               "relative w-full h-[280px] md:h-[400px] flex items-center justify-center overflow-hidden",
-              badgeLabel && "pt-12"
+              badgeLabel && "pt-12",
             )}
           >
             <motion.div
@@ -228,7 +226,7 @@ export function Gallery({
                       "h-2 rounded-full transition-all duration-300 focus:outline-none",
                       activeIndex === index
                         ? "w-6 bg-accent"
-                        : "w-2 bg-neutral-700 hover:bg-neutral-500"
+                        : "w-2 bg-neutral-700 hover:bg-neutral-500",
                     )}
                     aria-label={`Go to slide ${index + 1}`}
                   />
