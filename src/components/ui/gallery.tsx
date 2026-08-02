@@ -24,6 +24,7 @@ interface CardProps {
   index: number;
   activeIndex: number;
   totalCards: number;
+  compact?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +102,12 @@ export interface GalleryProps {
   /** Autoplay interval in ms. Set to 0 to disable autoplay. */
   autoplayDelay?: number;
   className?: string;
+  /**
+   * Drops the bordered/padded frame and shrinks the carousel + controls so
+   * the whole thing fits inside a small host box (e.g. a thumbnail slot)
+   * instead of the full-bleed "standalone section" look.
+   */
+  compact?: boolean;
 }
 
 export function Gallery({
@@ -109,6 +116,7 @@ export function Gallery({
   badgeIcon,
   autoplayDelay = 3000,
   className,
+  compact = false,
 }: GalleryProps) {
   const [activeIndex, setActiveIndex] = useState(Math.floor(cards.length / 2));
   const [isPaused, setIsPaused] = useState(false);
@@ -168,11 +176,18 @@ export function Gallery({
       )}
     >
       <div
-        className="w-full max-w-5xl mx-auto p-4"
+        className={cn("w-full mx-auto", compact ? "p-0" : "max-w-5xl p-4")}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="relative flex w-full flex-col rounded-3xl border border-neutral-800 bg-neutral-900 p-4 pt-6 md:p-6">
+        <div
+          className={cn(
+            "relative flex w-full flex-col",
+            compact
+              ? "rounded-xl"
+              : "rounded-3xl border border-neutral-800 bg-neutral-900 p-4 pt-6 md:p-6",
+          )}
+        >
           {badgeLabel && (
             <Badge className="absolute left-4 top-6 rounded-xl border border-neutral-700 text-base text-neutral-100 bg-neutral-900/40 backdrop-blur-sm md:left-6">
               {badgeIcon ?? (
@@ -184,7 +199,8 @@ export function Gallery({
 
           <div
             className={cn(
-              "relative w-full h-[280px] md:h-[400px] flex items-center justify-center overflow-hidden",
+              "relative w-full flex items-center justify-center overflow-hidden",
+              compact ? "h-44" : "h-[280px] md:h-[400px]",
               badgeLabel && "pt-12",
             )}
           >
@@ -202,31 +218,40 @@ export function Gallery({
                   index={index}
                   activeIndex={activeIndex}
                   totalCards={cards.length}
+                  compact={compact}
                 />
               ))}
             </motion.div>
           </div>
 
           {cards.length > 1 && (
-            <div className="flex items-center justify-center gap-6 mt-6">
+            <div
+              className={cn(
+                "flex items-center justify-center",
+                compact ? "gap-3 mt-3" : "gap-6 mt-6",
+              )}
+            >
               <button
                 onClick={() => changeSlide(activeIndex - 1)}
-                className="p-2 rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+                className={cn(
+                  "rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent",
+                  compact ? "p-1" : "p-2",
+                )}
                 aria-label="Previous"
               >
-                <ChevronLeftIcon className="w-6 h-6" />
+                <ChevronLeftIcon className={compact ? "w-4 h-4" : "w-6 h-6"} />
               </button>
 
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1.5">
                 {cards.map((card, index) => (
                   <button
                     key={card.id}
                     onClick={() => changeSlide(index)}
                     className={cn(
-                      "h-2 rounded-full transition-all duration-300 focus:outline-none",
+                      "h-1.5 rounded-full transition-all duration-300 focus:outline-none",
                       activeIndex === index
-                        ? "w-6 bg-accent"
-                        : "w-2 bg-neutral-700 hover:bg-neutral-500",
+                        ? "w-5 bg-accent"
+                        : "w-1.5 bg-neutral-700 hover:bg-neutral-500",
                     )}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -235,10 +260,13 @@ export function Gallery({
 
               <button
                 onClick={() => changeSlide(activeIndex + 1)}
-                className="p-2 rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+                className={cn(
+                  "rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent",
+                  compact ? "p-1" : "p-2",
+                )}
                 aria-label="Next"
               >
-                <ChevronRightIcon className="w-6 h-6" />
+                <ChevronRightIcon className={compact ? "w-4 h-4" : "w-6 h-6"} />
               </button>
             </div>
           )}
@@ -248,7 +276,7 @@ export function Gallery({
   );
 }
 
-function Card({ card, index, activeIndex, totalCards }: CardProps) {
+function Card({ card, index, activeIndex, totalCards, compact }: CardProps) {
   let offset = index - activeIndex;
   if (offset > totalCards / 2) {
     offset -= totalCards;
@@ -258,24 +286,38 @@ function Card({ card, index, activeIndex, totalCards }: CardProps) {
 
   const isVisible = Math.abs(offset) <= 1;
 
-  const animate = {
-    x: `${offset * 50}%`,
-    scale: offset === 0 ? 1 : 0.8,
-    zIndex: totalCards - Math.abs(offset),
-    opacity: isVisible ? 1 : 0,
-    transition: { type: "spring" as const, stiffness: 260, damping: 30 },
-  };
+  const animate = compact
+    ? {
+        x: `${offset * 100}%`,
+        zIndex: totalCards - Math.abs(offset),
+        opacity: isVisible ? 1 : 0,
+        transition: { type: "spring" as const, stiffness: 260, damping: 30 },
+      }
+    : {
+        x: `${offset * 50}%`,
+        scale: offset === 0 ? 1 : 0.8,
+        zIndex: totalCards - Math.abs(offset),
+        opacity: isVisible ? 1 : 0,
+        transition: { type: "spring" as const, stiffness: 260, damping: 30 },
+      };
 
   return (
     <motion.div
-      className="absolute w-1/2 md:w-1/3 h-[95%]"
+      className={
+        compact ? "absolute inset-0 w-full h-full" : "absolute w-1/2 md:w-1/3 h-[95%]"
+      }
       style={{
         transformStyle: "preserve-3d",
       }}
       animate={animate}
       initial={false}
     >
-      <div className="relative w-full h-full rounded-3xl shadow-2xl overflow-hidden bg-neutral-800">
+      <div
+        className={cn(
+          "relative w-full h-full overflow-hidden",
+          compact ? "" : "shadow-2xl bg-neutral-800 rounded-3xl",
+        )}
+      >
         <img
           src={card.imageUrl}
           alt={card.title}
@@ -287,9 +329,11 @@ function Card({ card, index, activeIndex, totalCards }: CardProps) {
               "https://placehold.co/400x600/1e1e1e/ffffff?text=Image+Missing";
           }}
         />
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-          <h4 className="text-white text-lg font-semibold">{card.title}</h4>
-        </div>
+        {!compact && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+            <h4 className="text-white font-semibold text-lg">{card.title}</h4>
+          </div>
+        )}
       </div>
     </motion.div>
   );
