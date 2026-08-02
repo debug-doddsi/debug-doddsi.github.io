@@ -2,7 +2,7 @@ import { GlassCard } from "../ui/GlassCard";
 
 export function Bio() {
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <GlassCard>
           <h2 className="font-display text-xl text-neutral-100 mb-4">My Technical Journey</h2>
           <p className="font-body text-xs text-neutral-400 leading-relaxed">
@@ -11,8 +11,8 @@ export function Bio() {
           <br/>
           I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I.
           I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty
-          influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the 
-          "magical", invisible parts that power everything we know and love. That curiosity has never really left, and it's turned out 
+          influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the
+          "magical", invisible parts that power everything we know and love. That curiosity has never really left, and it's turned out
           to be a pretty useful tool.
           <br/>
           <br/>
@@ -33,6 +33,13 @@ export function Bio() {
           <br/>
           <br/>
           <em className="text-lg">& the rest is history!</em>
+        </p>
+      </GlassCard>
+
+      <GlassCard>
+        <h2 className="font-display text-xl text-neutral-100 mb-4">My Creative Journey</h2>
+        <p className="font-body text-xs text-neutral-400 leading-relaxed">
+          <em className="text-lg">TODO: your creative journey goes here.</em>
         </p>
       </GlassCard>
     </div>
