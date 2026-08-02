@@ -1,0 +1,57 @@
+import { StickyScroll } from "../ui/sticky-scroll-reveal";
+
+// Swap each placehold.co image for a real photo when you have one -
+// dimensions/aspect ratio (400x400) match the sticky panel already.
+const content = [
+  {
+    title: "Where It Started",
+    description:
+      "I have always gravitated towards technology. I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I. I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the \"magical\", invisible parts that power everything we know and love. That curiosity has never really left, and it's turned out to be a pretty useful tool.",
+    content: (
+      <img
+        src="https://placehold.co/400x400/c66f80/ffffff?text=Photo+Placeholder"
+        alt="Placeholder - swap for a childhood/early tech photo"
+        className="h-full w-full object-cover"
+      />
+    ),
+  },
+  {
+    title: "Biomedical Engineering",
+    description:
+      "Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too squeamish around blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew I'd never get over the squeamishness enough to do a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",
+    content: (
+      <img
+        src="https://placehold.co/400x400/4a6644/ffffff?text=Photo+Placeholder"
+        alt="Placeholder - swap for a university/biomedical engineering photo"
+        className="h-full w-full object-cover"
+      />
+    ),
+  },
+  {
+    title: "Into Software Engineering",
+    description:
+      "Luckily, software engineering doesn't usually involve blood. At university I loved the electronics-based projects I built with friends, where we learned problem solving, creativity and resilience the hard way. The reward was always exhilarating, and every late night was worth it. I loved the process of creating something and watching my ideas come to life, and I knew I had to end up in research and development after graduation. & the rest is history!",
+    content: (
+      <img
+        src="https://placehold.co/400x400/9faa74/ffffff?text=Photo+Placeholder"
+        alt="Placeholder - swap for an early career/first job photo"
+        className="h-full w-full object-cover"
+      />
+    ),
+  },
+  {
+    title: "My Creative Journey",
+    description: "TODO: your creative journey goes here.",
+    content: (
+      <img
+        src="https://placehold.co/400x400/f4c7d0/3d1220?text=Photo+Placeholder"
+        alt="Placeholder - swap for a creative-work photo"
+        className="h-full w-full object-cover"
+      />
+    ),
+  },
+];
+
+export function JourneyScroll() {
+  return <StickyScroll content={content} />;
+}
