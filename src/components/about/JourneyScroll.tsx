@@ -44,13 +44,12 @@ const content = [
         cards={[
           {
             id: 1,
-            imageUrl: solidPlaceholder("4a6644"),
-            title: "Placeholder - swap for a university photo",
+            imageUrl: "/images/grad-2022.png",
+            imagePosition: "center bottom",
           },
           {
             id: 2,
-            imageUrl: solidPlaceholder("4a6644"),
-            title: "Placeholder - swap for a biomedical engineering photo",
+            imageUrl: "/images/uni-proj.png",
           },
         ]}
       />

@@ -7,7 +7,9 @@ import { cn } from "../../lib/utils";
 export interface GalleryCard {
   id: string | number;
   imageUrl: string;
-  title: string;
+  title?: string;
+  /** CSS object-position for the image, e.g. "center bottom". Defaults to center. */
+  imagePosition?: string;
 }
 
 interface IconProps {
@@ -325,6 +327,11 @@ function Card({ card, index, activeIndex, totalCards, compact }: CardProps) {
           src={card.imageUrl}
           alt={card.title}
           className="w-full h-full object-cover pointer-events-none"
+          style={
+            card.imagePosition
+              ? { objectPosition: card.imagePosition }
+              : undefined
+          }
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.onerror = null;

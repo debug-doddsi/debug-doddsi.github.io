@@ -30,7 +30,32 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
 
   return (
     <div className="relative flex h-[22rem] justify-center space-x-10 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-      <div className="relative flex w-full max-w-2xl flex-col justify-between px-4">
+      {items.length > 1 && (
+        <>
+          <button
+            onClick={goPrev}
+            className={cn(
+              navButtonClasses,
+              "absolute -left-6 top-1/2 -translate-y-1/2 z-10",
+            )}
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={goNext}
+            className={cn(
+              navButtonClasses,
+              "absolute -right-6 top-1/2 -translate-y-1/2 z-10",
+            )}
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
+
+      <div className="relative flex w-full max-w-2xl flex-col px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={index}
@@ -47,42 +72,6 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
             </p>
           </motion.div>
         </AnimatePresence>
-
-        {items.length > 1 && (
-          <div className="flex items-center gap-3 mt-4">
-            <button
-              onClick={goPrev}
-              className={navButtonClasses}
-              aria-label="Previous"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-1.5">
-              {items.map((navItem, i) => (
-                <button
-                  key={navItem.title}
-                  onClick={() => setIndex(i)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all duration-300 focus:outline-none",
-                    i === index
-                      ? "w-5 bg-accent"
-                      : "w-1.5 bg-neutral-700 hover:bg-neutral-500",
-                  )}
-                  aria-label={`Go to ${navItem.title}`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={goNext}
-              className={navButtonClasses}
-              aria-label="Next"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        )}
       </div>
 
       <div
