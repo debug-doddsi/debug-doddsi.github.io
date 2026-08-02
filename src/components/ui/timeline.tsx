@@ -58,7 +58,7 @@ const Badge = ({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => (
   <span
-    className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold ${className}`}
+    className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-normal ${className}`}
     {...props}
   >
     {children}
