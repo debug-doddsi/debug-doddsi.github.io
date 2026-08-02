@@ -33,8 +33,8 @@ const content = [
       "Luckily, software engineering doesn't usually involve blood. At university I loved the electronics-based projects I built with friends, where we learned problem solving, creativity and resilience the hard way. The reward was always exhilarating, and every late night was worth it. I loved the process of creating something and watching my ideas come to life, and I knew I had to end up in research and development after graduation. & the rest is history!",
     content: (
       <img
-        src="https://placehold.co/400x400/9faa74/ffffff?text=Photo+Placeholder"
-        alt="Placeholder - swap for an early career/first job photo"
+        src="/images/uni-proj.png"
+        alt="A university electronics project - an Arduino-based build wired up on a breadboard"
         className="h-full w-full object-cover"
       />
     ),

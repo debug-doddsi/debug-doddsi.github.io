@@ -27,7 +27,7 @@ export const StickyScroll = ({
     // uncomment line 22 and comment line 23 if you DONT want the overflow container and want to have it change on the entire page scroll
     // target: ref
     container: ref,
-    offset: ["start start", "end start"],
+    offset: ["start start", "end end"],
   });
   const cardLength = content.length;
 
@@ -56,13 +56,13 @@ export const StickyScroll = ({
 
   return (
     <div
-      className="relative flex h-[30rem] justify-center space-x-10 overflow-y-auto rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-10 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+      className="relative flex h-[22rem] justify-center space-x-10 overflow-y-auto rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
       ref={ref}
     >
       <div className="div relative flex items-start px-4">
         <div className="max-w-2xl">
           {content.map((item, index) => (
-            <div key={item.title + index} className="my-8">
+            <div key={item.title + index} className="my-4">
               <motion.h2
                 initial={{
                   opacity: 0,
@@ -87,13 +87,13 @@ export const StickyScroll = ({
               </motion.p>
             </div>
           ))}
-          <div className="h-20" />
+          <div className="h-16" />
         </div>
       </div>
       <div
         style={{ background: backgroundGradient }}
         className={cn(
-          "sticky top-10 hidden h-60 w-80 overflow-hidden rounded-2xl bg-white lg:block",
+          "sticky top-1/2 hidden h-56 w-56 -translate-y-1/2 overflow-hidden rounded-2xl bg-white lg:block",
           contentClassName,
         )}
       >
