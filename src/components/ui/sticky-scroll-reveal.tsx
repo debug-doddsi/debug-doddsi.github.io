@@ -1,14 +1,8 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useMotionValueEvent, useScroll } from "motion/react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-
-const linearGradients = [
-  "linear-gradient(to bottom right, #c66f80, #4a6644)", // strawberry to matcha-dark
-  "linear-gradient(to bottom right, #9faa74, #c66f80)", // matcha to strawberry
-  "linear-gradient(to bottom right, #f4c7d0, #9faa74)", // strawberry-light to matcha
-];
 
 export const StickyScroll = ({
   content,
@@ -46,20 +40,12 @@ export const StickyScroll = ({
     setActiveCard(closestBreakpointIndex);
   });
 
-  const [backgroundGradient, setBackgroundGradient] = useState(
-    linearGradients[0],
-  );
-
-  useEffect(() => {
-    setBackgroundGradient(linearGradients[activeCard % linearGradients.length]);
-  }, [activeCard]);
-
   return (
-    <div
-      className="relative flex h-[22rem] justify-center space-x-10 overflow-y-auto rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
-      ref={ref}
-    >
-      <div className="div relative flex items-start px-4">
+    <div className="relative flex h-[22rem] justify-center space-x-10 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+      <div
+        ref={ref}
+        className="div relative flex items-start px-4 overflow-y-auto"
+      >
         <div className="max-w-2xl">
           {content.map((item, index) => (
             <div key={item.title + index} className="my-4">
@@ -91,9 +77,8 @@ export const StickyScroll = ({
         </div>
       </div>
       <div
-        style={{ background: backgroundGradient }}
         className={cn(
-          "sticky top-1/2 hidden h-56 w-56 -translate-y-1/2 overflow-hidden rounded-2xl bg-white lg:block",
+          "hidden w-56 shrink-0 self-center lg:block",
           contentClassName,
         )}
       >

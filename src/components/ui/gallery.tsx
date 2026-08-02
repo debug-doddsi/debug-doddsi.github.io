@@ -200,7 +200,9 @@ export function Gallery({
           <div
             className={cn(
               "relative w-full flex items-center justify-center overflow-hidden",
-              compact ? "h-44" : "h-[280px] md:h-[400px]",
+              compact
+                ? "h-44 rounded-2xl bg-neutral-800"
+                : "h-[280px] md:h-[400px]",
               badgeLabel && "pt-12",
             )}
           >
