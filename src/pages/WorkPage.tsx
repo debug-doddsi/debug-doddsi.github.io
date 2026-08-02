@@ -2,6 +2,8 @@ import { Folder, Heart } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Experience } from "../components/about/Experience";
+import { Education } from "../components/about/Education";
+import { TechLoop } from "../components/about/TechLoop";
 
 export function WorkPage() {
   return (
@@ -19,7 +21,16 @@ export function WorkPage() {
           overview of my professional experience and career journey.
         </p>
       </GlassCard>
-      <Experience />
+      <div className="space-y-6">
+        <Education />
+        <Experience />
+        <GlassCard>
+          <h3 className="font-display text-lg text-neutral-100 mb-3">
+            Tech Stack
+          </h3>
+          <TechLoop />
+        </GlassCard>
+      </div>
     </PageShell>
   );
 }

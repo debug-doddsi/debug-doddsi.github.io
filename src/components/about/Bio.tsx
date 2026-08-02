@@ -1,19 +1,19 @@
-import { TechLoop } from "./TechLoop";
-import { Education } from "./Education";
 import { GlassCard } from "../ui/GlassCard";
 
 export function Bio() {
   return (
     <div className="space-y-6">
       <GlassCard>
-        <h2 className="font-display text-xl text-neutral-100 mb-4">How Did I Get Here?</h2>
-<p className="font-body text-xs text-neutral-400 leading-relaxed">
-          <em className="text-sm">I have always gravitated towards technology.</em>
+          <h2 className="font-display text-xl text-neutral-100 mb-4">My Technical Journey</h2>
+          <p className="font-body text-xs text-neutral-400 leading-relaxed">
+          <em className="text-lg">I have always gravitated towards technology.</em>
           <br/>
-          I remember asking my Dad at 12 years old about port forwarding, in a valiant attempt to host a Minecraft server for my friends and me.
-          I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Look at me now, Dad!)
-          I was always fascinated by how things worked, especially the "magical", invisible parts that power everything we know and love.
-          That curiosity has never really left, and it's turned out to be a pretty useful tool.
+          <br/>
+          I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I.
+          I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty
+          influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the 
+          "magical", invisible parts that power everything we know and love. That curiosity has never really left, and it's turned out 
+          to be a pretty useful tool.
           <br/>
           <br/>
           Studying biomedical engineering at university was a major turning point, nurturing my two favourite
@@ -34,16 +34,6 @@ export function Bio() {
           <br/>
           <em className="text-lg">& the rest is history!</em>
         </p>
-      </GlassCard>
-
-      <Education />
-
-      {/* Tech Stack */}
-      <GlassCard>
-        <h3 className="font-display text-lg text-neutral-100 mb-3">
-          Tech Stack
-        </h3>
-        <TechLoop />
       </GlassCard>
     </div>
   );
