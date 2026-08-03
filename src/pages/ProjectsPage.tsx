@@ -20,7 +20,6 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
         <CutoutLaunchCard
           icon={<PenTool size={18} />}
           title="Persevere Media"
-          subtitle="Branding · Web Design"
           description="Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
           placeholder={
             <div
@@ -38,14 +37,13 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
               </span>
             </div>
           }
-          ctaLabel="Read case study"
+          ctaLabel="View the case study"
           onLaunch={() => onNavigate("persevere")}
         />
 
         <CutoutLaunchCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
-          subtitle="Kitchen · Baking"
           description="I used this app to throughly document and track my sourdough starter feedings, generate a step-by-step baking guide, and quickly calculate flour / water / starter / salt ratios for my loaves."
           placeholder={
             <CutoutCardImage
@@ -53,19 +51,18 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
               alt="Sourdough bread"
             />
           }
-          ctaLabel="Open App"
+          ctaLabel="View the case study"
           onLaunch={() => onNavigate("kitchen")}
         />
 
         <CutoutLaunchCard
           icon={<Map size={18} />}
           title="D&D Map Maker"
-          subtitle="Cartography · Tabletop"
           description="I created this app with my DM in mind. This app generates landscape and civilisation maps, and populates them with all your usual locations. Also allows for custom pins to be added. Skyrim inspired."
           placeholder={
             <CutoutCardImage src="/dndmapmaker/dnd.jpg" alt="D&D map" />
           }
-          ctaLabel="Open App"
+          ctaLabel="View the case study"
           onLaunch={() => onNavigate("dnd")}
         />
       </div>

@@ -5,7 +5,6 @@ import {
   CutoutCard,
   CutoutCardMedia,
   CutoutCardOverlay,
-  CutoutCardInsetLabel,
   CutoutCardPin,
   CutoutCardContent,
   CutoutCorner,
@@ -16,7 +15,6 @@ import { useCutoutContentStaggerVariants } from "./cutout-card-shared";
 interface CutoutLaunchCardProps {
   icon: ReactNode;
   title: string;
-  subtitle: string;
   description: string;
   placeholder: ReactNode;
   ctaLabel?: string;
@@ -24,17 +22,15 @@ interface CutoutLaunchCardProps {
 }
 
 // Shared "launch tile" for the Projects grid, built on cult-ui's CutoutCard:
-// a bottom-left inset label and a top-right
-// icon pin, each stitched into the media with concave CutoutCorner accents
-// (coloured to match whatever they sit on) instead of a plain rectangle
-// photo, plus a hover-reveal CTA floating over the card corner.
+// a top-right icon pin stitched into the media with concave CutoutCorner
+// accents (coloured to match whatever it sits on) instead of a plain
+// rectangle photo, plus an always-visible CTA floating over the card corner.
 export function CutoutLaunchCard({
   icon,
   title,
-  subtitle,
   description,
   placeholder,
-  ctaLabel = "Open",
+  ctaLabel = "View the case study",
   onLaunch,
 }: CutoutLaunchCardProps) {
   const stagger = useCutoutContentStaggerVariants();
@@ -47,22 +43,6 @@ export function CutoutLaunchCard({
       <CutoutCardMedia className="h-52 w-full">
         {placeholder}
         <CutoutCardOverlay className="from-[#241914]/30" />
-
-        {/* Bottom-left tag, cut into the media with two corner accents
-            coloured as the card surface it's flush with. */}
-        <CutoutCardInsetLabel className="bottom-0 left-0 rounded-tr-[20px] bg-[#faf3e4] px-4 py-2">
-          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">
-            {subtitle}
-          </span>
-          <CutoutCorner
-            size={24}
-            className="absolute -right-[23px] -bottom-px rotate-90 text-[#faf3e4]"
-          />
-          <CutoutCorner
-            size={24}
-            className="absolute -top-[23px] -left-px rotate-90 text-[#faf3e4]"
-          />
-        </CutoutCardInsetLabel>
 
         {/* Top-right icon pin, coloured as itself so the corner accents
             extend its own silhouette into the media rather than cutting
@@ -102,7 +82,7 @@ export function CutoutLaunchCard({
         </CutoutCardContent>
       </motion.div>
 
-      <CutoutCardAction className="right-5 bottom-5">
+      <CutoutCardAction className="right-5 bottom-5" revealOnHover={false}>
         <button
           type="button"
           onClick={(e) => {
