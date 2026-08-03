@@ -227,12 +227,12 @@ export default function PersevereCaseStudy() {
               I was brought in to design and build the very first website for
               Persevere, a full-service digital marketing agency covering
               videography, photography, content creation, and strategy under
-              one roof, run by two best friends whose combined skillset fills
-              a real gap in the market. With no existing site to react to, the
-              job was to set the tone for a brand-new business from nothing:
-              fun yet capable, with charm and care built into every detail,
-              rather than the generic, corporate feel so many agency sites
-              default to.
+              one roof. It's run by two best friends whose combined skillset
+              fills a real gap in the market. With no existing site to react
+              to, the job was to set the tone for a brand-new business from
+              nothing: fun yet capable, with charm and care built into every
+              detail, rather than the generic, corporate feel so many agency
+              sites default to.
             </p>
           </GlassCard>
         </div>
@@ -242,10 +242,10 @@ export default function PersevereCaseStudy() {
           <GlassCard>
             <SectionLabel>My Role</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              I'm the designer behind the site from the ground up - setting the
-              visual tone, proposing the colour system, and shaping how the
-              brand feels before a single page goes live. I'm working directly
-              with the clients, translating their personalities and the gap they
+              I'm the designer behind the site from the ground up. I set the
+              visual tone, propose the colour system, and shape how the brand
+              feels before a single page goes live. I'm working directly with
+              the clients, translating their personalities and the gap they
               fill in the market into something visual.
             </p>
             {/* TODO: confirm scope (design only vs. design + build) once brief lands */}
@@ -289,7 +289,7 @@ export default function PersevereCaseStudy() {
                       desaturation creates a cold, clinical contrast that
                       clashes with the brand's warm personality. From a colour
                       theory perspective, pure black absorbs all light and lacks
-                      a colour temperature, so I instead proposed warm chromatic
+                      a colour temperature. So I instead proposed warm chromatic
                       neutrals like oxblood and espresso to maintain a unified
                       colour temperature with the sunset-inspired palette. I
                       also tested a warm navy blue option after one of the
@@ -307,11 +307,11 @@ export default function PersevereCaseStudy() {
                       Impact
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The clients picked two dark colours - oxblood and warm
+                      The clients picked two dark colours: oxblood and warm
                       black. Every colour they selected is still in the final
                       palette, including the plum. Introducing these dark
-                      anchors establishes a clear visual hierarchy that will
-                      anchor the layout, naturally guiding user attention to key
+                      anchors establishes a clear visual hierarchy that anchors
+                      the layout. It naturally guides user attention to key
                       conversion points across the site.
                     </p>
                     <PaletteCircleRow swatches={finalPalette} />
@@ -322,7 +322,7 @@ export default function PersevereCaseStudy() {
               <DecisionItem
                 number={2}
                 title="Made Blog Publishing Self-Serve"
-                summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication, giving the founders a self-serve publishing flow that still runs through automated review before anything goes live."
+                summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication. The result is a self-serve publishing flow for the founders that still runs through automated review before anything goes live."
               >
                 <div className="flex flex-col gap-4">
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
@@ -335,7 +335,7 @@ export default function PersevereCaseStudy() {
                       often, but a simple copy change meant writing it, sending
                       it over, waiting on me to code it in, then a review and
                       deploy. That lead time didn't match how often a marketing
-                      agency actually needs to publish, and it made me a
+                      agency actually needs to publish. It also made me a
                       dependency for something that should have been quick and
                       easy on their end.
                     </p>
@@ -346,12 +346,12 @@ export default function PersevereCaseStudy() {
                       Solution
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I decided the fix wasn't a faster turnaround from me, it
+                      I decided the fix wasn't a faster turnaround from me. It
                       was removing me from the loop entirely for routine
                       updates. I chose to integrate Decap CMS, giving the
                       founders a simple login portal to write and publish posts
                       themselves, no code involved. But self-serve publishing on
-                      its own felt risky without a safety net, so I built in a
+                      its own felt risky without a safety net. So I built in a
                       review layer rather than letting posts go straight live:
                       every change opens as a pull request, runs through
                       automated checks, and only publishes once approved. I also
@@ -368,11 +368,11 @@ export default function PersevereCaseStudy() {
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       The founders now publish on their own schedule with no
-                      developer bottleneck, while the review pipeline means
+                      developer bottleneck. The review pipeline still means
                       nothing goes live broken or unchecked. It's the kind of
                       setup that gives any client faster content turnaround and
-                      genuine independence, without trading away the stability
-                      of a properly reviewed release process.
+                      genuine independence, and it doesn't trade away the
+                      stability of a properly reviewed release process.
                     </p>
                   </div>
                 </div>
@@ -391,7 +391,7 @@ export default function PersevereCaseStudy() {
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       The contact form had nowhere real to send its data.
                       GitHub Pages, where the site is hosted, only serves static
-                      files and can't run any server-side code, so there was no
+                      files and can't run any server-side code. That left no
                       safe way to email submissions without exposing credentials
                       in the browser, or leaving the form wide open to spam bots.
                     </p>
@@ -403,20 +403,20 @@ export default function PersevereCaseStudy() {
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       I weighed pointing the form at a third-party form service
-                      against building something dedicated, and chose to build
+                      against building something dedicated. I chose to build
                       a small serverless function so the client would have full
                       control over their own data rather than routing enquiries
                       through someone else's platform. That function sends
                       submissions through Resend's email API, with the API key
                       living only in the server environment, never exposed in
                       the browser. For spam, I didn't want to rely on a single
-                      layer of defence, so I combined a hidden honeypot field to
-                      catch simple bots outright with Google's reCAPTCHA v3
-                      running invisibly in the background, scoring each
+                      layer of defence. So I combined a hidden honeypot field to
+                      catch simple bots outright with Google's reCAPTCHA v3,
+                      running invisibly in the background and scoring each
                       submission on how human it looks before any email gets
-                      sent. Real visitors never see a checkbox or a challenge,
-                      the whole thing runs silently while they fill out the form
-                      normally.
+                      sent. Real visitors never see a checkbox or a challenge.
+                      The whole thing runs silently while they fill out the
+                      form normally.
                     </p>
                   </div>
 
@@ -429,8 +429,8 @@ export default function PersevereCaseStudy() {
                       inbox, reliably and securely, without them needing to
                       manage any infrastructure themselves. Spam and bot
                       submissions get filtered out before they ever reach a
-                      human, keeping the inbox clean without adding friction for
-                      real customers trying to get in touch.
+                      human. That keeps the inbox clean without adding friction
+                      for real customers trying to get in touch.
                     </p>
                   </div>
                 </div>
