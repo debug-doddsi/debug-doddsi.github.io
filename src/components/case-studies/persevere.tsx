@@ -173,7 +173,10 @@ function DecisionItem({
       </AccordionTrigger>
       <AccordionContent>
         <div className="flex gap-4">
-          <span className={`shrink-0 ${NUMBER_COLUMN_WIDTH}`} aria-hidden="true" />
+          <span
+            className={`shrink-0 ${NUMBER_COLUMN_WIDTH}`}
+            aria-hidden="true"
+          />
           <div className="flex-1 min-w-0">{children}</div>
         </div>
       </AccordionContent>
@@ -226,31 +229,30 @@ export default function PersevereCaseStudy() {
             <p className="font-body text-sm leading-relaxed text-neutral-400">
               I was brought in to design and build the very first website for
               Persevere, a full-service digital marketing agency covering
-              videography, photography, content creation, and strategy under
-              one roof. It's run by two friends whose combined skillset
-              fills a real gap in the marketing world. With no existing site to build upon,
-               the job was to set the tone for a brand-new business from
-              nothing: fun yet capable, with charm and care built into every
-              detail, rather than the generic, corporate feel so many agency
-              sites default to.
+              videography, photography, content creation, and strategy under one
+              roof. It's run by two friends whose combined skillset fills a real
+              gap in the marketing world. With no existing site to build upon,
+              the job was to set the tone for a brand-new business from nothing:
+              fun yet capable, with charm and care built into every detail,
+              rather than the generic, corporate feel so many agency sites
+              default to.
             </p>
           </GlassCard>
         </div>
 
-{/* 2. My Role */}
+        {/* 2. My Role */}
         <div id="role" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>My Role</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
               I own this project end to end, covering both design and
               development. On the design side, I set the visual tone, propose
-              the colour system, and shape how the brand feels before a
-              single page goes live. On the development side, I build the
-              site itself along with all the infrastructure a client never
-              sees but relies on. I'm working directly with the clients
-              throughout, translating their personalities, intentions, and
-              the gap they fill in the market into something visual, then
-              building it to actually work.
+              the colour system, and shape how the brand feels before a single
+              page goes live. On the development side, I build the site itself
+              along with all the infrastructure a client never sees but relies
+              on. I'm working directly with the clients throughout, translating
+              their personalities, intentions, and the gap they fill in the
+              market into something visual, then building it to actually work.
             </p>
           </GlassCard>
         </div>
@@ -392,11 +394,11 @@ export default function PersevereCaseStudy() {
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The contact form had nowhere real to send its data.
-                      GitHub Pages, where the site is hosted, only serves static
-                      files and can't run any server-side code. That left no
-                      safe way to email submissions without exposing credentials
-                      in the browser, or leaving the form wide open to spam bots.
+                      The contact form had nowhere real to send its data. GitHub
+                      Pages, where the site is hosted, only serves static files
+                      and can't run any server-side code. That left no safe way
+                      to email submissions without exposing credentials in the
+                      browser, or leaving the form wide open to spam bots.
                     </p>
                   </div>
 
@@ -406,8 +408,8 @@ export default function PersevereCaseStudy() {
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       I weighed pointing the form at a third-party form service
-                      against building something dedicated. I chose to build
-                      a small serverless function so the client would have full
+                      against building something dedicated. I chose to build a
+                      small serverless function so the client would have full
                       control over their own data rather than routing enquiries
                       through someone else's platform. That function sends
                       submissions through Resend's email API, with the API key
@@ -418,8 +420,8 @@ export default function PersevereCaseStudy() {
                       running invisibly in the background and scoring each
                       submission on how human it looks before any email gets
                       sent. Real visitors never see a checkbox or a challenge.
-                      The whole thing runs silently while they fill out the
-                      form normally.
+                      The whole thing runs silently while they fill out the form
+                      normally.
                     </p>
                   </div>
 

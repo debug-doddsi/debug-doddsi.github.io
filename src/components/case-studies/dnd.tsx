@@ -52,13 +52,13 @@ export default function DnDCaseStudy() {
           <GlassCard>
             <SectionLabel>The Idea</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              My DM was spending real prep time hand-drawing maps for
-              whatever region or town the party was about to stumble into,
-              and I wanted to give that time back. I'm a big fan of Skyrim's
-              map style, so I set out to build something that could generate
-              a similar-feeling landscape or settlement on demand: enough
-              structure to look intentional, with room to drop in the
-              specific locations a session actually needs.
+              My DM was spending real prep time hand-drawing maps for whatever
+              region or town the party was about to stumble into, and I wanted
+              to give that time back. I'm a big fan of Skyrim's map style, so I
+              set out to build something that could generate a similar-feeling
+              landscape or settlement on demand: enough structure to look
+              intentional, with room to drop in the specific locations a session
+              actually needs.
             </p>
           </GlassCard>
         </div>
@@ -101,15 +101,15 @@ export default function DnDCaseStudy() {
           <GlassCard>
             <SectionLabel>Under the Hood</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              Terrain is built from layered simplex noise rather than
-              anything hand-placed, so coastlines, rivers and forest clusters
-              come out looking organic instead of obviously generated.
-              Settlement layouts use their own procedural pass for roads and
-              building placement, with building density and road width
-              scaling to whether it's a village, town, or city. Everything
-              runs off a seeded random number generator, so regenerating with
-              the same seed reproduces the same map - useful for tweaking a
-              map without losing a layout that already worked.
+              Terrain is built from layered simplex noise rather than anything
+              hand-placed, so coastlines, rivers and forest clusters come out
+              looking organic instead of obviously generated. Settlement layouts
+              use their own procedural pass for roads and building placement,
+              with building density and road width scaling to whether it's a
+              village, town, or city. Everything runs off a seeded random number
+              generator, so regenerating with the same seed reproduces the same
+              map - useful for tweaking a map without losing a layout that
+              already worked.
             </p>
           </GlassCard>
         </div>
@@ -119,12 +119,12 @@ export default function DnDCaseStudy() {
           <GlassCard>
             <SectionLabel>Outcome</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              My DM now generates a usable map in seconds instead of losing
-              an evening to one, and pins the specific locations a session
-              needs on top of it. It's also been the most fun way I've found
-              to practise procedural generation and canvas work outside of
-              client projects, where the only brief is "would I actually want
-              to use this at my own table."
+              My DM now generates a usable map in seconds instead of losing an
+              evening to one, and pins the specific locations a session needs on
+              top of it. It's also been the most fun way I've found to practise
+              procedural generation and canvas work outside of client projects,
+              where the only brief is "would I actually want to use this at my
+              own table."
             </p>
           </GlassCard>
         </div>
