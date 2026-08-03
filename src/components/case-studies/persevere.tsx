@@ -227,9 +227,9 @@ export default function PersevereCaseStudy() {
               I was brought in to design and build the very first website for
               Persevere, a full-service digital marketing agency covering
               videography, photography, content creation, and strategy under
-              one roof. It's run by two best friends whose combined skillset
-              fills a real gap in the market. With no existing site to react
-              to, the job was to set the tone for a brand-new business from
+              one roof. It's run by two friends whose combined skillset
+              fills a real gap in the marketing world. With no existing site to build upon,
+               the job was to set the tone for a brand-new business from
               nothing: fun yet capable, with charm and care built into every
               detail, rather than the generic, corporate feel so many agency
               sites default to.
@@ -237,18 +237,21 @@ export default function PersevereCaseStudy() {
           </GlassCard>
         </div>
 
-        {/* 2. My Role */}
+{/* 2. My Role */}
         <div id="role" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>My Role</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              I'm the designer behind the site from the ground up. I set the
-              visual tone, propose the colour system, and shape how the brand
-              feels before a single page goes live. I'm working directly with
-              the clients, translating their personalities and the gap they
-              fill in the market into something visual.
+              I own this project end to end, covering both design and
+              development. On the design side, I set the visual tone, propose
+              the colour system, and shape how the brand feels before a
+              single page goes live. On the development side, I build the
+              site itself along with all the infrastructure a client never
+              sees but relies on. I'm working directly with the clients
+              throughout, translating their personalities, intentions, and
+              the gap they fill in the market into something visual, then
+              building it to actually work.
             </p>
-            {/* TODO: confirm scope (design only vs. design + build) once brief lands */}
           </GlassCard>
         </div>
 
