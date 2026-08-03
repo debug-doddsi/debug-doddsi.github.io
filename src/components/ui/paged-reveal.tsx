@@ -26,10 +26,17 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
   const goNext = () => setIndex((i) => (i + 1) % items.length);
 
   const navButtonClasses =
-    "p-2 rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent";
+    "hidden lg:block p-2 rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent";
+
+  // Small in-flow prev/next buttons shown next to the title on mobile, where
+  // there's no room to float full-size arrows outside the card.
+  const mobileNavButtonClasses =
+    "lg:hidden p-1 rounded-full bg-neutral-900/40 hover:bg-neutral-800 border border-neutral-700 text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-accent";
 
   return (
-    <div className="relative flex h-[22rem] justify-center space-x-10 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-8 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+    // `-mx-12` cancels the page shell's fixed `px-12` so the card can reach
+    // the screen edges below `lg`; `lg:mx-0` restores it for the desktop layout.
+    <div className="relative flex flex-col gap-4 -mx-12 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-4 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] lg:mx-0 lg:h-[22rem] lg:flex-row lg:justify-center lg:gap-0 lg:space-x-10 lg:p-8">
       {items.length > 1 && (
         <>
           <button
@@ -55,7 +62,17 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
         </>
       )}
 
-      <div className="relative flex w-full max-w-2xl flex-col px-4">
+      <div
+        key={index}
+        className={cn(
+          "order-1 w-full shrink-0 lg:order-2 lg:w-56 lg:self-center",
+          contentClassName,
+        )}
+      >
+        {item.content ?? null}
+      </div>
+
+      <div className="relative order-2 flex w-full flex-col px-0 lg:order-1 lg:max-w-2xl lg:px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={index}
@@ -64,24 +81,34 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <h2 className="font-display text-xl text-neutral-100">
-              {item.title}
-            </h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-display text-xl text-neutral-100">
+                {item.title}
+              </h2>
+              {items.length > 1 && (
+                <div className="flex shrink-0 items-center gap-2 lg:hidden">
+                  <button
+                    onClick={goPrev}
+                    className={mobileNavButtonClasses}
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={goNext}
+                    className={mobileNavButtonClasses}
+                    aria-label="Next"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
             <p className="font-body text-xs mt-2 max-w-sm leading-relaxed text-neutral-400">
               {item.description}
             </p>
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      <div
-        key={index}
-        className={cn(
-          "hidden w-56 shrink-0 self-center lg:block",
-          contentClassName,
-        )}
-      >
-        {item.content ?? null}
       </div>
     </div>
   );
