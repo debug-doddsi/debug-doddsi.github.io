@@ -7,7 +7,9 @@ import { WorkPage } from "./pages/WorkPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
+import { SourdoughCaseStudyPage } from "./pages/SourdoughCaseStudyPage";
 import { DnDPage } from "./pages/DnDPage";
+import { DnDCaseStudyPage } from "./pages/DnDCaseStudyPage";
 import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
 import Grainient from "./components/ui/Grainient";
 import { TAB_PATHS, getTabFromLocation } from "./lib/routes";
@@ -75,8 +77,12 @@ export default function App() {
         return <ContactPage />;
       case "kitchen":
         return <KitchenPage onBack={() => navigate("projects")} />;
+      case "kitchen-case-study":
+        return <SourdoughCaseStudyPage onBack={() => navigate("projects")} />;
       case "dnd":
         return <DnDPage onBack={() => navigate("projects")} />;
+      case "dnd-case-study":
+        return <DnDCaseStudyPage onBack={() => navigate("projects")} />;
     }
   }
 

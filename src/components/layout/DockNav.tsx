@@ -26,7 +26,11 @@ export function DockNav({ active, onNavigate }: DockNavProps) {
     const isActive =
       item.id === active ||
       (item.id === "projects" &&
-        (active === "kitchen" || active === "dnd" || active === "persevere"));
+        (active === "kitchen" ||
+          active === "kitchen-case-study" ||
+          active === "dnd" ||
+          active === "dnd-case-study" ||
+          active === "persevere"));
 
     return {
       icon: item.icon,

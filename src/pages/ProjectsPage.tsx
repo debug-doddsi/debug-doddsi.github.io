@@ -20,7 +20,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
         <CutoutLaunchCard
           icon={<PenTool size={18} />}
           title="Persevere Media"
-          description="Designing a website for a digital marketing agency that had to be fun, capable, and unmistakably itself."
+          description="A bold, capable rebrand and website for a digital marketing agency."
           placeholder={
             <div
               className="flex h-full w-full items-center justify-center"
@@ -37,33 +37,39 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
               </span>
             </div>
           }
-          ctaLabel="View the case study"
+          ctaLabel="View Case Study"
           onLaunch={() => onNavigate("persevere")}
+          secondaryLabel="Open Website"
+          secondaryHref="https://choosepersevere.com"
         />
 
         <CutoutLaunchCard
           icon={<ChefHat size={18} />}
           title="Sourdough Souschef"
-          description="I used this app to throughly document and track my sourdough starter feedings, generate a step-by-step baking guide, and quickly calculate flour / water / starter / salt ratios for my loaves."
+          description="A sourdough tracker that logs feedings, guides bakes, and does the ratio maths for you."
           placeholder={
             <CutoutCardImage
               src="/sourdough/sourdough.jpg"
               alt="Sourdough bread"
             />
           }
-          ctaLabel="View the case study"
-          onLaunch={() => onNavigate("kitchen")}
+          ctaLabel="View Case Study"
+          onLaunch={() => onNavigate("kitchen-case-study")}
+          secondaryLabel="Open App"
+          onSecondaryLaunch={() => onNavigate("kitchen")}
         />
 
         <CutoutLaunchCard
           icon={<Map size={18} />}
           title="D&D Map Maker"
-          description="I created this app with my DM in mind. This app generates landscape and civilisation maps, and populates them with all your usual locations. Also allows for custom pins to be added. Skyrim inspired."
+          description="Procedural landscape and town maps for my DM, with custom pins built in."
           placeholder={
             <CutoutCardImage src="/dndmapmaker/dnd.jpg" alt="D&D map" />
           }
-          ctaLabel="View the case study"
-          onLaunch={() => onNavigate("dnd")}
+          ctaLabel="View Case Study"
+          onLaunch={() => onNavigate("dnd-case-study")}
+          secondaryLabel="Open App"
+          onSecondaryLaunch={() => onNavigate("dnd")}
         />
       </div>
     </PageShell>

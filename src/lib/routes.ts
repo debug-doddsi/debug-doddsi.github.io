@@ -12,7 +12,9 @@ export const TAB_PATHS: Record<TabId, string> = {
   persevere: "/projects/persevere",
   contact: "/contact",
   kitchen: "/sourdough",
+  "kitchen-case-study": "/projects/sourdough",
   dnd: "/dndmapmaker",
+  "dnd-case-study": "/projects/dnd-map-maker",
 };
 
 const PATH_TO_TAB: Record<string, TabId> = Object.fromEntries(

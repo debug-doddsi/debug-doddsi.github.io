@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { motion } from "motion/react";
 import {
   CutoutCard,
@@ -8,7 +8,6 @@ import {
   CutoutCardPin,
   CutoutCardContent,
   CutoutCorner,
-  CutoutCardAction,
 } from "./cutout-card";
 import { useCutoutContentStaggerVariants } from "./cutout-card-shared";
 
@@ -17,48 +16,61 @@ interface CutoutLaunchCardProps {
   title: string;
   description: string;
   placeholder: ReactNode;
+  /** Primary CTA - the case study writeup. */
   ctaLabel?: string;
   onLaunch: () => void;
+  /** Secondary CTA - the live app/site itself. Provide either a click
+   *  handler (in-app navigation) or an href (external link). */
+  secondaryLabel: string;
+  onSecondaryLaunch?: () => void;
+  secondaryHref?: string;
 }
 
 // Shared "launch tile" for the Projects grid, built on cult-ui's CutoutCard:
 // a top-right icon pin stitched into the media with concave CutoutCorner
 // accents (coloured to match whatever it sits on) instead of a plain
-// rectangle photo, plus an always-visible CTA floating over the card corner.
+// rectangle photo, plus a pair of always-visible CTAs (case study + live
+// app/site) so they're reachable without hover on touch devices.
 export function CutoutLaunchCard({
   icon,
   title,
   description,
   placeholder,
-  ctaLabel = "View the case study",
+  ctaLabel = "View Case Study",
   onLaunch,
+  secondaryLabel,
+  onSecondaryLaunch,
+  secondaryHref,
 }: CutoutLaunchCardProps) {
   const stagger = useCutoutContentStaggerVariants();
 
   return (
-    <CutoutCard
-      onClick={onLaunch}
-      className="group/cutout relative w-72 overflow-hidden rounded-[28px] border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300"
-    >
-      <CutoutCardMedia className="h-52 w-full">
-        {placeholder}
-        <CutoutCardOverlay className="from-[#241914]/30" />
+    <CutoutCard className="group/cutout relative w-72 overflow-hidden rounded-[28px] border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+      <button
+        type="button"
+        onClick={onLaunch}
+        className="block w-full text-left"
+      >
+        <CutoutCardMedia className="h-52 w-full">
+          {placeholder}
+          <CutoutCardOverlay className="from-[#241914]/30" />
 
-        {/* Top-right icon pin, coloured as itself so the corner accents
-            extend its own silhouette into the media rather than cutting
-            into it. */}
-        <CutoutCardPin className="top-0 right-0 flex h-11 w-11 items-center justify-center rounded-bl-[16px] bg-accent text-white shadow-md">
-          {icon}
-          <CutoutCorner
-            size={20}
-            className="absolute top-0 -left-[19px] -rotate-90 text-accent"
-          />
-          <CutoutCorner
-            size={20}
-            className="absolute right-0 -bottom-[19px] -rotate-90 text-accent"
-          />
-        </CutoutCardPin>
-      </CutoutCardMedia>
+          {/* Top-right icon pin, coloured as itself so the corner accents
+              extend its own silhouette into the media rather than cutting
+              into it. */}
+          <CutoutCardPin className="top-0 right-0 flex h-11 w-11 items-center justify-center rounded-bl-[16px] bg-accent text-white shadow-md">
+            {icon}
+            <CutoutCorner
+              size={20}
+              className="absolute top-0 -left-[19px] -rotate-90 text-accent"
+            />
+            <CutoutCorner
+              size={20}
+              className="absolute right-0 -bottom-[19px] -rotate-90 text-accent"
+            />
+          </CutoutCardPin>
+        </CutoutCardMedia>
+      </button>
 
       <motion.div
         initial="hidden"
@@ -66,7 +78,7 @@ export function CutoutLaunchCard({
         viewport={{ once: true, amount: 0.4 }}
         variants={stagger.container}
       >
-        <CutoutCardContent className="flex flex-col gap-2 p-5 pb-14">
+        <CutoutCardContent className="flex flex-col gap-2 p-5">
           <motion.h2
             variants={stagger.item}
             className="font-display text-neutral-100 text-lg leading-snug"
@@ -79,21 +91,37 @@ export function CutoutLaunchCard({
           >
             {description}
           </motion.p>
+
+          <motion.div variants={stagger.item} className="flex flex-wrap gap-2 mt-2">
+            <button
+              type="button"
+              onClick={onLaunch}
+              className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 active:scale-[0.97]"
+            >
+              {ctaLabel} <ArrowRight size={12} />
+            </button>
+
+            {secondaryHref ? (
+              <a
+                href={secondaryHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full border border-accent px-4 py-2 font-body text-xs font-medium text-accent transition-transform duration-150 active:scale-[0.97]"
+              >
+                {secondaryLabel} <ExternalLink size={12} />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={onSecondaryLaunch}
+                className="flex items-center gap-1.5 rounded-full border border-accent px-4 py-2 font-body text-xs font-medium text-accent transition-transform duration-150 active:scale-[0.97]"
+              >
+                {secondaryLabel} <ArrowRight size={12} />
+              </button>
+            )}
+          </motion.div>
         </CutoutCardContent>
       </motion.div>
-
-      <CutoutCardAction className="right-5 bottom-5" revealOnHover={false}>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onLaunch();
-          }}
-          className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 active:scale-[0.97]"
-        >
-          {ctaLabel} <ArrowRight size={12} />
-        </button>
-      </CutoutCardAction>
     </CutoutCard>
   );
 }
