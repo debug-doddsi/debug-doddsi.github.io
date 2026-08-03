@@ -1,5 +1,5 @@
-import { ArrowLeft, ChefHat } from "lucide-react";
-import { PageShell } from "../components/layout/PageShell";
+import { ArrowLeft } from "lucide-react";
+import SourdoughCaseStudy from "../components/case-studies/sourdough";
 
 interface SourdoughCaseStudyPageProps {
   onBack: () => void;
@@ -16,11 +16,7 @@ export function SourdoughCaseStudyPage({
       >
         <ArrowLeft size={13} /> Back to Projects
       </button>
-      <PageShell
-        icon={<ChefHat size={22} />}
-        title="Sourdough Souschef"
-        subtitle="Case study coming soon."
-      />
+      <SourdoughCaseStudy />
     </div>
   );
 }

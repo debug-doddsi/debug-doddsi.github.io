@@ -1,5 +1,5 @@
-import { ArrowLeft, Map } from "lucide-react";
-import { PageShell } from "../components/layout/PageShell";
+import { ArrowLeft } from "lucide-react";
+import DnDCaseStudy from "../components/case-studies/dnd";
 
 interface DnDCaseStudyPageProps {
   onBack: () => void;
@@ -14,11 +14,7 @@ export function DnDCaseStudyPage({ onBack }: DnDCaseStudyPageProps) {
       >
         <ArrowLeft size={13} /> Back to Projects
       </button>
-      <PageShell
-        icon={<Map size={22} />}
-        title="D&D Map Maker"
-        subtitle="Case study coming soon."
-      />
+      <DnDCaseStudy />
     </div>
   );
 }
