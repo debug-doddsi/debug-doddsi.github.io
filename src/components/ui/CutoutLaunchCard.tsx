@@ -45,7 +45,7 @@ export function CutoutLaunchCard({
   const stagger = useCutoutContentStaggerVariants();
 
   return (
-    <CutoutCard className="group/cutout relative w-72 overflow-hidden rounded-[28px] border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+    <CutoutCard className="group/cutout relative flex h-[28rem] w-72 flex-col overflow-hidden rounded-[28px] border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
       <button
         type="button"
         onClick={onLaunch}
@@ -77,8 +77,9 @@ export function CutoutLaunchCard({
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={stagger.container}
+        className="flex flex-1 flex-col"
       >
-        <CutoutCardContent className="flex flex-col gap-2 p-5">
+        <CutoutCardContent className="flex flex-1 flex-col gap-2 p-5">
           <motion.h2
             variants={stagger.item}
             className="font-display text-neutral-100 text-lg leading-snug"
@@ -92,11 +93,14 @@ export function CutoutLaunchCard({
             {description}
           </motion.p>
 
-          <motion.div variants={stagger.item} className="flex flex-wrap gap-2 mt-2">
+          <motion.div
+            variants={stagger.item}
+            className="mt-auto flex flex-wrap gap-2 pt-3"
+          >
             <button
               type="button"
               onClick={onLaunch}
-              className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 active:scale-[0.97]"
+              className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 hover:-translate-y-0.5"
             >
               {ctaLabel} <ArrowRight size={12} />
             </button>
@@ -106,7 +110,7 @@ export function CutoutLaunchCard({
                 href={secondaryHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-full border border-accent px-4 py-2 font-body text-xs font-medium text-accent transition-transform duration-150 active:scale-[0.97]"
+                className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 hover:-translate-y-0.5"
               >
                 {secondaryLabel} <ExternalLink size={12} />
               </a>
@@ -114,7 +118,7 @@ export function CutoutLaunchCard({
               <button
                 type="button"
                 onClick={onSecondaryLaunch}
-                className="flex items-center gap-1.5 rounded-full border border-accent px-4 py-2 font-body text-xs font-medium text-accent transition-transform duration-150 active:scale-[0.97]"
+                className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-body text-xs font-medium text-white shadow-md transition-transform duration-150 hover:-translate-y-0.5"
               >
                 {secondaryLabel} <ArrowRight size={12} />
               </button>
