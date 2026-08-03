@@ -113,7 +113,7 @@ function ContentsCard() {
             onClick={(e) => jumpToSection(e, section.id)}
             className="group flex items-center justify-between py-3 pl-8 first:pt-0 last:pb-0"
           >
-            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colours">
+            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colors">
               {section.label}
             </span>
             <ArrowRight
@@ -245,7 +245,7 @@ export default function PersevereCaseStudy() {
                 <div className="flex flex-col gap-4">
                   {/* Issue */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-s text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
@@ -260,7 +260,7 @@ export default function PersevereCaseStudy() {
 
                   {/* Solution */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-s text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Solution
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
@@ -282,7 +282,7 @@ export default function PersevereCaseStudy() {
 
                   {/* Impact */}
                   <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-s text-accent uppercase tracking-widest">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
                       Impact
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
