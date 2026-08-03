@@ -78,11 +78,17 @@ const finalPalette = [
 // below. Keeping this as a single source of truth means adding a new
 // section only requires updating it in one place.
 const SECTIONS = [
-  { id: "project", label: "the project" },
+  { id: "project", label: "the brief" },
   { id: "role", label: "my role" },
   { id: "decisions", label: "key decisions" },
   { id: "outcome", label: "outcome" },
 ];
+
+// Shared width for the decision number column, used both on the trigger's
+// number glyph and as an invisible spacer above the accordion content, so
+// the expanded Issue/Solution/Impact cards line up under the title instead
+// of sitting flush left under the number.
+const NUMBER_COLUMN_WIDTH = "w-14 sm:w-16";
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -131,6 +137,10 @@ function ContentsCard() {
 // summary stay visible as the tl;dr, and the chevron expands to the full
 // issue/what-I-did/outcome breakdown. New decisions just add another
 // DecisionItem with the next number.
+//
+// The number column has a fixed width (NUMBER_COLUMN_WIDTH), reused as an
+// invisible spacer above the accordion content, so the expanded cards align
+// under the title/summary text rather than sitting under the number itself.
 function DecisionItem({
   number,
   title,
@@ -146,7 +156,9 @@ function DecisionItem({
     <AccordionItem value={`decision-${number}`}>
       <AccordionTrigger className="items-start py-5 hover:no-underline [&_[data-slot=accordion-trigger-icon]]:mt-1.5">
         <div className="flex gap-4 text-left">
-          <span className="font-pixie text-6xl sm:text-7xl leading-none text-accent shrink-0">
+          <span
+            className={`font-pixie text-6xl sm:text-7xl leading-none text-accent shrink-0 text-center ${NUMBER_COLUMN_WIDTH}`}
+          >
             {String(number).padStart(2, "0")}
           </span>
           <div className="flex flex-col gap-1.5 pt-0.5">
@@ -159,7 +171,12 @@ function DecisionItem({
           </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent>{children}</AccordionContent>
+      <AccordionContent>
+        <div className="flex gap-4">
+          <span className={`shrink-0 ${NUMBER_COLUMN_WIDTH}`} aria-hidden="true" />
+          <div className="flex-1 min-w-0">{children}</div>
+        </div>
+      </AccordionContent>
     </AccordionItem>
   );
 }
@@ -205,13 +222,17 @@ export default function PersevereCaseStudy() {
         {/* 1. Project Intro */}
         <div id="project" className="scroll-mt-28">
           <GlassCard>
-            <SectionLabel>The Project</SectionLabel>
+            <SectionLabel>The Brief</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              Persevere is a full-service digital marketing agency -
-              videography, photography, content creation, and strategy under one
-              roof - run by two best friends whose skillsets fill a gap in the
-              market. The brief was to set the tone for a brand-new business:
-              fun yet capable, with charm and care built into every detail.
+              I was brought in to design and build the very first website for
+              Persevere, a full-service digital marketing agency covering
+              videography, photography, content creation, and strategy under
+              one roof, run by two best friends whose combined skillset fills
+              a real gap in the market. With no existing site to react to, the
+              job was to set the tone for a brand-new business from nothing:
+              fun yet capable, with charm and care built into every detail,
+              rather than the generic, corporate feel so many agency sites
+              default to.
             </p>
           </GlassCard>
         </div>
@@ -236,7 +257,7 @@ export default function PersevereCaseStudy() {
           <GlassCard>
             <SectionLabel>Key Decisions</SectionLabel>
 
-            <Accordion type="single" collapsible defaultValue="decision-1">
+            <Accordion type="single" collapsible>
               <DecisionItem
                 number={1}
                 title="Optimised the Colour Palette"
