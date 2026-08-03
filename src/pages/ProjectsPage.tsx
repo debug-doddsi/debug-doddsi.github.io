@@ -14,6 +14,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
       title="Projects"
       subtitle="Case studies, side projects, and stuff I've made for my friends and I"
       icon={<LayoutGrid size={28} />}
+      maxWidthClassName="max-w-5xl"
     >
       <div className="flex flex-wrap justify-center gap-6">
         <CutoutLaunchCard

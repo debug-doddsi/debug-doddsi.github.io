@@ -72,6 +72,9 @@ interface PageShellProps {
   children?: ReactNode;
   /** Opt-in decorative sparkles around the title. On by default. */
   sparkles?: boolean;
+  /** Override the default `max-w-2xl` container width, e.g. for pages
+   *  that need room for a wider grid of cards. */
+  maxWidthClassName?: string;
 }
 
 export function PageShell({
@@ -79,9 +82,10 @@ export function PageShell({
   subtitle,
   children,
   sparkles = true,
+  maxWidthClassName = "max-w-2xl",
 }: PageShellProps) {
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className={`mx-auto ${maxWidthClassName}`}>
       {/* Heading */}
       <div className="mb-10">
         <div className="relative inline-block">
