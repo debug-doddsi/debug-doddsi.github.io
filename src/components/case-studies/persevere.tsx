@@ -249,8 +249,8 @@ export default function PersevereCaseStudy() {
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I noticed the plum was reading grey and washed-out next to
-                      the palette's rich terracotta and gold tones. Since the
+                      I felt that the plum was pulling grey and washed-out next
+                      to the palette's warm terracotta and gold tones. Since the
                       clients loved the purple, I wanted to keep it as an
                       accent, but the page still needed a proper dark anchor to
                       hold everything together.
@@ -265,16 +265,16 @@ export default function PersevereCaseStudy() {
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       I ruled out true-black early because its absolute
-                      desaturation creates a harsh, clinical contrast that
+                      desaturation creates a cold, clinical contrast that
                       clashes with the brand's warm personality. From a colour
                       theory perspective, pure black absorbs all light and lacks
                       a colour temperature, so I instead proposed warm chromatic
                       neutrals like oxblood and espresso to maintain a unified
                       colour temperature with the sunset-inspired palette. I
-                      also tested a navy blue option after one of the clients
-                      enquired about its possible use. I lay all five choices
-                      out side by side so they could compare them directly
-                      against the existing colours.
+                      also tested a warm navy blue option after one of the
+                      clients enquired about its possible use. I lay all five
+                      choices out side by side so they could compare them
+                      directly against the existing colours.
                     </p>
 
                     <PaletteCircleRow swatches={darkOptions} />
@@ -288,10 +288,10 @@ export default function PersevereCaseStudy() {
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
                       The clients picked two dark colours - oxblood and warm
                       black. Every colour they selected is still in the final
-                      palette, and introducing these dark anchors establishes a
-                      clear visual hierarchy that will anchor the layout,
-                      naturally guiding user attention to key conversion points
-                      across the site.
+                      palette, including the plum. Introducing these dark
+                      anchors establishes a clear visual hierarchy that will
+                      anchor the layout, naturally guiding user attention to key
+                      conversion points across the site.
                     </p>
                     <PaletteCircleRow swatches={finalPalette} />
                   </div>
@@ -309,13 +309,14 @@ export default function PersevereCaseStudy() {
                       Issue
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      Persevere’s site owners needed to publish blog posts
-                      regularly, but every update meant sending it to me first.
-                      A simple text change turned into a queue: write the copy,
-                      send it over, wait for me to code it in, review, deploy.
-                      For a business that wanted to post often, that bottleneck
-                      slowed them down and made me a dependency for something
-                      that should have been quick and easy on their end.
+                      I noticed that every blog update would have to route
+                      through me first. Persevere's founders wanted to post
+                      often, but a simple copy change meant writing it, sending
+                      it over, waiting on me to code it in, then a review and
+                      deploy. That lead time didn't match how often a marketing
+                      agency actually needs to publish, and it made me a
+                      dependency for something that should have been quick and
+                      easy on their end.
                     </p>
                   </div>
 
@@ -324,17 +325,19 @@ export default function PersevereCaseStudy() {
                       Solution
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I integrated Decap CMS into the site, giving the client a
-                      simple login portal where they can write and publish blog
-                      posts themselves. No code, no waiting on me. Behind the
-                      scenes, I set it up so every change still goes through a
-                      proper review process so nothing caught fire in my
-                      absence: each new post opens as a pull request, runs
-                      through automated checks, and only goes live once
-                      approved. I also deployed and configured the
-                      authentication layer needed to connect the CMS securely to
-                      the site’s GitHub repository, all without touching the
-                      site’s existing custom design or performance.
+                      I decided the fix wasn't a faster turnaround from me, it
+                      was removing me from the loop entirely for routine
+                      updates. I chose to integrate Decap CMS, giving the
+                      founders a simple login portal to write and publish posts
+                      themselves, no code involved. But self-serve publishing on
+                      its own felt risky without a safety net, so I built in a
+                      review layer rather than letting posts go straight live:
+                      every change opens as a pull request, runs through
+                      automated checks, and only publishes once approved. I also
+                      deployed and configured the authentication layer needed to
+                      connect the CMS securely to the site's GitHub repository,
+                      without touching the site's existing custom design or
+                      performance.
                     </p>
                   </div>
 
@@ -343,19 +346,74 @@ export default function PersevereCaseStudy() {
                       Impact
                     </p>
                     <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The client now has full independence to publish content on
-                      their own schedule, while the site retains the safety net
-                      of a proper review pipeline, so nothing goes live broken
-                      or unreviewed. For any client, this kind of setup means
-                      faster content turnaround, no developer bottleneck for
-                      routine updates, and peace of mind that their site stays
-                      stable even as they manage it themselves.
+                      The founders now publish on their own schedule with no
+                      developer bottleneck, while the review pipeline means
+                      nothing goes live broken or unchecked. It's the kind of
+                      setup that gives any client faster content turnaround and
+                      genuine independence, without trading away the stability
+                      of a properly reviewed release process.
                     </p>
                   </div>
                 </div>
               </DecisionItem>
 
-              {/* TODO: Decision 3 - likely a layout or content-structure decision once the brief lands */}
+              <DecisionItem
+                number={3}
+                title="Built Secure, Spam-Protected Form Handling"
+                summary="Connected the contact form to a real email pipeline that runs safely behind the scenes, with genuine bot protection that never gets in a visitor's way."
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                      Issue
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      The contact form had nowhere real to send its data.
+                      GitHub Pages, where the site is hosted, only serves static
+                      files and can't run any server-side code, so there was no
+                      safe way to email submissions without exposing credentials
+                      in the browser, or leaving the form wide open to spam bots.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                      Solution
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      I weighed pointing the form at a third-party form service
+                      against building something dedicated, and chose to build
+                      a small serverless function so the client would have full
+                      control over their own data rather than routing enquiries
+                      through someone else's platform. That function sends
+                      submissions through Resend's email API, with the API key
+                      living only in the server environment, never exposed in
+                      the browser. For spam, I didn't want to rely on a single
+                      layer of defence, so I combined a hidden honeypot field to
+                      catch simple bots outright with Google's reCAPTCHA v3
+                      running invisibly in the background, scoring each
+                      submission on how human it looks before any email gets
+                      sent. Real visitors never see a checkbox or a challenge,
+                      the whole thing runs silently while they fill out the form
+                      normally.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                      Impact
+                    </p>
+                    <p className="font-body text-sm leading-relaxed text-neutral-400">
+                      Every genuine enquiry now lands straight in the client's
+                      inbox, reliably and securely, without them needing to
+                      manage any infrastructure themselves. Spam and bot
+                      submissions get filtered out before they ever reach a
+                      human, keeping the inbox clean without adding friction for
+                      real customers trying to get in touch.
+                    </p>
+                  </div>
+                </div>
+              </DecisionItem>
             </Accordion>
           </GlassCard>
         </div>
