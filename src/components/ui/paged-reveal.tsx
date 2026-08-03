@@ -82,7 +82,7 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
             transition={{ duration: 0.2 }}
           >
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-display text-xl text-neutral-100">
+              <h2 className="font-display text-lg text-neutral-100">
                 {item.title}
               </h2>
               {items.length > 1 && (

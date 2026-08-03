@@ -12,7 +12,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
   return (
     <PageShell
       title="Projects"
-      subtitle="Case studies, side projects, and silly little apps I've made for my friends and I"
+      subtitle="Case studies, side projects, and stuff I've made for my friends and I"
       icon={<LayoutGrid size={28} />}
     >
       <div className="flex flex-wrap justify-center gap-6">
