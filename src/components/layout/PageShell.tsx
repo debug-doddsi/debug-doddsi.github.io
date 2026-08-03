@@ -85,9 +85,11 @@ export function PageShell({
   maxWidthClassName = "max-w-2xl",
 }: PageShellProps) {
   return (
-    <div className={`mx-auto ${maxWidthClassName}`}>
-      {/* Heading */}
-      <div className="mb-10">
+    <div>
+      {/* Heading - always pinned to the same width/position as every other
+          page, even when `maxWidthClassName` widens the content below it
+          for a bigger grid. */}
+      <div className="mx-auto max-w-2xl mb-10">
         <div className="relative inline-block">
           <h1 className="font-pixie text-8xl text-neutral-100 tracking-tight">
             {title}
@@ -105,13 +107,15 @@ export function PageShell({
       </div>
 
       {/* Slot for actual content */}
-      {children ?? (
-        <div className="space-y-4">
-          <SkeletonBlock height="h-24" />
-          <SkeletonBlock height="h-16" />
-          <SkeletonBlock height="h-32" />
-        </div>
-      )}
+      <div className={`mx-auto ${maxWidthClassName}`}>
+        {children ?? (
+          <div className="space-y-4">
+            <SkeletonBlock height="h-24" />
+            <SkeletonBlock height="h-16" />
+            <SkeletonBlock height="h-32" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
