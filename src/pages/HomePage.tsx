@@ -1,6 +1,4 @@
 import type { CSSProperties } from "react";
-import { FolderGit2, Mail, Heart, Pen } from "lucide-react";
-import { BentoGrid, BentoCard } from "../components/ui/bento-grid";
 import type { TabId } from "../types";
 
 interface HomePageProps {
@@ -88,60 +86,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <p className="font-mono text-base sm:text-lg text-neutral-400 leading-relaxed">
               Software Engineer
               <br /> & UX Designer.
-              <br />I build apps engineers actually want to use.
+              <br />I build apps engineers *actually want to use*.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Bento grid */}
-      <BentoGrid className="max-w-5xl mx-auto">
-        {/* What I do */}
-        <BentoCard
-          size="wide"
-          name="What I Do"
-          description="Where I've been and what I've been up to since graduation!"
-          Icon={FolderGit2}
-          cta="Have a nosey"
-          onClick={() => onNavigate("work")}
-        />
-
-        <BentoCard
-          size="sm"
-          name="My Current Project "
-          description="My hobby outside of work! I am creating a website for my husband's business."
-          Icon={Pen}
-          cta="See my work"
-          onClick={() => onNavigate("persevere")}
-        />
-
-        {/* Contact */}
-        <BentoCard
-          name="Let's Talk!"
-          description="Always happy to chat about a project or an idea."
-          Icon={Mail}
-          cta="Get in touch"
-          onClick={() => onNavigate("contact")}
-        />
-
-        <BentoCard
-          size="wide"
-          name="Placeholder"
-          description="Placeholder"
-          Icon={Heart}
-          cta="Placeholder"
-          href="Placeholder"
-        />
-
-        <BentoCard
-          size="full"
-          name="Placeholder"
-          description="Placeholder"
-          Icon={Heart}
-          cta="Placeholder"
-          href="Placeholder"
-        />
-      </BentoGrid>
     </div>
   );
 }
