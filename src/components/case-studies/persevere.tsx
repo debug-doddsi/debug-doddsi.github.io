@@ -1,6 +1,6 @@
-import { PenTool, ArrowRight } from "lucide-react";
+import { PenTool } from "lucide-react";
 import { PageShell } from "../layout/PageShell";
-import { GlassCard } from "../ui/GlassCard";
+import { BentoGrid, BentoCard } from "../ui/bento-grid";
 import {
   Accordion,
   AccordionItem,
@@ -74,16 +74,6 @@ const finalPalette = [
   { hex: colours.warmBlack, name: "Warm black" },
 ];
 
-// Section anchors, used by both the contents card and the id'd wrappers
-// below. Keeping this as a single source of truth means adding a new
-// section only requires updating it in one place.
-const SECTIONS = [
-  { id: "project", label: "the brief" },
-  { id: "role", label: "my role" },
-  { id: "decisions", label: "key decisions" },
-  { id: "outcome", label: "outcome" },
-];
-
 // Shared width for the decision number column, used both on the trigger's
 // number glyph and as an invisible spacer above the accordion content, so
 // the expanded Issue/Solution/Impact cards line up under the title instead
@@ -95,41 +85,6 @@ function SectionLabel({ children }: { children: string }) {
     <p className="font-mono text-sm text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
-  );
-}
-
-// Scrolls to a section with an offset, so the target doesn't land hidden
-// underneath a sticky header.
-function jumpToSection(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
-  event.preventDefault();
-  const target = document.getElementById(id);
-  if (!target) return;
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function ContentsCard() {
-  return (
-    <GlassCard>
-      <SectionLabel>Contents</SectionLabel>
-      <nav className="flex flex-col divide-y divide-accent/10">
-        {SECTIONS.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            onClick={(e) => jumpToSection(e, section.id)}
-            className="group flex items-center justify-between py-3 pl-8 first:pt-0 last:pb-0"
-          >
-            <span className="font-mono text-sm text-neutral-100 group-hover:text-accent transition-colors">
-              {section.label}
-            </span>
-            <ArrowRight
-              size={14}
-              className="text-neutral-500 group-hover:text-accent group-hover:translate-x-0.5 transition-all"
-            />
-          </a>
-        ))}
-      </nav>
-    </GlassCard>
   );
 }
 
@@ -189,8 +144,10 @@ function DecisionItem({
 // just wrap onto a second line if the row runs out of space.
 function PaletteCircleRow({
   swatches,
+  showNames = true,
 }: {
   swatches: { hex: string; name: string }[];
+  showNames?: boolean;
 }) {
   return (
     <div className="flex w-full items-start justify-between">
@@ -203,9 +160,11 @@ function PaletteCircleRow({
             className="h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125"
             style={{ backgroundColor: swatch.hex }}
           />
-          <span className="font-mono text-xs tracking-wide text-neutral-400 truncate max-w-full">
-            {swatch.name}
-          </span>
+          {showNames && (
+            <span className="font-mono text-xs tracking-wide text-neutral-400 truncate max-w-full">
+              {swatch.name}
+            </span>
+          )}
         </div>
       ))}
     </div>
@@ -219,231 +178,247 @@ export default function PersevereCaseStudy() {
       subtitle="Designing a website for a digital marketing agency that has to deliver personality, reliability and stand out from the crowd."
       icon={<PenTool size={28} />}
     >
-      <div className="flex flex-col gap-8">
-        <ContentsCard />
-
-        {/* 1. Project Intro */}
-        <div id="project" className="scroll-mt-28">
-          <GlassCard>
-            <SectionLabel>The Brief</SectionLabel>
+      <BentoGrid>
+        {/* 1. Overview */}
+        <BentoCard size="sm">
+          <div>
+            <SectionLabel>Overview</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              I was brought in to design and build the very first website for
-              Persevere, a full-service digital marketing agency covering
-              videography, photography, content creation, and strategy under one
-              roof. It's run by two friends whose combined skillset fills a real
-              gap in the marketing world. With no existing site to build upon,
-              the job was to set the tone for a brand-new business from nothing:
-              fun yet capable, with charm and care built into every detail,
-              rather than the generic, corporate feel so many agency sites
-              default to.
+              Persevere Media is an Edinburgh-based digital marketing agency putting paid media
+              and creative production under one roof.
             </p>
-          </GlassCard>
-        </div>
+          </div>
+        </BentoCard>
 
         {/* 2. My Role */}
-        <div id="role" className="scroll-mt-28">
-          <GlassCard>
+        <BentoCard size="wide">
+          <div>
             <SectionLabel>My Role</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              I own this project end to end, covering both design and
-              development. On the design side, I set the visual tone, propose
-              the colour system, and shape how the brand feels before a single
-              page goes live. On the development side, I build the site itself
-              along with all the infrastructure a client never sees but relies
-              on. I'm working directly with the clients throughout, translating
-              their personalities, intentions, and the gap they fill in the
-              market into something visual, then building it to actually work.
+              I own this project end to end, working directly with the
+              clients to turn their personality and market position into
+              something that attracts and converts their ideal customers.
+              <br/><br/>
+              I am responsible for:
+              <br/>
+              <strong className="font-semibold">Design</strong> of the visual tone, colour system and brand feel.
+              <br/>
+              <strong className="font-semibold">Development</strong> of the site and its backend infrastructure.
             </p>
-          </GlassCard>
-        </div>
+          </div>
+        </BentoCard>
 
-        {/* 3. Key Design Decisions */}
-        <div id="decisions" className="scroll-mt-28">
-          <GlassCard>
-            <SectionLabel>Key Decisions</SectionLabel>
+        {/* 3. The Brief */}
+        <BentoCard size="full">
+          <div>
+            <SectionLabel>The Brief</SectionLabel>
+            <p className="font-body text-sm leading-relaxed text-neutral-400">
+              A website for <strong className="font-semibold">business owners looking to scale</strong>,
+              built to convert on the first fold and stand apart from the
+              generic, corporate look agency sites typically default to.
+            </p>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 font-body text-sm leading-relaxed text-neutral-400">
+              <li>
+                Prove Persevere's <strong className="font-semibold">credibility and capability</strong> immediately, to drive discovery call bookings
+              </li>
+              <li>
+                Carry a <strong className="font-semibold">gritty, for-the-people</strong> attitude through the design itself
+              </li>
+              <li>
+                Brand voice is <strong className="font-semibold">anti-establishment</strong>: plain-spoken, rhythmic, inspired by monologues from the movie Trainspotting
+              </li>
+              <li>
+                <strong className="font-semibold">No agency jargon</strong>
+              </li>
+            </ul>
+          </div>
+        </BentoCard>
 
-            <Accordion type="single" collapsible>
-              <DecisionItem
-                number={1}
-                title="Optimised the Colour Palette"
-                summary="Introduced warm chromatic neutrals as intentional dark anchors, giving structure to the layout and elevating visual hierarchy without compromising the clients' original palette."
-              >
-                <div className="flex flex-col gap-4">
-                  {/* Issue */}
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Issue
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I felt that the plum was pulling grey and washed-out next
-                      to the palette's warm terracotta and gold tones. Since the
-                      clients loved the purple, I wanted to keep it as an
-                      accent, but the page still needed a proper dark anchor to
-                      hold everything together.
-                    </p>
-                    <PaletteCircleRow swatches={originalPalette} />
-                  </div>
+        {/* 4. Key Design Decisions */}
+        <BentoCard size="full">
+          <SectionLabel>Key Decisions</SectionLabel>
 
-                  {/* Solution */}
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Solution
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I ruled out true-black early because its absolute
-                      desaturation creates a cold, clinical contrast that
-                      clashes with the brand's warm personality. From a colour
-                      theory perspective, pure black absorbs all light and lacks
-                      a colour temperature. So I instead proposed warm chromatic
-                      neutrals like oxblood and espresso to maintain a unified
-                      colour temperature with the sunset-inspired palette. I
-                      also tested a warm navy blue option after one of the
-                      clients enquired about its possible use. I lay all five
-                      choices out side by side so they could compare them
-                      directly against the existing colours.
-                    </p>
-
-                    <PaletteCircleRow swatches={darkOptions} />
-                  </div>
-
-                  {/* Impact */}
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Impact
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The clients picked two dark colours: oxblood and warm
-                      black. Every colour they selected is still in the final
-                      palette, including the plum. Introducing these dark
-                      anchors establishes a clear visual hierarchy that anchors
-                      the layout. It naturally guides user attention to key
-                      conversion points across the site.
-                    </p>
-                    <PaletteCircleRow swatches={finalPalette} />
-                  </div>
+          <Accordion type="single" collapsible>
+            <DecisionItem
+              number={1}
+              title="Optimised the Colour Palette"
+              summary="Introduced warm chromatic neutrals as intentional dark anchors, giving structure to the layout and elevating visual hierarchy without compromising the clients' original palette."
+            >
+              <div className="flex flex-col gap-4">
+                {/* Issue */}
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Issue
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    I felt that the plum was pulling grey and washed-out next
+                    to the palette's warm terracotta and gold tones. Since the
+                    clients loved the purple, I wanted to keep it as an
+                    accent, but the page still needed a proper dark anchor to
+                    hold everything together.
+                  </p>
+                  <PaletteCircleRow swatches={originalPalette} />
                 </div>
-              </DecisionItem>
 
-              <DecisionItem
-                number={2}
-                title="Made Blog Publishing Self-Serve"
-                summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication. The result is a self-serve publishing flow for the founders that still runs through automated review before anything goes live."
-              >
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Issue
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I noticed that every blog update would have to route
-                      through me first. Persevere's founders wanted to post
-                      often, but a simple copy change meant writing it, sending
-                      it over, waiting on me to code it in, then a review and
-                      deploy. That lead time didn't match how often a marketing
-                      agency actually needs to publish. It also made me a
-                      dependency for something that should have been quick and
-                      easy on their end.
-                    </p>
-                  </div>
+                {/* Solution */}
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Solution
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    I ruled out true-black early because its absolute
+                    desaturation creates a cold, clinical contrast that
+                    clashes with the brand's warm personality. From a colour
+                    theory perspective, pure black absorbs all light and lacks
+                    a colour temperature. So I instead proposed warm chromatic
+                    neutrals like oxblood and espresso to maintain a unified
+                    colour temperature with the sunset-inspired palette. I
+                    also tested a warm navy blue option after one of the
+                    clients enquired about its possible use. I lay all five
+                    choices out side by side so they could compare them
+                    directly against the existing colours.
+                  </p>
 
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Solution
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I decided the fix wasn't a faster turnaround from me. It
-                      was removing me from the loop entirely for routine
-                      updates. I chose to integrate Decap CMS, giving the
-                      founders a simple login portal to write and publish posts
-                      themselves, no code involved. But self-serve publishing on
-                      its own felt risky without a safety net. So I built in a
-                      review layer rather than letting posts go straight live:
-                      every change opens as a pull request, runs through
-                      automated checks, and only publishes once approved. I also
-                      deployed and configured the authentication layer needed to
-                      connect the CMS securely to the site's GitHub repository,
-                      without touching the site's existing custom design or
-                      performance.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Impact
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The founders now publish on their own schedule with no
-                      developer bottleneck. The review pipeline still means
-                      nothing goes live broken or unchecked. It's the kind of
-                      setup that gives any client faster content turnaround and
-                      genuine independence, and it doesn't trade away the
-                      stability of a properly reviewed release process.
-                    </p>
-                  </div>
+                  <PaletteCircleRow swatches={darkOptions} />
                 </div>
-              </DecisionItem>
 
-              <DecisionItem
-                number={3}
-                title="Built Secure, Spam-Protected Form Handling"
-                summary="Connected the contact form to a real email pipeline that runs safely behind the scenes, with genuine bot protection that never gets in a visitor's way."
-              >
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Issue
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      The contact form had nowhere real to send its data. GitHub
-                      Pages, where the site is hosted, only serves static files
-                      and can't run any server-side code. That left no safe way
-                      to email submissions without exposing credentials in the
-                      browser, or leaving the form wide open to spam bots.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Solution
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      I weighed pointing the form at a third-party form service
-                      against building something dedicated. I chose to build a
-                      small serverless function so the client would have full
-                      control over their own data rather than routing enquiries
-                      through someone else's platform. That function sends
-                      submissions through Resend's email API, with the API key
-                      living only in the server environment, never exposed in
-                      the browser. For spam, I didn't want to rely on a single
-                      layer of defence. So I combined a hidden honeypot field to
-                      catch simple bots outright with Google's reCAPTCHA v3,
-                      running invisibly in the background and scoring each
-                      submission on how human it looks before any email gets
-                      sent. Real visitors never see a checkbox or a challenge.
-                      The whole thing runs silently while they fill out the form
-                      normally.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
-                    <p className="font-mono text-sm text-accent uppercase tracking-widest">
-                      Impact
-                    </p>
-                    <p className="font-body text-sm leading-relaxed text-neutral-400">
-                      Every genuine enquiry now lands straight in the client's
-                      inbox, reliably and securely, without them needing to
-                      manage any infrastructure themselves. Spam and bot
-                      submissions get filtered out before they ever reach a
-                      human. That keeps the inbox clean without adding friction
-                      for real customers trying to get in touch.
-                    </p>
-                  </div>
+                {/* Impact */}
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Impact
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    The clients picked two dark colours: oxblood and warm
+                    black. Every colour they selected is still in the final
+                    palette, including the plum. Introducing these dark
+                    anchors establishes a clear visual hierarchy that anchors
+                    the layout. It naturally guides user attention to key
+                    conversion points across the site.
+                  </p>
+                  <PaletteCircleRow swatches={finalPalette} showNames={false} />
                 </div>
-              </DecisionItem>
-            </Accordion>
-          </GlassCard>
-        </div>
-      </div>
+              </div>
+            </DecisionItem>
+
+            <DecisionItem
+              number={2}
+              title="Made Blog Publishing Self-Serve"
+              summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication. The result is a self-serve publishing flow for the founders that still runs through automated review before anything goes live."
+            >
+              <div className="flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Issue
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    I noticed that every blog update would have to route
+                    through me first. Persevere's founders wanted to post
+                    often, but a simple copy change meant writing it, sending
+                    it over, waiting on me to code it in, then a review and
+                    deploy. That lead time didn't match how often a marketing
+                    agency actually needs to publish. It also made me a
+                    dependency for something that should have been quick and
+                    easy on their end.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Solution
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    I decided the fix wasn't a faster turnaround from me. It
+                    was removing me from the loop entirely for routine
+                    updates. I chose to integrate Decap CMS, giving the
+                    founders a simple login portal to write and publish posts
+                    themselves, no code involved. But self-serve publishing on
+                    its own felt risky without a safety net. So I built in a
+                    review layer rather than letting posts go straight live:
+                    every change opens as a pull request, runs through
+                    automated checks, and only publishes once approved. I also
+                    deployed and configured the authentication layer needed to
+                    connect the CMS securely to the site's GitHub repository,
+                    without touching the site's existing custom design or
+                    performance.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Impact
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    The founders now publish on their own schedule with no
+                    developer bottleneck. The review pipeline still means
+                    nothing goes live broken or unchecked. It's the kind of
+                    setup that gives any client faster content turnaround and
+                    genuine independence, and it doesn't trade away the
+                    stability of a properly reviewed release process.
+                  </p>
+                </div>
+              </div>
+            </DecisionItem>
+
+            <DecisionItem
+              number={3}
+              title="Built Secure, Spam-Protected Form Handling"
+              summary="Connected the contact form to a real email pipeline that runs safely behind the scenes, with genuine bot protection that never gets in a visitor's way."
+            >
+              <div className="flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Issue
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    The contact form had nowhere real to send its data. GitHub
+                    Pages, where the site is hosted, only serves static files
+                    and can't run any server-side code. That left no safe way
+                    to email submissions without exposing credentials in the
+                    browser, or leaving the form wide open to spam bots.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Solution
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    I weighed pointing the form at a third-party form service
+                    against building something dedicated. I chose to build a
+                    small serverless function so the client would have full
+                    control over their own data rather than routing enquiries
+                    through someone else's platform. That function sends
+                    submissions through Resend's email API, with the API key
+                    living only in the server environment, never exposed in
+                    the browser. For spam, I didn't want to rely on a single
+                    layer of defence. So I combined a hidden honeypot field to
+                    catch simple bots outright with Google's reCAPTCHA v3,
+                    running invisibly in the background and scoring each
+                    submission on how human it looks before any email gets
+                    sent. Real visitors never see a checkbox or a challenge.
+                    The whole thing runs silently while they fill out the form
+                    normally.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Impact
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    Every genuine enquiry now lands straight in the client's
+                    inbox, reliably and securely, without them needing to
+                    manage any infrastructure themselves. Spam and bot
+                    submissions get filtered out before they ever reach a
+                    human. That keeps the inbox clean without adding friction
+                    for real customers trying to get in touch.
+                  </p>
+                </div>
+              </div>
+            </DecisionItem>
+          </Accordion>
+        </BentoCard>
+      </BentoGrid>
     </PageShell>
   );
 }
