@@ -82,26 +82,16 @@ const PROJECTS: Project[] = [
 const ALL_TAGS: ProjectTag[] = ["professional", "fun"];
 
 export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
-  const [activeTags, setActiveTags] = useState<Set<ProjectTag>>(new Set());
+  const [activeTag, setActiveTag] = useState<ProjectTag | null>(null);
 
   const toggleTag = (tag: ProjectTag) => {
-    setActiveTags((prev) => {
-      const next = new Set(prev);
-      if (next.has(tag)) {
-        next.delete(tag);
-      } else {
-        next.add(tag);
-      }
-      return next;
-    });
+    setActiveTag((prev) => (prev === tag ? null : tag));
   };
 
   const visibleProjects = useMemo(() => {
-    if (activeTags.size === 0) return PROJECTS;
-    return PROJECTS.filter((project) =>
-      project.tags.some((tag) => activeTags.has(tag)),
-    );
-  }, [activeTags]);
+    if (activeTag === null) return PROJECTS;
+    return PROJECTS.filter((project) => project.tags.includes(activeTag));
+  }, [activeTag]);
 
   return (
     <PageShell
@@ -116,10 +106,10 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
         </span>
         <button
           type="button"
-          onClick={() => setActiveTags(new Set())}
-          aria-pressed={activeTags.size === 0}
+          onClick={() => setActiveTag(null)}
+          aria-pressed={activeTag === null}
           className={`rounded-full border px-4 py-1.5 font-body text-xs font-medium transition-colors duration-150 ${
-            activeTags.size === 0
+            activeTag === null
               ? "border-accent bg-accent text-white"
               : "border-accent/30 bg-[#faf3e4]/60 text-accent hover:border-accent/70"
           }`}
@@ -127,7 +117,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
           All
         </button>
         {ALL_TAGS.map((tag) => {
-          const isActive = activeTags.has(tag);
+          const isActive = activeTag === tag;
           return (
             <button
               key={tag}
