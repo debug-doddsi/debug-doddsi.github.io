@@ -11,7 +11,6 @@ import { SourdoughCaseStudyPage } from "./pages/SourdoughCaseStudyPage";
 import { DnDPage } from "./pages/DnDPage";
 import { DnDCaseStudyPage } from "./pages/DnDCaseStudyPage";
 import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
-import Grainient from "./components/ui/Grainient";
 import { TAB_PATHS, getTabFromLocation } from "./lib/routes";
 
 const TRANSITION_MS = 180;
@@ -89,27 +88,6 @@ export default function App() {
   return (
     <>
       <div className="fade-in h-screen overflow-hidden flex">
-        {/* Grainient page background - pale strawberry-cream dominant, with
-            soft strawberry-pink/rose blob accents, sitting behind everything.
-            Grainient's own root div hardcodes position:relative, so it's
-            wrapped here rather than trying to override that via className
-            (Tailwind's utility ordering - not JSX class order - decides
-            which `position` utility wins on a class clash). */}
-        <div className="fixed inset-0 -z-10 pointer-events-none">
-          <Grainient
-            color1="#FBF0DE"
-            color2="#F4C7D0"
-            color3="#8B3F56"
-            colorBalance={0.15}
-            warpAmplitude={60}
-            blendSoftness={0.18}
-            grainAmount={0.045}
-            contrast={1.3}
-            saturation={1.15}
-            zoom={1.1}
-          />
-        </div>
-
         <DockNav active={activeTab} onNavigate={navigate} />
 
         {/* Scrollable content */}
