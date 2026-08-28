@@ -10,12 +10,16 @@ import {
   CutoutCorner,
 } from "./cutout-card";
 import { useCutoutContentStaggerVariants } from "./cutout-card-shared";
+import type { ProjectTag } from "../../types";
+import { PROJECT_TAG_LABELS } from "../../types";
 
 interface CutoutLaunchCardProps {
   icon: ReactNode;
   title: string;
   description: string;
   placeholder: ReactNode;
+  /** Professional / fun labels shown on the card and used for filtering. */
+  tags: ProjectTag[];
   /** Primary CTA - the case study writeup. */
   ctaLabel?: string;
   onLaunch: () => void;
@@ -36,6 +40,7 @@ export function CutoutLaunchCard({
   title,
   description,
   placeholder,
+  tags,
   ctaLabel = "View Case Study",
   onLaunch,
   secondaryLabel,
@@ -86,6 +91,19 @@ export function CutoutLaunchCard({
           >
             {title}
           </motion.h2>
+          <motion.div
+            variants={stagger.item}
+            className="flex flex-wrap gap-1.5"
+          >
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent"
+              >
+                {PROJECT_TAG_LABELS[tag]}
+              </span>
+            ))}
+          </motion.div>
           <motion.p
             variants={stagger.item}
             className="font-body text-xs text-neutral-400 leading-relaxed"
