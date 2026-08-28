@@ -9,7 +9,7 @@ interface BentoGridProps {
 export function BentoGrid({ children, className = "" }: BentoGridProps) {
   return (
     <div
-      className={`grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 ${className}`}
+      className={`grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ${className}`}
     >
       {children}
     </div>
@@ -30,7 +30,8 @@ const SIZE_CLASSES: Record<BentoSize, string> = {
 };
 
 interface BentoCardProps {
-  name: string;
+  /** Required unless `children` fully overrides the default layout. */
+  name?: string;
   description?: string;
   Icon?: LucideIcon;
   cta?: string;
@@ -71,10 +72,11 @@ export function BentoCard({
 
   return (
     <div
-      className={`group relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl p-6
+      className={`group relative flex min-h-40 flex-col overflow-hidden rounded-2xl p-6
         bg-[#faf3e4]/60 backdrop-blur-md border border-[#faf3e4]/70
         shadow-[0_8px_30px_rgba(0,0,0,0.06)]
         transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)]
+        ${children ? "" : "justify-between"}
         ${SIZE_CLASSES[size]} ${className}`}
     >
       {children ?? (
