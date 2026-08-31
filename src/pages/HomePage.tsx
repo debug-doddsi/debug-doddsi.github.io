@@ -91,7 +91,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

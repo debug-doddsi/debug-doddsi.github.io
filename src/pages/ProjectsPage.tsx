@@ -28,8 +28,7 @@ const PROJECTS: Project[] = [
     id: "persevere",
     icon: <PenTool size={18} />,
     title: "Persevere Media",
-    description:
-      "A custom website for a digital marketing agency.",
+    description: "A custom website for a digital marketing agency.",
     placeholder: (
       <div
         className="flex h-full w-full items-center justify-center"

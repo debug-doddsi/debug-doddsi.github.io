@@ -208,7 +208,10 @@ export default function PersevereCaseStudy() {
           <div className="flex flex-col gap-3">
             <MetaItem label="Timeline" value="July - September 2026" />
             <MetaItem label="Team" value="Solo" />
-            <MetaItem label="Skills" value="UI/UX Design, Requirements Gathering, Frontend Development" />
+            <MetaItem
+              label="Skills"
+              value="UI/UX Design, Requirements Gathering, Frontend Development"
+            />
           </div>
         </BentoCard>
 
@@ -217,8 +220,10 @@ export default function PersevereCaseStudy() {
           <div>
             <SectionLabel>Overview</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              Persevere Media is a new Edinburgh-based digital marketing agency putting paid media
-              and creative production under one roof. This project allowed me to design and build something from scratch and define a brand's breakout identity on launch.
+              Persevere Media is a new Edinburgh-based digital marketing agency
+              putting paid media and creative production under one roof. This
+              project allowed me to design and build something from scratch and
+              define a brand's breakout identity on launch.
             </p>
           </div>
         </BentoCard>
@@ -228,26 +233,31 @@ export default function PersevereCaseStudy() {
           <div>
             <SectionLabel>My Role</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              I own this project end to end, working directly with the
-              clients to turn their personality and market position into
-              something that attracts and converts their ideal customers.
-              <br/><br/>
+              I own this project end to end, working directly with the clients
+              to turn their personality and market position into something that
+              attracts and converts their ideal customers.
+              <br />
+              <br />
               I am responsible for:
-              <br/>
-              <strong className="font-semibold">Design</strong> of the visual tone, colour system and brand feel.
-              <br/>
-              <strong className="font-semibold">Development</strong> of the site and its backend infrastructure.
+              <br />
+              <strong className="font-semibold">Design</strong> of the visual
+              tone, colour system and brand feel.
+              <br />
+              <strong className="font-semibold">Development</strong> of the site
+              and its backend infrastructure.
             </p>
           </div>
         </BentoCard>
 
         <BentoCard size="sm">
           <div>
-          <SectionLabel>Context</SectionLabel>
-              <p className="font-body text-sm leading-relaxed text-neutral-400">
-                First impressions of Persevere matter, especially when cold-launched. The site had to prove reliability and skill immediately and burst onto the scene rather than blend in.
-               </p>
-         </div>
+            <SectionLabel>Context</SectionLabel>
+            <p className="font-body text-sm leading-relaxed text-neutral-400">
+              First impressions of Persevere matter, especially when
+              cold-launched. The site had to prove reliability and skill
+              immediately and burst onto the scene rather than blend in.
+            </p>
+          </div>
         </BentoCard>
 
         {/* 5. The Brief */}
@@ -255,19 +265,33 @@ export default function PersevereCaseStudy() {
           <div>
             <SectionLabel>The Brief</SectionLabel>
             <p className="font-body text-sm leading-relaxed text-neutral-400">
-              A website for <strong className="font-semibold">business owners looking to scale</strong>,
-              built to convert on the first fold and stand apart from the
+              A website for{" "}
+              <strong className="font-semibold">
+                business owners looking to scale
+              </strong>
+              , built to convert on the first fold and stand apart from the
               generic, corporate look agency sites typically default to.
             </p>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 font-body text-sm leading-relaxed text-neutral-400">
               <li>
-                Prove Persevere's <strong className="font-semibold">credibility and capability</strong> immediately, to drive discovery call bookings
+                Prove Persevere's{" "}
+                <strong className="font-semibold">
+                  credibility and capability
+                </strong>{" "}
+                immediately, to drive discovery call bookings
               </li>
               <li>
-                Carry a <strong className="font-semibold">gritty, for-the-people</strong> attitude through the design itself
+                Carry a{" "}
+                <strong className="font-semibold">
+                  gritty, for-the-people
+                </strong>{" "}
+                attitude through the design itself
               </li>
               <li>
-                Brand voice is <strong className="font-semibold">anti-establishment</strong>: plain-spoken, rhythmic, inspired by monologues from the movie Trainspotting
+                Brand voice is{" "}
+                <strong className="font-semibold">anti-establishment</strong>:
+                plain-spoken, rhythmic, inspired by monologues from the movie
+                Trainspotting
               </li>
               <li>
                 <strong className="font-semibold">No agency jargon</strong>
@@ -293,11 +317,11 @@ export default function PersevereCaseStudy() {
                     Issue
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    I felt that the plum was pulling grey and washed-out next
-                    to the palette's warm terracotta and gold tones. Since the
-                    clients loved the purple, I wanted to keep it as an
-                    accent, but the page still needed a proper dark anchor to
-                    hold everything together.
+                    I felt that the plum was pulling grey and washed-out next to
+                    the palette's warm terracotta and gold tones. Since the
+                    clients loved the purple, I wanted to keep it as an accent,
+                    but the page still needed a proper dark anchor to hold
+                    everything together.
                   </p>
                   <PaletteCircleRow swatches={originalPalette} />
                 </div>
@@ -309,16 +333,16 @@ export default function PersevereCaseStudy() {
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     I ruled out true-black early because its absolute
-                    desaturation creates a cold, clinical contrast that
-                    clashes with the brand's warm personality. From a colour
-                    theory perspective, pure black absorbs all light and lacks
-                    a colour temperature. So I instead proposed warm chromatic
-                    neutrals like oxblood and espresso to maintain a unified
-                    colour temperature with the sunset-inspired palette. I
-                    also tested a warm navy blue option after one of the
-                    clients enquired about its possible use. I lay all five
-                    choices out side by side so they could compare them
-                    directly against the existing colours.
+                    desaturation creates a cold, clinical contrast that clashes
+                    with the brand's warm personality. From a colour theory
+                    perspective, pure black absorbs all light and lacks a colour
+                    temperature. So I instead proposed warm chromatic neutrals
+                    like oxblood and espresso to maintain a unified colour
+                    temperature with the sunset-inspired palette. I also tested
+                    a warm navy blue option after one of the clients enquired
+                    about its possible use. I lay all five choices out side by
+                    side so they could compare them directly against the
+                    existing colours.
                   </p>
 
                   <PaletteCircleRow swatches={darkOptions} />
@@ -330,12 +354,12 @@ export default function PersevereCaseStudy() {
                     Impact
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    The clients picked two dark colours: oxblood and warm
-                    black. Every colour they selected is still in the final
-                    palette, including the plum. Introducing these dark
-                    anchors establishes a clear visual hierarchy that anchors
-                    the layout. It naturally guides user attention to key
-                    conversion points across the site.
+                    The clients picked two dark colours: oxblood and warm black.
+                    Every colour they selected is still in the final palette,
+                    including the plum. Introducing these dark anchors
+                    establishes a clear visual hierarchy that anchors the
+                    layout. It naturally guides user attention to key conversion
+                    points across the site.
                   </p>
                   <PaletteCircleRow swatches={finalPalette} showNames={false} />
                 </div>
@@ -353,14 +377,13 @@ export default function PersevereCaseStudy() {
                     Issue
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    I noticed that every blog update would have to route
-                    through me first. Persevere's founders wanted to post
-                    often, but a simple copy change meant writing it, sending
-                    it over, waiting on me to code it in, then a review and
-                    deploy. That lead time didn't match how often a marketing
-                    agency actually needs to publish. It also made me a
-                    dependency for something that should have been quick and
-                    easy on their end.
+                    I noticed that every blog update would have to route through
+                    me first. Persevere's founders wanted to post often, but a
+                    simple copy change meant writing it, sending it over,
+                    waiting on me to code it in, then a review and deploy. That
+                    lead time didn't match how often a marketing agency actually
+                    needs to publish. It also made me a dependency for something
+                    that should have been quick and easy on their end.
                   </p>
                 </div>
 
@@ -369,19 +392,18 @@ export default function PersevereCaseStudy() {
                     Solution
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    I decided the fix wasn't a faster turnaround from me. It
-                    was removing me from the loop entirely for routine
-                    updates. I chose to integrate Decap CMS, giving the
-                    founders a simple login portal to write and publish posts
-                    themselves, no code involved. But self-serve publishing on
-                    its own felt risky without a safety net. So I built in a
-                    review layer rather than letting posts go straight live:
-                    every change opens as a pull request, runs through
-                    automated checks, and only publishes once approved. I also
-                    deployed and configured the authentication layer needed to
-                    connect the CMS securely to the site's GitHub repository,
-                    without touching the site's existing custom design or
-                    performance.
+                    I decided the fix wasn't a faster turnaround from me. It was
+                    removing me from the loop entirely for routine updates. I
+                    chose to integrate Decap CMS, giving the founders a simple
+                    login portal to write and publish posts themselves, no code
+                    involved. But self-serve publishing on its own felt risky
+                    without a safety net. So I built in a review layer rather
+                    than letting posts go straight live: every change opens as a
+                    pull request, runs through automated checks, and only
+                    publishes once approved. I also deployed and configured the
+                    authentication layer needed to connect the CMS securely to
+                    the site's GitHub repository, without touching the site's
+                    existing custom design or performance.
                   </p>
                 </div>
 
@@ -414,8 +436,8 @@ export default function PersevereCaseStudy() {
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     The contact form had nowhere real to send its data. GitHub
                     Pages, where the site is hosted, only serves static files
-                    and can't run any server-side code. That left no safe way
-                    to email submissions without exposing credentials in the
+                    and can't run any server-side code. That left no safe way to
+                    email submissions without exposing credentials in the
                     browser, or leaving the form wide open to spam bots.
                   </p>
                 </div>
@@ -431,15 +453,14 @@ export default function PersevereCaseStudy() {
                     control over their own data rather than routing enquiries
                     through someone else's platform. That function sends
                     submissions through Resend's email API, with the API key
-                    living only in the server environment, never exposed in
-                    the browser. For spam, I didn't want to rely on a single
-                    layer of defence. So I combined a hidden honeypot field to
-                    catch simple bots outright with Google's reCAPTCHA v3,
-                    running invisibly in the background and scoring each
-                    submission on how human it looks before any email gets
-                    sent. Real visitors never see a checkbox or a challenge.
-                    The whole thing runs silently while they fill out the form
-                    normally.
+                    living only in the server environment, never exposed in the
+                    browser. For spam, I didn't want to rely on a single layer
+                    of defence. So I combined a hidden honeypot field to catch
+                    simple bots outright with Google's reCAPTCHA v3, running
+                    invisibly in the background and scoring each submission on
+                    how human it looks before any email gets sent. Real visitors
+                    never see a checkbox or a challenge. The whole thing runs
+                    silently while they fill out the form normally.
                   </p>
                 </div>
 
@@ -449,11 +470,11 @@ export default function PersevereCaseStudy() {
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     Every genuine enquiry now lands straight in the client's
-                    inbox, reliably and securely, without them needing to
-                    manage any infrastructure themselves. Spam and bot
-                    submissions get filtered out before they ever reach a
-                    human. That keeps the inbox clean without adding friction
-                    for real customers trying to get in touch.
+                    inbox, reliably and securely, without them needing to manage
+                    any infrastructure themselves. Spam and bot submissions get
+                    filtered out before they ever reach a human. That keeps the
+                    inbox clean without adding friction for real customers
+                    trying to get in touch.
                   </p>
                 </div>
               </div>
