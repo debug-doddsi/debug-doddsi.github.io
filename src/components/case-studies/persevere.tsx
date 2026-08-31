@@ -1,4 +1,4 @@
-import { PenTool } from "lucide-react";
+import { PenTool, Image as ImageIcon } from "lucide-react";
 import { PageShell } from "../layout/PageShell";
 import { BentoGrid, BentoCard } from "../ui/bento-grid";
 import {
@@ -85,6 +85,19 @@ function SectionLabel({ children }: { children: string }) {
     <p className="font-mono text-sm text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
+  );
+}
+
+// One column of the project-meta strip - a label up top, a short 1-2 word
+// value beneath it.
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <p className="font-mono text-xs text-accent lowercase tracking-widest">
+        {label}
+      </p>
+      <p className="font-body text-xs text-neutral-400">{value}</p>
+    </div>
   );
 }
 
@@ -179,18 +192,38 @@ export default function PersevereCaseStudy() {
       icon={<PenTool size={28} />}
     >
       <BentoGrid>
-        {/* 1. Overview */}
-        <BentoCard size="sm">
-          <div>
-            <SectionLabel>Overview</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
-              Persevere Media is an Edinburgh-based digital marketing agency putting paid media
-              and creative production under one roof.
+        {/* 1. Hero Screenshot / GIF */}
+        {/* TODO: swap for a real screenshot or GIF of the finished site. */}
+        <BentoCard size="full" className="!min-h-0">
+          <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-accent/30 bg-black/[0.03]">
+            <ImageIcon size={28} className="text-accent/50" />
+            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">
+              Screenshot / GIF placeholder of the final artifacts
             </p>
           </div>
         </BentoCard>
 
-        {/* 2. My Role */}
+        {/* 2. Project Meta */}
+        <BentoCard size="sm">
+          <div className="flex flex-col gap-3">
+            <MetaItem label="Timeline" value="July - September 2026" />
+            <MetaItem label="Team" value="Solo" />
+            <MetaItem label="Skills" value="UI/UX Design, Requirements Gathering, Frontend Development" />
+          </div>
+        </BentoCard>
+
+        {/* 3. Overview */}
+        <BentoCard size="wide">
+          <div>
+            <SectionLabel>Overview</SectionLabel>
+            <p className="font-body text-sm leading-relaxed text-neutral-400">
+              Persevere Media is a new Edinburgh-based digital marketing agency putting paid media
+              and creative production under one roof. This project allowed me to design and build something from scratch and define a brand's breakout identity on launch.
+            </p>
+          </div>
+        </BentoCard>
+
+        {/* 4. My Role */}
         <BentoCard size="wide">
           <div>
             <SectionLabel>My Role</SectionLabel>
@@ -208,7 +241,16 @@ export default function PersevereCaseStudy() {
           </div>
         </BentoCard>
 
-        {/* 3. The Brief */}
+        <BentoCard size="sm">
+          <div>
+          <SectionLabel>Context</SectionLabel>
+              <p className="font-body text-sm leading-relaxed text-neutral-400">
+                First impressions of Persevere matter, especially when cold-launched. The site had to prove reliability and skill immediately and burst onto the scene rather than blend in.
+               </p>
+         </div>
+        </BentoCard>
+
+        {/* 5. The Brief */}
         <BentoCard size="full">
           <div>
             <SectionLabel>The Brief</SectionLabel>
@@ -234,7 +276,7 @@ export default function PersevereCaseStudy() {
           </div>
         </BentoCard>
 
-        {/* 4. Key Design Decisions */}
+        {/* 6. Key Design Decisions */}
         <BentoCard size="full">
           <SectionLabel>Key Decisions</SectionLabel>
 
