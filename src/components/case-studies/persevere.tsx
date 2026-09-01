@@ -1,4 +1,4 @@
-import { ImageIcon, PenTool } from "lucide-react";
+import { PenTool } from "lucide-react";
 import { PageShell } from "../layout/PageShell";
 import { BentoGrid, BentoCard } from "../ui/bento-grid";
 import {
@@ -198,13 +198,13 @@ export default function PersevereCaseStudy() {
     >
       <BentoGrid>
         {/* 1. Hero Screenshot / GIF */}
-        {/* TODO: swap for a real screenshot or GIF of the finished site. */}
         <BentoCard size="full" className="!min-h-0">
-          <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-accent/30 bg-black/[0.03]">
-            <ImageIcon size={28} className="text-accent/50" />
-            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">
-              Screenshot / GIF placeholder of the final artifacts
-            </p>
+          <div className="aspect-video w-full overflow-hidden rounded-xl ring-1 ring-black/10">
+            <img
+              src="/case-studies/persevere/artifact-1.png"
+              alt="Screenshot of the final Persevere Media artifacts"
+              className="h-full w-full object-cover"
+            />
           </div>
         </BentoCard>
 
@@ -313,7 +313,7 @@ export default function PersevereCaseStudy() {
             <DecisionItem
               number={1}
               title="Optimised the Colour Palette"
-              summary="Introduced warm chromatic neutrals as intentional dark anchors, giving structure to the layout and elevating visual hierarchy without compromising the clients' original palette."
+              summary="Introduced warm chromatic neutrals as intentional dark anchors, giving the layout a proper contrast point without compromising the clients' original palette."
             >
               <div className="flex flex-col gap-4">
                 {/* Issue */}
@@ -337,17 +337,12 @@ export default function PersevereCaseStudy() {
                     Solution
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    I ruled out true-black early because its absolute
-                    desaturation creates a cold, clinical contrast that clashes
-                    with the brand's warm personality. From a colour theory
-                    perspective, pure black absorbs all light and lacks a colour
-                    temperature. So I instead proposed warm chromatic neutrals
-                    like oxblood and espresso to maintain a unified colour
-                    temperature with the sunset-inspired palette. I also tested
-                    a warm navy blue option after one of the clients enquired
-                    about its possible use. I lay all five choices out side by
-                    side so they could compare them directly against the
-                    existing colours.
+                    True black was out early - it's too cold and clinical next
+                    to a palette this warm. I proposed oxblood and espresso
+                    instead, both closer in temperature to the sunset tones,
+                    and threw in a warm navy after one of the clients asked
+                    about it. Laid all five out next to the existing colours
+                    so they could compare directly.
                   </p>
 
                   <PaletteCircleRow swatches={darkOptions} />
@@ -361,10 +356,8 @@ export default function PersevereCaseStudy() {
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     The clients picked two dark colours: oxblood and warm black.
                     Every colour they selected is still in the final palette,
-                    including the plum. Introducing these dark anchors
-                    establishes a clear visual hierarchy that anchors the
-                    layout. It naturally guides user attention to key conversion
-                    points across the site.
+                    including the plum, and the layout finally has a proper
+                    dark anchor to build contrast from.
                   </p>
                   <PaletteCircleRow swatches={finalPalette} />
                 </div>
@@ -397,9 +390,9 @@ export default function PersevereCaseStudy() {
                     Solution
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    I decided the fix wasn't a faster turnaround from me. It was
-                    removing me from the loop entirely for routine updates. I
-                    chose to integrate Decap CMS, giving the founders a simple
+                    The fix wasn't a faster turnaround from me - it was
+                    removing myself from the loop entirely for routine
+                    updates. I chose to integrate Decap CMS, giving the founders a simple
                     login portal to write and publish posts themselves, no code
                     involved. But self-serve publishing on its own felt risky
                     without a safety net. So I built in a review layer rather
@@ -418,11 +411,9 @@ export default function PersevereCaseStudy() {
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     The founders now publish on their own schedule with no
-                    developer bottleneck. The review pipeline still means
-                    nothing goes live broken or unchecked. It's the kind of
-                    setup that gives any client faster content turnaround and
-                    genuine independence, and it doesn't trade away the
-                    stability of a properly reviewed release process.
+                    developer bottleneck. The review pipeline still catches
+                    anything before it goes live, so Persevere gets faster
+                    turnaround without losing that safety net.
                   </p>
                 </div>
               </div>
@@ -478,8 +469,8 @@ export default function PersevereCaseStudy() {
                     inbox, reliably and securely, without them needing to manage
                     any infrastructure themselves. Spam and bot submissions get
                     filtered out before they ever reach a human. That keeps the
-                    inbox clean without adding friction for real customers
-                    trying to get in touch.
+                    inbox clean without slowing down real customers trying to
+                    get in touch.
                   </p>
                 </div>
               </div>
@@ -500,8 +491,8 @@ export default function PersevereCaseStudy() {
                     anti-establishment, but the visual identity was still
                     leaning on Inter Variable, a generic, easily available font
                     that didn't carry any of that personality. A mainstream
-                    system typeface would have blended in with every other
-                    agency site, working directly against the brief for
+                     typeface system would have blended in with every other
+                    agency site, completely going against the requirement for
                     Persevere to burst onto the scene rather than blend in.
                   </p>
                 </div>
@@ -513,13 +504,13 @@ export default function PersevereCaseStudy() {
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     Rather than default to a mainstream font library, I
                     researched independent type foundries and found Tom Gordon,
-                    an independent artist who specialises in distinctive,
-                    characterful display faces. I shortlisted three options I
-                    felt captured Persevere's style; Jamboree, Motion Sickness
-                    and Pomelo. I presented them to the clients side by side and
-                    discussed each pick, tying every option back to who the
-                    company was and who they wanted to be, in addition to
-                    readability and legibility.
+                    an independent artist who specialises in hand-painted,
+                    distinctive, and characterful display faces. I shortlisted
+                    three options I felt captured Persevere's style;{" "}
+                    <em>Jamboree</em>, <em>Motion Sickness</em> and <em>Pomelo</em>. I presented them to the client and
+                    discussed things such as legibility, licensing, and use in future graphic designs. I also created some
+                    mockups of the word <em>Persevere</em> for them to have a visual representation of how each
+                    typeface would look in the context of their brand.
                   </p>
                   <FontSpecimenRow specimens={fontSpecimens} />
                 </div>
@@ -529,14 +520,15 @@ export default function PersevereCaseStudy() {
                     Impact
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    The clients immediately fell in love with Pomelo and Motion
-                    Sickness and use them as their core brand fonts. Both now
-                    run front and centre across graphics, business cards, the
-                    website and LinkedIn, giving Persevere a distinct visual
-                    signature no mainstream library could offer. Sourcing from
-                    an independent foundry instead of commissioning custom
-                    lettering also kept costs down, and the research fed
-                    directly into how the wider brand identity evolved.
+                    The clients immediately fell in love with <em>Pomelo</em>{" "}
+                    and <em>Motion Sickness</em> and have adopted them as their
+                    core brand fonts. Both now run front and centre across
+                    graphics, business cards, the website and LinkedIn - a
+                    visual signature no mainstream library could have given
+                    them. Sourcing from an independent foundry instead of
+                    commissioning custom lettering also kept costs down, and the
+                    research fed directly into how the wider brand identity
+                    evolved.
                   </p>
                 </div>
               </div>
