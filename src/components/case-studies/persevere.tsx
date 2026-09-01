@@ -496,13 +496,13 @@ export default function PersevereCaseStudy() {
                     Issue
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    Persevere's identity and voice was gritty, cheeky and anti-establishment, but the
-                    visual identity was still leaning on Inter Variable, a
-                    generic, easily available font that didn't carry any of
-                    that personality. A mainstream system typeface would have
-                    blended in with every other agency site, working directly
-                    against the brief for Persevere to burst onto the scene rather than
-                    blend in.
+                    Persevere's identity and voice was gritty, cheeky and
+                    anti-establishment, but the visual identity was still
+                    leaning on Inter Variable, a generic, easily available font
+                    that didn't carry any of that personality. A mainstream
+                    system typeface would have blended in with every other
+                    agency site, working directly against the brief for
+                    Persevere to burst onto the scene rather than blend in.
                   </p>
                 </div>
 
@@ -512,13 +512,14 @@ export default function PersevereCaseStudy() {
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     Rather than default to a mainstream font library, I
-                    researched independent type foundries and found Tom
-                    Gordon, an independent artist who specialises in distinctive, characterful
-                    display faces. I shortlisted three options I felt captured
-                    Persevere's style; Jamboree, Motion Sickness and Pomelo.
-                    I presented them to the clients side by side and
-                    discussed each pick, tying every option back to who
-                    the company was and who they wanted to be, in addition to readability and legibility.
+                    researched independent type foundries and found Tom Gordon,
+                    an independent artist who specialises in distinctive,
+                    characterful display faces. I shortlisted three options I
+                    felt captured Persevere's style; Jamboree, Motion Sickness
+                    and Pomelo. I presented them to the clients side by side and
+                    discussed each pick, tying every option back to who the
+                    company was and who they wanted to be, in addition to
+                    readability and legibility.
                   </p>
                   <FontSpecimenRow specimens={fontSpecimens} />
                 </div>
@@ -528,14 +529,14 @@ export default function PersevereCaseStudy() {
                     Impact
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    The clients immediately fell in love with Pomelo and Motion Sickness and use them as their core
-                    brand fonts. Both now run front and centre across
-                    graphics, business cards, the website and LinkedIn,
-                    giving Persevere a distinct visual signature no mainstream
-                    library could offer. Sourcing from an independent foundry
-                    instead of commissioning custom lettering also kept costs
-                    down, and the research fed directly into how the wider
-                    brand identity evolved.
+                    The clients immediately fell in love with Pomelo and Motion
+                    Sickness and use them as their core brand fonts. Both now
+                    run front and centre across graphics, business cards, the
+                    website and LinkedIn, giving Persevere a distinct visual
+                    signature no mainstream library could offer. Sourcing from
+                    an independent foundry instead of commissioning custom
+                    lettering also kept costs down, and the research fed
+                    directly into how the wider brand identity evolved.
                   </p>
                 </div>
               </div>

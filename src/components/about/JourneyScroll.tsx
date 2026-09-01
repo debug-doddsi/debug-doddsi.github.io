@@ -14,7 +14,7 @@ const content = [
   {
     title: "Dad Was Right",
     description:
-      'I\'ve always gravitated towards technology. At 12, I asked my Dad about port forwarding so I could host a Minecraft server for my friends. He responded by buying me a textbook on HTML. (Turns out he was pretty influential in my career path.) I was fascinated by how things worked, especially the "magical", invisible parts. That curiosity never really left, and it\'s turned out to be a pretty useful tool.',
+      "I've always gravitated towards technology. At 12, I asked my Dad about port forwarding so I could host a Minecraft server for my friends. He responded by buying me a textbook on HTML. (Turns out he was pretty influential in my career path.) I was fascinated by how things worked, especially the \"magical\", invisible parts. That curiosity never really left, and it's turned out to be a pretty useful tool.",
     content: (
       <Gallery
         compact
