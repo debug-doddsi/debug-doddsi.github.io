@@ -27,11 +27,13 @@ interface SparklePlacement {
   right?: string;
   size: number;
   delay: string;
+  kind?: "star" | "dot";
 }
 
 // Fixed sparkle arrangement around the title. Alternates left/right so
 // sparkles don't cluster on one side, and keeps offsets within roughly ±10%
-// so they never push past the title's own padding on narrow screens.
+// so they never push past the title's own padding on narrow screens. Small
+// round dots are mixed in with the star sparkles for texture.
 const SPARKLE_PLACEMENTS: SparklePlacement[] = [
   { left: "-8%", top: "-8%", size: 14, delay: "0s" },
   { right: "-6%", top: "5%", size: 10, delay: "0.3s" },
@@ -39,9 +41,25 @@ const SPARKLE_PLACEMENTS: SparklePlacement[] = [
   { right: "-9%", bottom: "10%", size: 16, delay: "1.4s" },
   { left: "-9%", top: "18%", size: 9, delay: "0.6s" },
   { right: "-3%", top: "-9%", size: 11, delay: "1.7s" },
+  { left: "-6%", top: "40%", size: 4, delay: "1.1s", kind: "dot" },
+  { right: "-8%", top: "38%", size: 5, delay: "0.5s", kind: "dot" },
+  { left: "-10%", bottom: "18%", size: 3, delay: "1.6s", kind: "dot" },
+  { right: "-5%", bottom: "-2%", size: 5, delay: "0.2s", kind: "dot" },
+  { left: "2%", top: "-10%", size: 13, delay: "0.8s" },
+  { right: "4%", bottom: "-9%", size: 15, delay: "1.3s" },
+  { left: "-3%", top: "2%", size: 4, delay: "1.9s", kind: "dot" },
+  { right: "-2%", bottom: "22%", size: 4, delay: "0.7s", kind: "dot" },
 ];
 
-function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
+function Sparkle({
+  top,
+  bottom,
+  left,
+  right,
+  size,
+  delay,
+  kind = "star",
+}: SparklePlacement) {
   const style: CSSProperties = {
     top,
     bottom,
@@ -51,6 +69,16 @@ function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
     height: size,
     animationDelay: delay,
   };
+
+  if (kind === "dot") {
+    return (
+      <span
+        aria-hidden="true"
+        className="absolute rounded-full bg-[var(--sparkle)] sparkle-twinkle pointer-events-none select-none"
+        style={style}
+      />
+    );
+  }
 
   return (
     <svg

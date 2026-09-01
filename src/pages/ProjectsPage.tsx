@@ -121,7 +121,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
         })}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {visibleProjects.map((project) => (
           <CutoutLaunchCard
             key={project.id}

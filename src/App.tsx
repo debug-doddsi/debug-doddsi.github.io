@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import { FolderTabs } from "./components/layout/FolderTabs";
 import type { TabId } from "./types";
 import { HomePage } from "./pages/HomePage";
@@ -15,15 +15,6 @@ import { TAB_GROUP, TAB_THEME } from "./lib/tabTheme";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getTabFromLocation);
-  const mainRef = useRef<HTMLElement>(null);
-
-  // The tab strip and the panel below it read as one shape, so they must
-  // switch colour/content in the exact same render - no delayed swap here.
-  // Only the newly-mounted panel fades in (via the `page-enter` keyframe
-  // triggered by the `key` change below); nothing waits on it.
-  useEffect(() => {
-    mainRef.current?.scrollTo({ top: 0 });
-  }, [activeTab]);
 
   // Clean the address bar back to the tab's pretty path on mount - covers
   // both the redirect stubs' `/?tab=x` round trip and any stale query string.
@@ -81,10 +72,7 @@ export default function App() {
     <div className="fade-in flex h-screen flex-col overflow-hidden">
       <FolderTabs active={TAB_GROUP[activeTab]} onNavigate={navigate} />
 
-      <main
-        ref={mainRef}
-        className="flex-1 overflow-y-auto px-4 pb-4 sm:px-8 sm:pb-8"
-      >
+      <main className="flex-1 overflow-hidden px-4 pb-4 sm:px-8 sm:pb-8">
         <div
           key={activeTab}
           style={
@@ -104,9 +92,14 @@ export default function App() {
               "--accent-rgb": panelTheme.inkRgb,
             } as CSSProperties
           }
-          className="page-enter min-h-full rounded-b-[28px] rounded-tr-[28px] px-6 py-10 sm:px-14 sm:py-16"
+          // Fixed-size folder shape - it never grows/scrolls with content.
+          // Only the inner div below scrolls, so the rounded frame (and the
+          // tab strip it sits under) reads as pinned in place at all times.
+          className="page-enter page-grain flex h-full flex-col overflow-hidden rounded-b-[28px] rounded-tr-[28px]"
         >
-          {renderTab(activeTab)}
+          <div className="flex-1 overflow-y-auto px-6 py-10 sm:px-14 sm:py-16">
+            {renderTab(activeTab)}
+          </div>
         </div>
       </main>
     </div>

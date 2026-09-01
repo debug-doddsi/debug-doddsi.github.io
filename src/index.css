@@ -131,6 +131,40 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
 }
 
+/* ─── Folder tab + page grain ─────────────────────────────────
+   Same static noise as the page background, layered on top of each
+   tab's own colour (and its matching page panel below it) so every
+   coloured surface reads as textured paper rather than flat fill.
+   Clipped to the host element's own rounded corners via overflow-hidden.
+   Tab and page grain share the exact same opacity/scale - the active
+   tab and the panel beneath it are the same fill colour and are meant
+   to read as one continuous shape, so any difference in grain strength
+   between the two shows up as a visible seam at the join.
+
+   Unlike the body's grain (a pale, saturate(0) noise that only reads
+   against the light cream base), this noise is remapped to solid black
+   specks (RGB zeroed, alpha kept from the turbulence) via feColorMatrix
+   - pale grey noise at low opacity was disappearing entirely against
+   the tabs' saturated pastel fills, so darkening the speckles themselves
+   (rather than the fill, which stays untouched) is what makes it read
+   as grain on any of the tab colours. */
+.tab-grain,
+.page-grain {
+  position: relative;
+  overflow: hidden;
+}
+.tab-grain::after,
+.page-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+}
+
 /* Strawberry Matcha Colour Palette */
 body {
   color: var(--ink);
