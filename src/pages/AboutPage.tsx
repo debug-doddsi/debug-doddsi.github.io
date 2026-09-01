@@ -16,9 +16,9 @@ export function AboutPage() {
           <GlassCard className="flex items-start gap-3 p-4">
             <Heart size={15} className="mt-0.5 shrink-0 text-accent" />
             <p className="font-body text-xs leading-relaxed text-neutral-300">
-              Due to the nature of my work, I can't share specific details
-              about the projects I've worked on, but here's a general
-              overview of my professional experience.
+              Due to the nature of my work, I can't share specific details about
+              the projects I've worked on, but here's a general overview of my
+              professional experience.
             </p>
           </GlassCard>
 

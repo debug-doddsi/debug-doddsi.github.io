@@ -339,10 +339,10 @@ export default function PersevereCaseStudy() {
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     True black was out early - it's too cold and clinical next
                     to a palette this warm. I proposed oxblood and espresso
-                    instead, both closer in temperature to the sunset tones,
-                    and threw in a warm navy after one of the clients asked
-                    about it. Laid all five out next to the existing colours
-                    so they could compare directly.
+                    instead, both closer in temperature to the sunset tones, and
+                    threw in a warm navy after one of the clients asked about
+                    it. Laid all five out next to the existing colours so they
+                    could compare directly.
                   </p>
 
                   <PaletteCircleRow swatches={darkOptions} />
@@ -356,8 +356,8 @@ export default function PersevereCaseStudy() {
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
                     The clients picked two dark colours: oxblood and warm black.
                     Every colour they selected is still in the final palette,
-                    including the plum, and the layout finally has a proper
-                    dark anchor to build contrast from.
+                    including the plum, and the layout finally has a proper dark
+                    anchor to build contrast from.
                   </p>
                   <PaletteCircleRow swatches={finalPalette} />
                 </div>
@@ -390,10 +390,10 @@ export default function PersevereCaseStudy() {
                     Solution
                   </p>
                   <p className="font-body text-sm leading-relaxed text-neutral-400">
-                    The fix wasn't a faster turnaround from me - it was
-                    removing myself from the loop entirely for routine
-                    updates. I chose to integrate Decap CMS, giving the founders a simple
-                    login portal to write and publish posts themselves, no code
+                    The fix wasn't a faster turnaround from me - it was removing
+                    myself from the loop entirely for routine updates. I chose
+                    to integrate Decap CMS, giving the founders a simple login
+                    portal to write and publish posts themselves, no code
                     involved. But self-serve publishing on its own felt risky
                     without a safety net. So I built in a review layer rather
                     than letting posts go straight live: every change opens as a
@@ -491,7 +491,7 @@ export default function PersevereCaseStudy() {
                     anti-establishment, but the visual identity was still
                     leaning on Inter Variable, a generic, easily available font
                     that didn't carry any of that personality. A mainstream
-                     typeface system would have blended in with every other
+                    typeface system would have blended in with every other
                     agency site, completely going against the requirement for
                     Persevere to burst onto the scene rather than blend in.
                   </p>
@@ -507,10 +507,13 @@ export default function PersevereCaseStudy() {
                     an independent artist who specialises in hand-painted,
                     distinctive, and characterful display faces. I shortlisted
                     three options I felt captured Persevere's style;{" "}
-                    <em>Jamboree</em>, <em>Motion Sickness</em> and <em>Pomelo</em>. I presented them to the client and
-                    discussed things such as legibility, licensing, and use in future graphic designs. I also created some
-                    mockups of the word <em>Persevere</em> for them to have a visual representation of how each
-                    typeface would look in the context of their brand.
+                    <em>Jamboree</em>, <em>Motion Sickness</em> and{" "}
+                    <em>Pomelo</em>. I presented them to the client and
+                    discussed things such as legibility, licensing, and use in
+                    future graphic designs. I also created some mockups of the
+                    word <em>Persevere</em> for them to have a visual
+                    representation of how each typeface would look in the
+                    context of their brand.
                   </p>
                   <FontSpecimenRow specimens={fontSpecimens} />
                 </div>
