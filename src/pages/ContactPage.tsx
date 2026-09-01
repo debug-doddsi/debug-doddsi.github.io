@@ -48,7 +48,7 @@ export function ContactPage() {
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-            className="sticky-note flex w-56 flex-col items-center gap-2 bg-white px-6 py-8 text-center transition-transform duration-300 hover:!rotate-0"
+            className="sticky-note flex w-56 flex-col items-center gap-2 bg-[var(--card-surface)] px-6 py-8 text-center transition-transform duration-300 hover:!rotate-0"
             style={{ transform: `rotate(${rotate}deg)` }}
           >
             <div className="sticky-tape" />

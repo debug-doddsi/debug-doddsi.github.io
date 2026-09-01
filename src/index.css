@@ -81,7 +81,7 @@ html {
   --accent-rgb: 198, 111, 128;
   --accent-soft: rgba(var(--accent-rgb), 0.09);
   --accent-ink: var(--cream); /* ivory text on accent buttons */
-  --bg-base: var(--cream);
+  --bg-base: var(--card-surface); /* vanilla pudding - the colour the folder sits on */
   --bg-sidebar: var(--latte);
   --border: oklch(0.922 0 0);
 }

@@ -85,7 +85,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
       icon={<LayoutGrid size={28} />}
       maxWidthClassName="max-w-5xl"
     >
-      <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
         <span className="font-mono text-neutral-500 text-xs uppercase tracking-widest">
           Filter by:
         </span>

@@ -90,16 +90,22 @@ export default function App() {
               // ivory text) instead of always strawberry pink.
               "--accent": panelTheme.ink,
               "--accent-rgb": panelTheme.inkRgb,
+              // Feeds the top scroll-fade (below) so it melts into this
+              // tab's own fill colour rather than a fixed one.
+              "--folder-fade": panelTheme.fill,
             } as CSSProperties
           }
           // Fixed-size folder shape - it never grows/scrolls with content.
           // Only the inner div below scrolls, so the rounded frame (and the
           // tab strip it sits under) reads as pinned in place at all times.
-          className="page-enter page-grain flex h-full flex-col overflow-hidden rounded-b-[28px] rounded-tr-[28px]"
+          className="folder-frame page-enter page-grain relative flex h-full flex-col overflow-hidden rounded-b-[28px] rounded-tr-[28px]"
         >
-          <div className="flex-1 overflow-y-auto px-6 py-10 sm:px-14 sm:py-16">
+          <div className="relative flex-1 overflow-y-auto px-6 py-10 sm:px-14 sm:py-16">
             {renderTab(activeTab)}
           </div>
+          {/* Fades scrolled content out before it reaches the tab seam at
+              the top, instead of the hard clip overflow-hidden would give. */}
+          <div className="folder-fade-top" aria-hidden="true" />
         </div>
       </main>
     </div>

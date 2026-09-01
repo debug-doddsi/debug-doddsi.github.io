@@ -44,13 +44,13 @@ export function CutoutLaunchCard({
   const stagger = useCutoutContentStaggerVariants();
 
   return (
-    <CutoutCard className="group/cutout relative flex h-96 w-64 flex-col overflow-hidden rounded-[28px] border border-[var(--latte)]/70 bg-[var(--card-surface)] backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+    <CutoutCard className="group/cutout relative flex w-64 flex-col overflow-hidden rounded-[22px] border border-[var(--latte)]/70 bg-[var(--card-surface)] backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
       <button
         type="button"
         onClick={onLaunch}
         className="block w-full text-left"
       >
-        <CutoutCardMedia className="h-40 w-full">
+        <CutoutCardMedia className="h-16 w-full">
           {placeholder}
           <CutoutCardOverlay className="from-[#241914]/30" />
         </CutoutCardMedia>
@@ -61,23 +61,20 @@ export function CutoutLaunchCard({
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={stagger.container}
-        className="flex flex-1 flex-col"
+        className="flex flex-col"
       >
-        <CutoutCardContent className="flex flex-1 flex-col gap-1.5 p-4">
+        <CutoutCardContent className="flex flex-col gap-1 p-2.5">
           <motion.h2
             variants={stagger.item}
-            className="font-display text-neutral-100 text-base leading-snug"
+            className="font-display text-neutral-100 text-sm leading-snug"
           >
             {title}
           </motion.h2>
-          <motion.div
-            variants={stagger.item}
-            className="flex flex-wrap gap-1.5"
-          >
+          <motion.div variants={stagger.item} className="flex flex-wrap gap-1">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-accent"
+                className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent"
               >
                 {PROJECT_TAG_LABELS[tag]}
               </span>
@@ -85,21 +82,21 @@ export function CutoutLaunchCard({
           </motion.div>
           <motion.p
             variants={stagger.item}
-            className="font-body text-xs text-neutral-400 leading-relaxed"
+            className="font-body text-xs text-neutral-400 leading-snug line-clamp-2"
           >
             {description}
           </motion.p>
 
           <motion.div
             variants={stagger.item}
-            className="mt-auto flex flex-wrap gap-1.5 pt-2"
+            className="flex flex-wrap gap-1 pt-1"
           >
             <button
               type="button"
               onClick={onLaunch}
-              className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 font-body text-xs font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
+              className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 font-body text-[11px] font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
             >
-              {ctaLabel} <ArrowRight size={12} />
+              {ctaLabel} <ArrowRight size={10} />
             </button>
 
             {secondaryHref ? (
@@ -107,17 +104,17 @@ export function CutoutLaunchCard({
                 href={secondaryHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 font-body text-xs font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
+                className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 font-body text-[11px] font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
               >
-                {secondaryLabel} <ExternalLink size={12} />
+                {secondaryLabel} <ExternalLink size={10} />
               </a>
             ) : (
               <button
                 type="button"
                 onClick={onSecondaryLaunch}
-                className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 font-body text-xs font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
+                className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 font-body text-[11px] font-medium text-accent-ink shadow-md transition-transform duration-150 hover:-translate-y-0.5"
               >
-                {secondaryLabel} <ArrowRight size={12} />
+                {secondaryLabel} <ArrowRight size={10} />
               </button>
             )}
           </motion.div>
