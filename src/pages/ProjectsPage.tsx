@@ -28,20 +28,10 @@ const PROJECTS: Project[] = [
     title: "Persevere Media",
     description: "A custom website for a digital marketing agency.",
     placeholder: (
-      <div
-        className="flex h-full w-full items-center justify-center"
-        style={{
-          background:
-            "linear-gradient(135deg, #594157 0%, #d5573b 55%, #edb03e 100%)",
-        }}
-      >
-        <span
-          className="text-2xl text-[#F3EEE6]"
-          style={{ fontFamily: "'DM Serif Display', serif" }}
-        >
-          Persevere Media
-        </span>
-      </div>
+      <CutoutCardImage
+        src="/case-studies/persevere/persevere-logo.png"
+        alt="Persevere Media logo"
+      />
     ),
     tags: ["professional"],
     onLaunch: (onNavigate) => onNavigate("persevere"),

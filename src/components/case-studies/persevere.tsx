@@ -1,4 +1,4 @@
-import { PenTool, Image as ImageIcon } from "lucide-react";
+import { ImageIcon, PenTool } from "lucide-react";
 import { PageShell } from "../layout/PageShell";
 import { BentoGrid, BentoCard } from "../ui/bento-grid";
 import {
@@ -8,30 +8,6 @@ import {
   AccordionContent,
 } from "../ui/accordion";
 
-/**
- * Persevere - Case Study
- * -----------------------------------------------------------------------
- * A living case-study page. Sections 2–3 will fill out as the brief and
- * further decisions land - search "TODO" to find what's still open.
- *
- * Palette - the actual client-approved Persevere palette:
- *   terracotta  #D5573B   - original palette, primary warm accent
- *   coral       #DF7F68   - original palette, secondary warm accent
- *   plum        #594157   - original palette, kept as an accent (too washed
- *                           out on its own to anchor the site as a dark)
- *   gold        #EDB03E   - original palette, accent
- *   paper       #F7F3E3   - original palette, page background
- *   oxblood     #4A1F1D   - added dark, picked by the clients
- *   warmBlack   #241914   - added dark, picked by the clients
- *
- * Both darks were shortlisted from a set of five options as a fix for the
- * plum reading as too grey/dull to anchor the site alone. The clients
- * picked both oxblood and warm black rather than just one.
- *
- * These are Persevere's own brand colours - kept as literal swatch values
- * since they're the subject of the case study. Everything else (type,
- * section chrome, card surfaces) uses this site's own theme.
- */
 const colours = {
   terracotta: "#D5573B",
   coral: "#DF7F68",
@@ -61,6 +37,14 @@ const originalPalette = [
   { hex: colours.coral, name: "Coral" },
   { hex: colours.terracotta, name: "Terracotta" },
   { hex: colours.plum, name: "Plum" },
+];
+
+// The three foundry options shortlisted for the brand typeface pairing,
+// ordered to match the narrative (Jamboree, Motion Sickness, Pomelo).
+const fontSpecimens = [
+  { src: "/case-studies/persevere/jam.png", name: "Jamboree" },
+  { src: "/case-studies/persevere/motion.png", name: "Motion Sickness" },
+  { src: "/case-studies/persevere/Pomelo.png", name: "Pomelo" },
 ];
 
 // Ordered light to dark.
@@ -157,27 +141,48 @@ function DecisionItem({
 // just wrap onto a second line if the row runs out of space.
 function PaletteCircleRow({
   swatches,
-  showNames = true,
 }: {
   swatches: { hex: string; name: string }[];
-  showNames?: boolean;
 }) {
   return (
     <div className="flex w-full items-start justify-between">
       {swatches.map((swatch) => (
         <div
           key={swatch.hex}
-          className="flex flex-1 flex-col items-center gap-1.5 min-w-0"
+          className="flex flex-1 items-center justify-center min-w-0"
         >
           <div
             className="h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125"
             style={{ backgroundColor: swatch.hex }}
           />
-          {showNames && (
-            <span className="font-mono text-xs tracking-wide text-neutral-400 truncate max-w-full">
-              {swatch.name}
-            </span>
-          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Type specimens for the shortlisted foundry options, shown as a row of
+// framed images so readers can see the letterforms rather than take the
+// names on faith.
+function FontSpecimenRow({
+  specimens,
+}: {
+  specimens: { src: string; name: string }[];
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {specimens.map((specimen) => (
+        <div key={specimen.name} className="flex flex-col gap-2">
+          <div className="aspect-square w-full overflow-hidden rounded-xl ring-1 ring-black/10">
+            <img
+              src={specimen.src}
+              alt={`${specimen.name} typeface specimen`}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <span className="font-mono text-xs tracking-widest text-neutral-400 text-center">
+            {specimen.name}
+          </span>
         </div>
       ))}
     </div>
@@ -361,7 +366,7 @@ export default function PersevereCaseStudy() {
                     layout. It naturally guides user attention to key conversion
                     points across the site.
                   </p>
-                  <PaletteCircleRow swatches={finalPalette} showNames={false} />
+                  <PaletteCircleRow swatches={finalPalette} />
                 </div>
               </div>
             </DecisionItem>
@@ -475,6 +480,62 @@ export default function PersevereCaseStudy() {
                     filtered out before they ever reach a human. That keeps the
                     inbox clean without adding friction for real customers
                     trying to get in touch.
+                  </p>
+                </div>
+              </div>
+            </DecisionItem>
+
+            <DecisionItem
+              number={4}
+              title="Proposed Typeface Systems with Character"
+              summary="Researched independent type foundries for something with more character than a mainstream library, shortlisted three options, and landed on a pairing that now runs across the entire brand."
+            >
+              <div className="flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Issue
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    Persevere's identity and voice was gritty, cheeky and anti-establishment, but the
+                    visual identity was still leaning on Inter Variable, a
+                    generic, easily available font that didn't carry any of
+                    that personality. A mainstream system typeface would have
+                    blended in with every other agency site, working directly
+                    against the brief for Persevere to burst onto the scene rather than
+                    blend in.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Solution
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    Rather than default to a mainstream font library, I
+                    researched independent type foundries and found Tom
+                    Gordon, an independent artist who specialises in distinctive, characterful
+                    display faces. I shortlisted three options I felt captured
+                    Persevere's style; Jamboree, Motion Sickness and Pomelo.
+                    I presented them to the clients side by side and
+                    discussed each pick, tying every option back to who
+                    the company was and who they wanted to be, in addition to readability and legibility.
+                  </p>
+                  <FontSpecimenRow specimens={fontSpecimens} />
+                </div>
+
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                  <p className="font-mono text-sm text-accent uppercase tracking-widest">
+                    Impact
+                  </p>
+                  <p className="font-body text-sm leading-relaxed text-neutral-400">
+                    The clients immediately fell in love with Pomelo and Motion Sickness and use them as their core
+                    brand fonts. Both now run front and centre across
+                    graphics, business cards, the website and LinkedIn,
+                    giving Persevere a distinct visual signature no mainstream
+                    library could offer. Sourcing from an independent foundry
+                    instead of commissioning custom lettering also kept costs
+                    down, and the research fed directly into how the wider
+                    brand identity evolved.
                   </p>
                 </div>
               </div>
