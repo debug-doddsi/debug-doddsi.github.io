@@ -61,13 +61,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
           Hi, I'm
         </p>
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-32">
-          <div className="relative inline-block shrink-0">
-            {SPARKLES.map((sparkle, i) => (
-              <Sparkle key={i} {...sparkle} />
-            ))}
-            <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
-              iona kate
-            </h1>
+          <div className="flex flex-col shrink-0">
+            <div className="relative inline-block">
+              {SPARKLES.map((sparkle, i) => (
+                <Sparkle key={i} {...sparkle} />
+              ))}
+              <h1 className="font-pixie text-7xl sm:text-8xl md:text-9xl lg:text-[10rem] text-neutral-100 tracking-tight leading-none">
+                iona kate
+              </h1>
+            </div>
 
             <div className="flex w-full gap-4 mt-10">
               <button

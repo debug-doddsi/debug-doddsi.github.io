@@ -16,9 +16,9 @@ export function WorkPage() {
       <GlassCard className="flex items-start gap-3 mb-8 p-4">
         <Heart size={15} className="mt-0.5 text-accent shrink-0" />
         <p className="font-body text-neutral-300 text-xs leading-relaxed">
-          Due to the nature of my work, I am unable to share specific details
-          about the projects I have worked on. However, I can provide a general
-          overview of my professional experience and career journey.
+          Due to the nature of my work, I can't share specific details about
+          the projects I've worked on, but here's a general overview of my
+          professional experience.
         </p>
       </GlassCard>
       <div className="space-y-6">

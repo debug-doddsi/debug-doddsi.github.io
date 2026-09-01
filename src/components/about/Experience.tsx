@@ -36,7 +36,7 @@ const JOBS: Job[] = [
     period: "Feb 2024 - Apr 2026",
     location: "Onsite, Edinburgh",
     description:
-      "After completing my graduate scheme, I was offered a permanent role as a Software Engineer.I worked on a variety of embedded software projects, including developing new features for existing products and creating new products from scratch.",
+      "After completing my graduate scheme, I was offered a permanent role as a Software Engineer. I worked on a variety of embedded software projects, including developing new features for existing products and creating new products from scratch.",
     tags: [
       "Embedded Software",
       "Teamwork",
@@ -78,7 +78,7 @@ const JOBS: Job[] = [
     period: "Jul 2022 - Sep 2022",
     location: "Onsite, Edinburgh",
     description:
-      "Fresh out of university, I joined a large company as a Systems Engineer through a Graduate Scheme. It provided me with time and opportunities to adjust to the workplace and learn the ropes of the company, while also providing me with a high-level perspective of the engineering work I was undertaking.",
+      "Fresh out of university, I joined a large company as a Systems Engineer through a Graduate Scheme. It gave me time to adjust to the workplace, learn the ropes, and get a high-level view of the engineering work before I was fully in the thick of it.",
     tags: [
       "Systems Design",
       "Cameo",

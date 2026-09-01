@@ -83,7 +83,7 @@ const content = [
   {
     title: "My Creative Awakening",
     description:
-      "I never considered myself an artist, until I realised I'm creative in my own way. When I bought my first home, I took to interior design like a duck to water, choosing colours and textures to build a warm, happy space. Using Feng Shui to optimise it turned out to be less about aesthetics and more about balance and flow, the same instincts I rely on every day as a UX designer. My creativity was never about painting or drawing. It's about recognising patterns and understanding how colour and space affect how people feel.",
+      "I never considered myself an artist, until I realised I'm creative in my own way. When I bought my first home, I took to interior design like a duck to water, choosing colours and textures to build a warm, happy space. Using Feng Shui to optimise it turned out to be about balance and flow, the same instincts I rely on every day as a UX designer. My creativity is about recognising patterns and understanding how colour and space affect how people feel.",
     content: (
       <Gallery
         compact
