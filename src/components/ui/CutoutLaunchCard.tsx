@@ -5,16 +5,13 @@ import {
   CutoutCard,
   CutoutCardMedia,
   CutoutCardOverlay,
-  CutoutCardPin,
   CutoutCardContent,
-  CutoutCorner,
 } from "./cutout-card";
 import { useCutoutContentStaggerVariants } from "./cutout-card-shared";
 import type { ProjectTag } from "../../types";
 import { PROJECT_TAG_LABELS } from "../../types";
 
 interface CutoutLaunchCardProps {
-  icon: ReactNode;
   title: string;
   description: string;
   placeholder: ReactNode;
@@ -30,13 +27,10 @@ interface CutoutLaunchCardProps {
   secondaryHref?: string;
 }
 
-// Shared "launch tile" for the Projects grid, built on cult-ui's CutoutCard:
-// a top-right icon pin stitched into the media with concave CutoutCorner
-// accents (coloured to match whatever it sits on) instead of a plain
-// rectangle photo, plus a pair of always-visible CTAs (case study + live
-// app/site) so they're reachable without hover on touch devices.
+// Shared "launch tile" for the Projects grid, built on cult-ui's CutoutCard,
+// with a pair of always-visible CTAs (case study + live app/site) so they're
+// reachable without hover on touch devices.
 export function CutoutLaunchCard({
-  icon,
   title,
   description,
   placeholder,
@@ -59,21 +53,6 @@ export function CutoutLaunchCard({
         <CutoutCardMedia className="h-52 w-full">
           {placeholder}
           <CutoutCardOverlay className="from-[#241914]/30" />
-
-          {/* Top-right icon pin, coloured as itself so the corner accents
-              extend its own silhouette into the media rather than cutting
-              into it. */}
-          <CutoutCardPin className="top-0 right-0 flex h-11 w-11 items-center justify-center rounded-bl-[16px] bg-accent text-white shadow-md">
-            {icon}
-            <CutoutCorner
-              size={20}
-              className="absolute top-0 -left-[19px] -rotate-90 text-accent"
-            />
-            <CutoutCorner
-              size={20}
-              className="absolute right-0 -bottom-[19px] -rotate-90 text-accent"
-            />
-          </CutoutCardPin>
         </CutoutCardMedia>
       </button>
 

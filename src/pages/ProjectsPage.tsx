@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ChefHat, Map, PenTool, LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
 import { CutoutLaunchCard } from "../components/ui/CutoutLaunchCard";
 import { CutoutCardImage } from "../components/ui/cutout-card";
@@ -12,7 +12,6 @@ interface ProjectsPageProps {
 
 interface Project {
   id: string;
-  icon: ReactNode;
   title: string;
   description: string;
   placeholder: ReactNode;
@@ -26,7 +25,6 @@ interface Project {
 const PROJECTS: Project[] = [
   {
     id: "persevere",
-    icon: <PenTool size={18} />,
     title: "Persevere Media",
     description: "A custom website for a digital marketing agency.",
     placeholder: (
@@ -52,7 +50,6 @@ const PROJECTS: Project[] = [
   },
   {
     id: "sourdough",
-    icon: <ChefHat size={18} />,
     title: "Sourdough Souschef",
     description:
       "A tracker for managing your sourdough bread starter and baking schedule.",
@@ -66,7 +63,6 @@ const PROJECTS: Project[] = [
   },
   {
     id: "dnd",
-    icon: <Map size={18} />,
     title: "D&D Map Maker",
     description:
       "Procedural landscape and town maps for my DM, with custom pins built in.",
@@ -139,7 +135,6 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
         {visibleProjects.map((project) => (
           <CutoutLaunchCard
             key={project.id}
-            icon={project.icon}
             title={project.title}
             description={project.description}
             placeholder={project.placeholder}
