@@ -72,11 +72,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <div className="flex w-full gap-4 mt-10">
               <button
                 onClick={() => onNavigate("about")}
-                className="flex-1 px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
+                className="flex-1 px-8 py-3 rounded-full border border-accent bg-accent/50 text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300"
               >
                 More about me
               </button>
-              <button className="flex-1 px-8 py-3 rounded-full border border-accent text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300">
+              <button className="flex-1 px-8 py-3 rounded-full border border-accent bg-accent/50 text-accent font-mono text-xs uppercase tracking-widest hover:bg-accent hover:text-neutral-950 transition-all duration-300">
                 Placeholder
               </button>
             </div>

@@ -73,7 +73,7 @@ export function BentoCard({
   return (
     <div
       className={`group relative flex min-h-40 flex-col overflow-hidden rounded-2xl p-6
-        bg-[#faf3e4]/60 backdrop-blur-md border border-[#faf3e4]/70
+        bg-[var(--latte)]/80 backdrop-blur-md border border-[var(--latte)]/70
         shadow-[0_8px_30px_rgba(0,0,0,0.06)]
         transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)]
         ${children ? "" : "justify-between"}

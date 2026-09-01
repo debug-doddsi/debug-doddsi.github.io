@@ -15,9 +15,9 @@ html {
 }
 
 /* ─── Strawberry Matcha palette ─────────────────────────────
-   The site's default colour palette. Named after the drink:
-   "strawberry" tones for accents/highlights, green "matcha" tones for
-   secondary surfaces/text, and warm "latte" cream for backgrounds. */
+   The site's default colour palette. Named after the drink: warm
+   "cream"/"latte" tones carry the background/surfaces, and "strawberry"
+   pink + "matcha" green are kept as accents on top of it. */
 :root {
   --strawberry: #c66f80;
   --strawberry-light: #f4c7d0;
@@ -28,12 +28,12 @@ html {
   --latte: #ece3d2;
   --cream: #faf3e4;
 
-  /* Dedicated text tokens for the default theme - deep wine for
-     headings/body, muted mauve for secondary text. Kept separate from
-     the matcha variables above since those are still used for borders,
-     the scrapbook page, and notebook accents elsewhere. */
-  --ink: #3d1220;
-  --ink-muted: #8c5568;
+  /* Dedicated text tokens for the default theme - dark matcha for
+     headings/body (readable against the cream background), strawberry
+     pink for the smaller secondary/label text. */
+  --ink: var(--matcha-dark);
+  --ink-muted: var(--matcha-dark);
+  --ink-rose: var(--strawberry);
 }
 
 /* ─── Base tokens (strawberry matcha) ───────────────────────*/
@@ -41,7 +41,7 @@ html {
   --accent: var(--strawberry);
   --accent-soft: #c66f8018;
   --accent-rgb: 198, 111, 128;
-  --bg-base: var(--strawberry-cream);
+  --bg-base: var(--cream);
   --bg-sidebar: var(--latte);
   --border: oklch(0.922 0 0);
 }
@@ -74,19 +74,36 @@ body {
   @apply text-neutral-100 antialiased;
 }
 
+/* ─── Static grain overlay ───────────────────────────────────
+   A fixed, non-animated noise texture over the cream base.
+   Negative z-index keeps it behind all page content (it paints on
+   top of body's own background-color but below the normal-flow
+   app markup), so it reads as texture on the background surface. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+}
+
 /* Strawberry Matcha Colour Palette */
 body {
   color: var(--ink);
 }
 .bg-neutral-950 {
-  background-color: var(--strawberry-cream) !important;
+  background-color: var(--matcha) !important;
 }
 .bg-neutral-900 {
-  background-color: var(--latte) !important;
+  background-color: var(--matcha-light) !important;
 }
 aside {
-  background-color: var(--latte) !important;
-  border-color: var(--matcha-light) !important;
+  background-color: var(--matcha-light) !important;
+  border-color: var(--matcha-dark) !important;
 }
 header {
   background-color: transparent !important;
@@ -96,28 +113,28 @@ header {
   color: var(--ink) !important;
 }
 .text-neutral-300 {
-  color: var(--strawberry) !important;
+  color: var(--ink-rose) !important;
 }
 .text-neutral-400 {
   color: var(--ink-muted) !important;
 }
 .text-neutral-500 {
-  color: var(--strawberry) !important;
+  color: var(--ink-rose) !important;
 }
 .text-neutral-700 {
-  color: var(--strawberry) !important;
+  color: var(--ink-rose) !important;
 }
 .border-neutral-700 {
-  border-color: var(--matcha-light) !important;
+  border-color: var(--matcha-dark) !important;
 }
 .border-neutral-800 {
-  border-color: var(--matcha-light) !important;
+  border-color: var(--matcha-dark) !important;
 }
 .hover\:bg-neutral-800:hover {
   background-color: var(--strawberry-light) !important;
 }
 .bg-neutral-900\/40 {
-  background-color: var(--latte) !important;
+  background-color: var(--matcha-light) !important;
 }
 
 /* ─── Accent utility (CSS var aware) ─────────────────────── */

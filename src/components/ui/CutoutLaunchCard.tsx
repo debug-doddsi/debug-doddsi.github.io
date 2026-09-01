@@ -44,7 +44,7 @@ export function CutoutLaunchCard({
   const stagger = useCutoutContentStaggerVariants();
 
   return (
-    <CutoutCard className="group/cutout relative flex h-[28rem] w-72 flex-col overflow-hidden rounded-[28px] border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
+    <CutoutCard className="group/cutout relative flex h-[28rem] w-72 flex-col overflow-hidden rounded-[28px] border border-[var(--latte)]/70 bg-[var(--latte)]/80 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.08)] transition-shadow duration-300">
       <button
         type="button"
         onClick={onLaunch}

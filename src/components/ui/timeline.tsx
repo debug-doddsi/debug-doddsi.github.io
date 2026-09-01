@@ -210,7 +210,7 @@ const TimelineItem = memo(function TimelineItem({
 
       {/* Card */}
       <div className={`ml-14 ${itemClassName}`}>
-        <div className="rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-4 transition-all duration-200">
+        <div className="rounded-2xl border border-[var(--latte)]/70 bg-[var(--latte)]/80 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-4 transition-all duration-200">
           <button
             id={headerId}
             type="button"

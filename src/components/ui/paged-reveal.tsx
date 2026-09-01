@@ -36,7 +36,7 @@ export function PagedReveal({ items, contentClassName }: PagedRevealProps) {
   return (
     // `-mx-12` cancels the page shell's fixed `px-12` so the card can reach
     // the screen edges below `lg`; `lg:mx-0` restores it for the desktop layout.
-    <div className="relative flex flex-col gap-4 -mx-12 rounded-2xl border border-[#faf3e4]/70 bg-[#faf3e4]/60 p-4 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] lg:mx-0 lg:h-[22rem] lg:flex-row lg:justify-center lg:gap-0 lg:space-x-10 lg:p-8">
+    <div className="relative flex flex-col gap-4 -mx-12 rounded-2xl border border-[var(--latte)]/70 bg-[var(--latte)]/80 p-4 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.06)] lg:mx-0 lg:h-[22rem] lg:flex-row lg:justify-center lg:gap-0 lg:space-x-10 lg:p-8">
       {items.length > 1 && (
         <>
           <button
