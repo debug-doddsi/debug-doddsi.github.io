@@ -14,7 +14,7 @@ const content = [
   {
     title: "Dad Was Right",
     description:
-      'I have always gravitated towards technology. I remember asking my Dad at 12 years old about port forwarding, in an attempt to host a Minecraft server for my friends and I. I also remember him buying me a textbook on HTML after I asked how to build my own websites. (Turns out my Dad was pretty influential in my career path, and I owe him a lot for that.) I was always fascinated by how things worked, especially the "magical", invisible parts that power everything we know and love. That curiosity has never really left, and it\'s turned out to be a pretty useful tool.',
+      'I\'ve always gravitated towards technology. At 12, I asked my Dad about port forwarding so I could host a Minecraft server for my friends. He responded by buying me a textbook on HTML. (Turns out he was pretty influential in my career path.) I was fascinated by how things worked, especially the "magical", invisible parts. That curiosity never really left, and it\'s turned out to be a pretty useful tool.',
     content: (
       <Gallery
         compact
@@ -37,7 +37,7 @@ const content = [
   {
     title: "Biomedical Engineering",
     description:
-      "Studying biomedical engineering at university was a major turning point, nurturing my two favourite subjects: biology and physics. It was my true entrypoint into the world of engineering. As much as I loved and excelled in the field, I was far too afraid of blood, bodies and hospitals to actually work in medicine. I flirted with the idea of working on myoelectric prostheses and robotic surgical platforms, but deep down I knew my anxieties would not be capable of doing a job like that justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",
+      "Studying biomedical engineering was a major turning point, my true entrypoint into engineering, blending my two favourite subjects: biology and physics. I loved it, but I was far too squeamish about blood and hospitals to actually work in medicine. I flirted with the idea of building prosthetics and surgical robots, but deep down knew my anxieties couldn't do that job justice. Let's just say I was grateful for being short-sighted during anatomy lectures.",
     content: (
       <Gallery
         compact
@@ -59,7 +59,7 @@ const content = [
   {
     title: "Into Software Engineering",
     description:
-      "Luckily, software engineering doesn't usually involve blood. At university, the electronics-based projects were where I truly came alive, building circuits with friends late into the night, debugging things that stubbornly refused to work, and learning problem solving, creativity and resilience the hard way. There's a particular kind of exhilaration in finally seeing a stubborn circuit spring to life after hours of troubleshooting, and every late night was worth it for that feeling alone. I loved the entire process: the messy middle, the small breakthroughs, and watching an idea go from a rough sketch to something real and working.",
+      "Luckily, software engineering doesn't usually involve blood. The electronics projects were where I truly came alive: building circuits with friends late into the night, debugging things that stubbornly refused to work, and learning resilience the hard way. There's nothing quite like the exhilaration of a stubborn circuit finally springing to life. I loved the whole process, the messy middle, the small breakthroughs, watching an idea go from a rough sketch to something real.",
     content: (
       <Gallery
         compact
@@ -83,7 +83,7 @@ const content = [
   {
     title: "My Creative Awakening",
     description:
-      "I never considered myself an artist. It's only been in the last few years that I've realised I'm creative in my own way. When I bought my first home, I took to interior design like a duck to water, choosing colours and textures to build a warm, happy space. Using the principles of Feng Shui to optimise my home turned out to be less about aesthetics and more about balance, proportion and flow, the same instincts I rely on every day as a UX designer. I realised my creativity was never about painting or drawing. It's about recognising patterns, understanding how colour and space affect how people feel, and using that to your advantage.",
+      "I never considered myself an artist, until I realised I'm creative in my own way. When I bought my first home, I took to interior design like a duck to water, choosing colours and textures to build a warm, happy space. Using Feng Shui to optimise it turned out to be less about aesthetics and more about balance and flow, the same instincts I rely on every day as a UX designer. My creativity was never about painting or drawing. It's about recognising patterns and understanding how colour and space affect how people feel.",
     content: (
       <Gallery
         compact
