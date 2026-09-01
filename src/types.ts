@@ -1,7 +1,6 @@
 export type TabId =
   | "home"
   | "about"
-  | "work"
   | "projects"
   | "contact"
   | "kitchen"
@@ -9,6 +8,11 @@ export type TabId =
   | "dnd"
   | "dnd-case-study"
   | "persevere";
+
+/** The four folder tabs shown in the top nav. Every other `TabId` (case
+ *  study/app sub-pages) belongs to one of these for nav-highlight/panel
+ *  colour purposes - see `TAB_GROUP` in `lib/tabTheme.ts`. */
+export type TopTabId = "home" | "about" | "projects" | "contact";
 
 export type ProjectTag = "professional" | "fun";
 

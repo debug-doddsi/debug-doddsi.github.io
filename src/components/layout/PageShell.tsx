@@ -11,7 +11,7 @@ export function SkeletonBlock({
 }: SkeletonBlockProps) {
   return (
     <div
-      className={`${height} rounded-lg border border-[var(--latte)]/70 bg-[var(--latte)]/80 backdrop-blur-md flex items-center justify-center`}
+      className={`${height} rounded-lg border border-[var(--latte)]/70 bg-[var(--card-surface)] backdrop-blur-md flex items-center justify-center`}
     >
       <span className="font-mono text-neutral-500 text-xs uppercase tracking-widest">
         {label}
@@ -56,7 +56,7 @@ function Sparkle({ top, bottom, left, right, size, delay }: SparklePlacement) {
     <svg
       viewBox="0 0 24 24"
       fill="currentColor"
-      className="absolute text-neutral-100 sparkle-twinkle pointer-events-none select-none"
+      className="absolute text-[var(--sparkle)] sparkle-twinkle pointer-events-none select-none"
       style={style}
       aria-hidden="true"
     >

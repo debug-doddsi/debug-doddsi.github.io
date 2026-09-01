@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { DockNav } from "./components/layout/DockNav";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { FolderTabs } from "./components/layout/FolderTabs";
 import type { TabId } from "./types";
 import { HomePage } from "./pages/HomePage";
 import { AboutPage } from "./pages/AboutPage";
-import { WorkPage } from "./pages/WorkPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ContactPage } from "./pages/ContactPage";
 import { KitchenPage } from "./pages/KitchenPage";
@@ -12,26 +11,19 @@ import { DnDPage } from "./pages/DnDPage";
 import { DnDCaseStudyPage } from "./pages/DnDCaseStudyPage";
 import { PersevereCaseStudyPage } from "./pages/PersevereCaseStudyPage";
 import { TAB_PATHS, getTabFromLocation } from "./lib/routes";
-
-const TRANSITION_MS = 180;
+import { TAB_GROUP, TAB_THEME } from "./lib/tabTheme";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>(getTabFromLocation);
-
-  const [displayedTab, setDisplayedTab] = useState<TabId>(getTabFromLocation);
-  const [isExiting, setIsExiting] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
+  // The tab strip and the panel below it read as one shape, so they must
+  // switch colour/content in the exact same render - no delayed swap here.
+  // Only the newly-mounted panel fades in (via the `page-enter` keyframe
+  // triggered by the `key` change below); nothing waits on it.
   useEffect(() => {
-    if (activeTab === displayedTab) return;
-    setIsExiting(true);
-    const t = setTimeout(() => {
-      setDisplayedTab(activeTab);
-      setIsExiting(false);
-      mainRef.current?.scrollTo({ top: 0 });
-    }, TRANSITION_MS);
-    return () => clearTimeout(t);
-  }, [activeTab, displayedTab]);
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [activeTab]);
 
   // Clean the address bar back to the tab's pretty path on mount - covers
   // both the redirect stubs' `/?tab=x` round trip and any stale query string.
@@ -63,11 +55,9 @@ export default function App() {
   function renderTab(tab: TabId) {
     switch (tab) {
       case "home":
-        return <HomePage onNavigate={navigate} />;
+        return <HomePage />;
       case "about":
         return <AboutPage />;
-      case "work":
-        return <WorkPage />;
       case "projects":
         return <ProjectsPage onNavigate={navigate} />;
       case "persevere":
@@ -85,23 +75,40 @@ export default function App() {
     }
   }
 
-  return (
-    <>
-      <div className="fade-in h-screen overflow-hidden flex">
-        <DockNav active={activeTab} onNavigate={navigate} />
+  const panelTheme = TAB_THEME[TAB_GROUP[activeTab]];
 
-        {/* Scrollable content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main ref={mainRef} className="flex-1 overflow-y-auto pt-14 pb-24">
-            <div
-              key={displayedTab}
-              className={`px-12 py-14 ${isExiting ? "page-exit" : "page-enter"}`}
-            >
-              {renderTab(displayedTab)}
-            </div>
-          </main>
+  return (
+    <div className="fade-in flex h-screen flex-col overflow-hidden">
+      <FolderTabs active={TAB_GROUP[activeTab]} onNavigate={navigate} />
+
+      <main
+        ref={mainRef}
+        className="flex-1 overflow-y-auto px-4 pb-4 sm:px-8 sm:pb-8"
+      >
+        <div
+          key={activeTab}
+          style={
+            {
+              backgroundColor: panelTheme.fill,
+              // Re-point the site-wide ink tokens (see index.css) at this
+              // tab's own dark shade, so headings/body text on every panel
+              // match its background hue instead of always reading matcha
+              // green.
+              "--ink": panelTheme.ink,
+              "--ink-muted": panelTheme.ink,
+              "--ink-rose": panelTheme.ink,
+              // Same for the accent-button colour - each page's "View Case
+              // Study"-style buttons use that page's own dark shade (with
+              // ivory text) instead of always strawberry pink.
+              "--accent": panelTheme.ink,
+              "--accent-rgb": panelTheme.inkRgb,
+            } as CSSProperties
+          }
+          className="page-enter min-h-full rounded-b-[28px] rounded-tr-[28px] px-6 py-10 sm:px-14 sm:py-16"
+        >
+          {renderTab(activeTab)}
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

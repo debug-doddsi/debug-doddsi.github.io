@@ -7,7 +7,6 @@ import type { TabId } from "../types";
 export const TAB_PATHS: Record<TabId, string> = {
   home: "/",
   about: "/about",
-  work: "/work",
   projects: "/projects",
   persevere: "/projects/persevere",
   contact: "/contact",

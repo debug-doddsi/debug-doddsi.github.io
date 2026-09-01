@@ -20,7 +20,7 @@ html {
    pink + "matcha" green are kept as accents on top of it. */
 :root {
   --strawberry: #c66f80;
-  --strawberry-light: #f4c7d0;
+  --strawberry-light: #dfa3b0;
   --strawberry-cream: #fdf1f4;
   --matcha-dark: #4a6644;
   --matcha: #9faa74;
@@ -28,19 +28,59 @@ html {
   --latte: #ece3d2;
   --cream: #faf3e4;
 
+  /* Solid card surface used for the "glass" cards that float on top of
+     every page (bio blurb, paged-reveal panel, etc.) - kept as one fixed
+     colour so those cards read the same regardless of the page's own
+     accent behind them. */
+  --card-surface: #efe1c3; /* vanilla pudding */
+
+  /* Warm yellow used for the decorative sparkles around every page title -
+     the old "honey" tab colour, kept fixed instead of following each
+     page's own ink so it reads the same on every tab. */
+  --sparkle: #ffd93d; /* banana yellow */
+
   /* Dedicated text tokens for the default theme - dark matcha for
      headings/body (readable against the cream background), strawberry
      pink for the smaller secondary/label text. */
   --ink: var(--matcha-dark);
   --ink-muted: var(--matcha-dark);
   --ink-rose: var(--strawberry);
+
+  /* Deeper strawberry, for text/tabs that need more contrast than the
+     mid-tone --strawberry accent gives on light backgrounds. */
+  --strawberry-ink: #7d4257;
+}
+
+/* ─── Folder tab palette ─────────────────────────────────────
+   "Strawberry milk & matcha" swatch set, dedicated to the four folder
+   tabs only (the site's general strawberry/matcha accents elsewhere are
+   untouched). Each tab gets its own light/mid "fill" (every tab's own
+   background, active or not, and the content panel behind it) paired
+   with a deeper shade of that same hue as its "ink" (tab label text,
+   and - via the --ink/--ink-muted/--ink-rose hookup in App.tsx - the
+   heading/body text on that page's own cards). */
+:root {
+  --tab-ink: #6c4435; /* bitter cocoa - fallback, unused now every tab has its own */
+  --tab-home-fill: #a5c57c; /* fresh matcha */
+  --tab-home-ink: #5b6c44; /* deep matcha */
+  --tab-home-ink-rgb: 91, 108, 68;
+  --tab-about-fill: #eba5b5; /* mauve strawberry milk */
+  --tab-about-ink: #7a2e40; /* deep mauve */
+  --tab-about-ink-rgb: 122, 46, 64;
+  --tab-projects-fill: #b395cc; /* ube */
+  --tab-projects-ink: #625270; /* deep ube */
+  --tab-projects-ink-rgb: 98, 82, 112;
+  --tab-contact-fill: #92b4db; /* spirinula */
+  --tab-contact-ink: #506378; /* deep spirinula */
+  --tab-contact-ink-rgb: 80, 99, 120;
 }
 
 /* ─── Base tokens (strawberry matcha) ───────────────────────*/
 :root {
   --accent: var(--strawberry);
-  --accent-soft: #c66f8018;
   --accent-rgb: 198, 111, 128;
+  --accent-soft: rgba(var(--accent-rgb), 0.09);
+  --accent-ink: var(--cream); /* ivory text on accent buttons */
   --bg-base: var(--cream);
   --bg-sidebar: var(--latte);
   --border: oklch(0.922 0 0);
@@ -153,6 +193,9 @@ header {
 .bg-accent-soft {
   background-color: var(--accent-soft);
 }
+.text-accent-ink {
+  color: var(--accent-ink);
+}
 .shadow-accent {
   box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.25);
 }
@@ -236,32 +279,17 @@ header {
   }
 }
 
-/* ─── Page transitions ────────────────────────────────────── */
-@keyframes pageExit {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
+/* ─── Page transitions ─────────────────────────────────────
+   Opacity-only fade-in, no vertical slide, and no delay before the panel
+   switches - it swaps colour/content in the same render as the folder
+   tab above it (see App.tsx) so the two never appear at different times. */
 @keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
-}
-
-.page-exit {
-  animation: pageExit 0.18s ease forwards;
-  pointer-events: none;
 }
 
 .page-enter {
@@ -770,6 +798,7 @@ header {
 }
 
 .scrapbook-photo {
+  position: relative;
   width: 100%;
   height: 128px;
   overflow: hidden;
@@ -935,6 +964,28 @@ header {
     border-radius: 0 0 6px 6px;
     box-shadow: none;
   }
+}
+
+/* ─── Sticky notes (project + contact cards) ─────────────────────────────── */
+
+.sticky-note {
+  position: relative;
+  box-shadow:
+    2px 6px 18px rgba(0, 0, 0, 0.18),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sticky-tape {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 46px;
+  height: 20px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
 }
 
 /* ─── Sourdough Tracker - Bread Slice Shape ──────────────────────────────── */

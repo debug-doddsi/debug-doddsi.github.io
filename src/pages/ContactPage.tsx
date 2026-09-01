@@ -1,6 +1,37 @@
-import { Send, Mail, Linkedin, Link } from "lucide-react";
+import { Send, Mail, Linkedin, Github } from "lucide-react";
 import { PageShell } from "../components/layout/PageShell";
-import { GlassCard } from "../components/ui/GlassCard";
+
+interface ContactNote {
+  icon: typeof Mail;
+  heading: string;
+  value: string;
+  href: string;
+  rotate: number;
+}
+
+const CONTACT_NOTES: ContactNote[] = [
+  {
+    icon: Mail,
+    heading: "say hello!",
+    value: "hello.ionakate@gmail.com",
+    href: "mailto:hello.ionakate@gmail.com",
+    rotate: -3,
+  },
+  {
+    icon: Linkedin,
+    heading: "connect with me",
+    value: "/in/ionawatson",
+    href: "https://www.linkedin.com/in/ionawatson/",
+    rotate: 2.5,
+  },
+  {
+    icon: Github,
+    heading: "see my code",
+    value: "@debug-doddsi",
+    href: "https://github.com/debug-doddsi",
+    rotate: -2,
+  },
+];
 
 export function ContactPage() {
   return (
@@ -8,44 +39,27 @@ export function ContactPage() {
       title="Contact"
       subtitle="Want to work together, or just say hello? Find me here."
       icon={<Send size={28} />}
+      maxWidthClassName="max-w-3xl"
     >
-      <GlassCard>
-        <div className="flex flex-col gap-3">
-          {/* Email */}
-          <div className="flex items-center gap-3">
-            <Mail size={16} className="text-accent shrink-0" />
-            <a
-              href="mailto:hello.ionakate@gmail.com"
-              className="text-accent hover:underline font-body text-sm"
-            >
-              hello.ionakate@gmail.com
-            </a>
-          </div>
-
-          {/* LinkedIn */}
-          <div className="flex items-center gap-3">
-            <Linkedin size={16} className="text-accent shrink-0" />
-            <a
-              href="https://www.linkedin.com/in/ionawatson/"
-              className="text-accent hover:underline font-body text-sm"
-            >
-              LinkedIn
-            </a>
-          </div>
-
-          {/* GitHub */}
-          <div className="flex items-center gap-3">
-            <Link size={16} className="text-accent shrink-0" />
-
-            <a
-              href="https://github.com/debug-doddsi"
-              className="text-accent hover:underline font-body text-sm"
-            >
-              Github
-            </a>
-          </div>
-        </div>
-      </GlassCard>
+      <div className="flex flex-wrap justify-center gap-8 py-6">
+        {CONTACT_NOTES.map(({ icon: Icon, heading, value, href, rotate }) => (
+          <a
+            key={heading}
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+            className="sticky-note flex w-56 flex-col items-center gap-2 bg-white px-6 py-8 text-center transition-transform duration-300 hover:!rotate-0"
+            style={{ transform: `rotate(${rotate}deg)` }}
+          >
+            <div className="sticky-tape" />
+            <Icon size={20} className="text-accent" />
+            <p className="scrapbook-title text-xl">{heading}</p>
+            <p className="handwritten text-base text-[var(--matcha-dark)] break-all">
+              {value}
+            </p>
+          </a>
+        ))}
+      </div>
     </PageShell>
   );
 }

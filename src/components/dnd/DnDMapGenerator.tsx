@@ -3990,7 +3990,7 @@ export function DnDMapGenerator() {
                 "px-3 py-1.5 transition-colors",
                 i > 0 && "border-l border-neutral-800",
                 mode === m
-                  ? "bg-accent text-white"
+                  ? "bg-accent text-accent-ink"
                   : "text-neutral-400 hover:bg-neutral-800",
               )}
             >
@@ -4009,7 +4009,7 @@ export function DnDMapGenerator() {
                   "px-2.5 py-1.5 transition-colors",
                   i > 0 && "border-l border-neutral-800",
                   scale === s
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-accent-ink"
                     : "text-neutral-400 hover:bg-neutral-800",
                 )}
               >
@@ -4029,7 +4029,7 @@ export function DnDMapGenerator() {
                   "px-2.5 py-1.5 transition-colors",
                   i > 0 && "border-l border-neutral-800",
                   civSize === s
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-accent-ink"
                     : "text-neutral-400 hover:bg-neutral-800",
                 )}
               >
@@ -4128,7 +4128,7 @@ export function DnDMapGenerator() {
             />
             <button
               onClick={confirmPin}
-              className="p-1 bg-accent text-white rounded hover:opacity-80"
+              className="p-1 bg-accent text-accent-ink rounded hover:opacity-80"
             >
               <Check size={10} />
             </button>

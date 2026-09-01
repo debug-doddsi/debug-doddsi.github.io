@@ -95,7 +95,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
           aria-pressed={activeTag === null}
           className={`rounded-full border px-4 py-1.5 font-body text-xs font-medium transition-colors duration-150 ${
             activeTag === null
-              ? "border-accent bg-accent text-white"
+              ? "border-accent bg-accent text-accent-ink"
               : "border-accent/30 bg-[#faf3e4]/60 text-accent hover:border-accent/70"
           }`}
         >
@@ -111,7 +111,7 @@ export function ProjectsPage({ onNavigate }: ProjectsPageProps) {
               aria-pressed={isActive}
               className={`rounded-full border px-4 py-1.5 font-body text-xs font-medium transition-colors duration-150 ${
                 isActive
-                  ? "border-accent bg-accent text-white"
+                  ? "border-accent bg-accent text-accent-ink"
                   : "border-accent/30 bg-[#faf3e4]/60 text-accent hover:border-accent/70"
               }`}
             >
