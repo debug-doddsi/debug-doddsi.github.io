@@ -41,20 +41,20 @@ export function ContactPage() {
       icon={<Send size={28} />}
       maxWidthClassName="max-w-3xl"
     >
-      <div className="flex flex-wrap justify-center gap-8 py-6">
+      <div className="flex flex-wrap justify-center gap-4 py-6 sm:gap-8">
         {CONTACT_NOTES.map(({ icon: Icon, heading, value, href, rotate }) => (
           <a
             key={heading}
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-            className="sticky-note flex w-56 flex-col items-center gap-2 bg-[var(--card-surface)] px-6 py-8 text-center transition-transform duration-300 hover:!rotate-0"
+            className="sticky-note flex aspect-square w-32 flex-col items-center justify-center gap-1 bg-[var(--card-surface)] px-3 py-3 text-center transition-transform duration-300 hover:!rotate-0 sm:aspect-auto sm:w-56 sm:gap-2 sm:px-6 sm:py-8"
             style={{ transform: `rotate(${rotate}deg)` }}
           >
             <div className="sticky-tape" />
             <Icon size={20} className="text-accent" />
-            <p className="scrapbook-title text-xl">{heading}</p>
-            <p className="handwritten text-base text-[var(--matcha-dark)] break-all">
+            <p className="scrapbook-title">{heading}</p>
+            <p className="hidden handwritten text-base text-[var(--matcha-dark)] break-all sm:block">
               {value}
             </p>
           </a>

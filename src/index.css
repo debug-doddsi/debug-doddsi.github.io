@@ -886,6 +886,16 @@ header {
   line-height: 1.1;
   margin-bottom: 3px;
 }
+
+/* Mobile-only: the Contact page's sticky notes shrink to small squares
+   (see ContactPage.tsx), so their heading needs to shrink to match instead
+   of staying at the desktop 30px. */
+@media (max-width: 639px) {
+  .sticky-note .scrapbook-title {
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+}
 .scrapbook-subtitle {
   font-family: "Caveat", cursive;
   font-size: 17px;

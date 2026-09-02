@@ -30,7 +30,7 @@ export function FolderTabs({ active, onNavigate }: FolderTabsProps) {
               backgroundColor: colors.fill,
               color: colors.ink,
             }}
-            className={`tab-grain rounded-t-2xl px-5 py-2.5 font-mono text-xs uppercase tracking-widest transition-transform duration-200 sm:px-7 sm:py-3 sm:text-sm ${
+            className={`tab-grain shrink-0 rounded-t-2xl px-2.5 py-2 text-center font-mono text-[10px] uppercase tracking-tight transition-transform duration-200 sm:px-7 sm:py-3 sm:text-sm sm:tracking-widest ${
               isActive
                 ? "z-10 translate-y-0 opacity-100"
                 : "translate-y-1.5 opacity-70 hover:translate-y-1 hover:opacity-90"
