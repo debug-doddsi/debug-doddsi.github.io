@@ -103,6 +103,11 @@ interface PageShellProps {
   /** Override the default `max-w-2xl` container width, e.g. for pages
    *  that need room for a wider grid of cards. */
   maxWidthClassName?: string;
+  /** Override the title's default `text-8xl` size - e.g. for a long
+   *  single-word title that would otherwise overflow narrow screens.
+   *  Desktop (`sm:` and up) should stay `text-8xl` to match every other
+   *  page unless there's a reason to differ. */
+  titleClassName?: string;
 }
 
 export function PageShell({
@@ -111,6 +116,7 @@ export function PageShell({
   children,
   sparkles = true,
   maxWidthClassName = "max-w-2xl",
+  titleClassName = "text-8xl",
 }: PageShellProps) {
   return (
     <div>
@@ -119,7 +125,9 @@ export function PageShell({
           for a bigger grid. */}
       <div className="mx-auto max-w-2xl mb-10">
         <div className="relative inline-block">
-          <h1 className="font-pixie text-8xl text-neutral-100 tracking-tight">
+          <h1
+            className={`font-pixie ${titleClassName} text-neutral-100 tracking-tight`}
+          >
             {title}
           </h1>
           {sparkles &&

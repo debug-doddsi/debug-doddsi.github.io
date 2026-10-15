@@ -13,7 +13,7 @@ import { GlassCard } from "../ui/GlassCard";
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="font-mono text-sm text-accent lowercase tracking-widest mb-4">
+    <p className="font-mono text-xs sm:text-sm text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
   );
@@ -32,7 +32,7 @@ function FeatureCard({
     <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-5 flex flex-col gap-3">
       <Icon size={18} className="text-accent shrink-0" />
       <h3 className="font-display text-base text-neutral-100">{title}</h3>
-      <p className="font-body text-sm leading-relaxed text-neutral-400">
+      <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
         {description}
       </p>
     </div>
@@ -45,13 +45,14 @@ export default function SourdoughCaseStudy() {
       title="Sourdough Souschef"
       subtitle="A personal app for tracking my sourdough starter, guiding my bakes, and doing the ratio maths so I don't have to."
       icon={<ChefHat size={28} />}
+      titleClassName="text-6xl sm:text-8xl"
     >
       <div className="flex flex-col gap-8">
         {/* The Idea */}
         <div id="idea" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>The Idea</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               I keep a sourdough starter going, and I kept losing track of the
               same three things: when it was last fed, whether my numbers for a
               loaf actually added up, and where I was in a bake I'd started
@@ -66,7 +67,7 @@ export default function SourdoughCaseStudy() {
         <div id="how-it-works" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>How It Works</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400 mb-5">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400 mb-5">
               The app is built around three things I actually needed while
               baking, not a feature list I decided on up front:
             </p>
@@ -94,7 +95,7 @@ export default function SourdoughCaseStudy() {
         <div id="under-the-hood" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>Under the Hood</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               An active bake is a real session, not just a checklist: it tracks
               flour, water, starter and salt mass off a fixed ratio, persists to
               local storage so a page refresh mid-bake doesn't lose my place,
@@ -112,7 +113,7 @@ export default function SourdoughCaseStudy() {
         <div id="outcome" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>Outcome</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               I use this for every bake now. I've stopped losing track of when
               my starter last got fed, and I haven't ended up with an
               over-proofed loaf from losing the thread of a bake halfway

@@ -13,7 +13,7 @@ import { GlassCard } from "../ui/GlassCard";
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="font-mono text-sm text-accent lowercase tracking-widest mb-4">
+    <p className="font-mono text-xs sm:text-sm text-accent lowercase tracking-widest mb-4">
       {children}
     </p>
   );
@@ -32,7 +32,7 @@ function FeatureCard({
     <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-5 flex flex-col gap-3">
       <Icon size={18} className="text-accent shrink-0" />
       <h3 className="font-display text-base text-neutral-100">{title}</h3>
-      <p className="font-body text-sm leading-relaxed text-neutral-400">
+      <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
         {description}
       </p>
     </div>
@@ -51,7 +51,7 @@ export default function DnDCaseStudy() {
         <div id="idea" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>The Idea</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               My DM was spending real prep time hand-drawing maps for whatever
               region or town the party was about to stumble into, and I wanted
               to give that time back. I'm a big fan of Skyrim's map style, so I
@@ -67,7 +67,7 @@ export default function DnDCaseStudy() {
         <div id="how-it-works" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>How It Works</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400 mb-5">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400 mb-5">
               There are two map modes, plus the finishing touches that make a
               generated map feel like it belongs at the table:
             </p>
@@ -100,7 +100,7 @@ export default function DnDCaseStudy() {
         <div id="under-the-hood" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>Under the Hood</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               Terrain is built from layered simplex noise rather than anything
               hand-placed, so coastlines, rivers and forest clusters come out
               looking organic instead of obviously generated. Settlement layouts
@@ -118,7 +118,7 @@ export default function DnDCaseStudy() {
         <div id="outcome" className="scroll-mt-28">
           <GlassCard>
             <SectionLabel>Outcome</SectionLabel>
-            <p className="font-body text-sm leading-relaxed text-neutral-400">
+            <p className="font-body text-xs sm:text-sm leading-relaxed text-neutral-400">
               My DM now generates a usable map in seconds instead of losing an
               evening to one, and pins the specific locations a session needs on
               top of it. It's also been the most fun way I've found to practise

@@ -195,6 +195,7 @@ export default function PersevereCaseStudy() {
       title="Persevere Media"
       subtitle="Designing a website for a digital marketing agency that has to deliver personality, reliability and stand out from the crowd."
       icon={<PenTool size={28} />}
+      titleClassName="text-6xl sm:text-8xl"
     >
       <BentoGrid>
         {/* 1. Hero Screenshot / GIF */}
