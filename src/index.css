@@ -167,6 +167,23 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
 }
 
+/* ─── Folder border ──────────────────────────────────────────────
+   A hard border around the folder panel's scroll area (App.tsx's
+   `.folder-frame`) - every edge except the top, which stays seamless so
+   the active tab's matching fill colour keeps flowing straight down into
+   the panel with no bar or seam breaking the two apart (see
+   FolderTabs.tsx). */
+.folder-frame {
+  /* --accent-rgb is already re-pointed to this tab's own ink colour (see
+     App.tsx), so the border tints to match whichever panel is open
+     instead of a flat neutral line - and reads clearly against both the
+     cream page behind it and the panel's own lighter fill, unlike a
+     latte border would (too close to the page background to show up). */
+  border-right: 2px solid rgba(var(--accent-rgb), 0.4);
+  border-bottom: 2px solid rgba(var(--accent-rgb), 0.4);
+  border-left: 2px solid rgba(var(--accent-rgb), 0.4);
+}
+
 /* Strawberry Matcha Colour Palette */
 body {
   color: var(--ink);

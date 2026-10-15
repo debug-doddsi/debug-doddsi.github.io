@@ -30,10 +30,15 @@ export function FolderTabs({ active, onNavigate }: FolderTabsProps) {
               backgroundColor: colors.fill,
               color: colors.ink,
             }}
-            className={`tab-grain shrink-0 rounded-t-2xl px-2.5 py-2 text-center font-mono text-[10px] uppercase tracking-tight transition-transform duration-200 sm:px-7 sm:py-3 sm:text-sm sm:tracking-widest ${
+            className={`tab-grain shrink-0 rounded-t-2xl px-2.5 pb-2 text-center font-mono text-[10px] uppercase tracking-tight transition-all duration-200 sm:px-7 sm:pb-3 sm:text-sm sm:tracking-widest ${
               isActive
-                ? "z-10 translate-y-0 opacity-100"
-                : "translate-y-1.5 opacity-70 hover:translate-y-1 hover:opacity-90"
+                ? // Taller than the inactive tabs (more top padding, same
+                  // bottom padding) so it stands up higher above the row
+                  // while staying flush with the folder beneath it - no
+                  // translate here, so nothing pulls its bottom edge away
+                  // from that seam.
+                  "z-10 pt-3.5 opacity-100 sm:pt-6"
+                : "translate-y-1.5 pt-2 opacity-70 hover:translate-y-1 hover:opacity-90 sm:pt-3"
             }`}
           >
             {label}
