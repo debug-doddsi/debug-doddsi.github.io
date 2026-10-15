@@ -124,12 +124,15 @@ function DecisionItem({
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="flex gap-4">
+        <div className="flex gap-0 sm:gap-4">
+          {/* Indents the content to line up under the title rather than the
+              number - skipped on mobile, where every bit of width matters
+              and the expanded Issue/Solution/Impact cards need the room. */}
           <span
-            className={`shrink-0 ${NUMBER_COLUMN_WIDTH}`}
+            className={`hidden shrink-0 sm:block ${NUMBER_COLUMN_WIDTH}`}
             aria-hidden="true"
           />
-          <div className="flex-1 min-w-0">{children}</div>
+          <div className="min-w-0 flex-1">{children}</div>
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -152,7 +155,7 @@ function PaletteCircleRow({
           className="flex flex-1 items-center justify-center min-w-0"
         >
           <div
-            className="h-10 w-10 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125"
+            className="h-5 w-5 shrink-0 rounded-full ring-1 ring-black/10 transition-transform duration-200 ease-out hover:scale-125 sm:h-10 sm:w-10"
             style={{ backgroundColor: swatch.hex }}
           />
         </div>
@@ -318,7 +321,7 @@ export default function PersevereCaseStudy() {
             >
               <div className="flex flex-col gap-4">
                 {/* Issue */}
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Issue
                   </p>
@@ -333,7 +336,7 @@ export default function PersevereCaseStudy() {
                 </div>
 
                 {/* Solution */}
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Solution
                   </p>
@@ -350,7 +353,7 @@ export default function PersevereCaseStudy() {
                 </div>
 
                 {/* Impact */}
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Impact
                   </p>
@@ -371,7 +374,7 @@ export default function PersevereCaseStudy() {
               summary="Removed the developer bottleneck from routine content updates by integrating a CMS with secure GitHub authentication. The result is a self-serve publishing flow for the founders that still runs through automated review before anything goes live."
             >
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Issue
                   </p>
@@ -386,7 +389,7 @@ export default function PersevereCaseStudy() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Solution
                   </p>
@@ -406,7 +409,7 @@ export default function PersevereCaseStudy() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Impact
                   </p>
@@ -426,7 +429,7 @@ export default function PersevereCaseStudy() {
               summary="Connected the contact form to a real email pipeline that runs safely behind the scenes, with genuine bot protection that never gets in a visitor's way."
             >
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Issue
                   </p>
@@ -439,7 +442,7 @@ export default function PersevereCaseStudy() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Solution
                   </p>
@@ -461,7 +464,7 @@ export default function PersevereCaseStudy() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Impact
                   </p>
@@ -483,7 +486,7 @@ export default function PersevereCaseStudy() {
               summary="Researched independent type foundries for something with more character than a mainstream library, shortlisted three options, and landed on a pairing that now runs across the entire brand."
             >
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Issue
                   </p>
@@ -498,7 +501,7 @@ export default function PersevereCaseStudy() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Solution
                   </p>
@@ -519,7 +522,7 @@ export default function PersevereCaseStudy() {
                   <FontSpecimenRow specimens={fontSpecimens} />
                 </div>
 
-                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-6 flex flex-col gap-4">
+                <div className="rounded-2xl border border-accent/20 bg-black/[0.03] p-4 sm:p-6 flex flex-col gap-4">
                   <p className="font-mono text-xs sm:text-sm text-accent uppercase tracking-widest">
                     Impact
                   </p>
